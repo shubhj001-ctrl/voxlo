@@ -3,8 +3,13 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const httpServer = createServer(app);
@@ -17,6 +22,7 @@ const io = new Server(httpServer, {
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '../public')));
 
 // In-memory storage for active users and invite codes
 const users = new Map(); // userId -> { username, inviteCode, socketId }
@@ -123,7 +129,6 @@ io.on('connection', (socket) => {
     console.log(`Chat connected: ${currentUser.username} <-> ${targetUser.username}`);
   });
 
-  // Send message
   socket.on('sendMessage', ({ roomId, message, timestamp }) => {
     const chat = activeChats.get(roomId);
     
@@ -136,7 +141,8 @@ io.on('connection', (socket) => {
       id: Date.now() + Math.random(),
       senderId: socket.id,
       message,
-      timestamp
+      timestamp,
+      isOwnMessage: false
     };
 
     chat.messages.push(messageData);
@@ -164,9 +170,8 @@ io.on('connection', (socket) => {
   });
 });
 
-// REST API endpoints
 app.get('/', (req, res) => {
-  res.json({ message: 'VOXLO Server Running', activeUsers: users.size });
+  res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 app.get('/health', (req, res) => {

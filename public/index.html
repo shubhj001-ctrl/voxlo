@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VOXLO - Secure Ephemeral Chat</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Welcome Screen -->
+    <div id="welcomeScreen" class="screen active">
+        <div class="welcome-container">
+            <div class="welcome-card">
+                <div class="logo">
+                    <div class="logo-icon">🔐</div>
+                    <h1>VOXLO</h1>
+                </div>
+                
+                <p class="tagline">Secure Ephemeral Messaging</p>
+                
+                <div class="features">
+                    <div class="feature">
+                        <span class="feature-icon">🔒</span>
+                        <span>Local Storage Only</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">⏱️</span>
+                        <span>10-Min Auto-Delete</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">🎫</span>
+                        <span>Invite Code System</span>
+                    </div>
+                </div>
+
+                <form id="registerForm" class="register-form">
+                    <div class="input-group">
+                        <label for="username">Enter Your Name</label>
+                        <input
+                            id="username"
+                            type="text"
+                            placeholder="John Doe"
+                            maxlength="20"
+                            required
+                            autofocus
+                        />
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">Get Started</button>
+                </form>
+
+                <div class="disclaimer">
+                    <p>Messages are stored locally and automatically deleted after 10 minutes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Screen -->
+    <div id="chatScreen" class="screen">
+        <div class="chat-room">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <div class="user-info">
+                        <div class="user-avatar" id="userAvatar">J</div>
+                        <div>
+                            <div class="user-name" id="userName">User</div>
+                            <div class="user-status">Online</div>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-actions">
+                        <button class="icon-btn" id="myCodeBtn" title="My Invite Code">🎫</button>
+                        <button class="icon-btn" id="connectBtn" title="Connect with Code">➕</button>
+                    </div>
+                </div>
+
+                <div id="myCodeCard" class="my-code-card" style="display: none;">
+                    <div class="code-label">Your Invite Code</div>
+                    <div class="code-display" id="inviteCodeDisplay">ABC123</div>
+                    <div class="code-hint">Click to copy</div>
+                </div>
+
+                <div class="chat-list" id="chatList">
+                    <div class="empty-state">
+                        <p>No active chats</p>
+                        <p class="hint">Use an invite code to start chatting</p>
+                    </div>
+                </div>
+
+                <button class="clear-chats-btn" id="clearChatsBtn">Clear All Chats</button>
+            </div>
+
+            <!-- Main Chat Area -->
+            <div class="chat-main">
+                <div id="noChatSelected" class="no-chat-selected">
+                    <div class="empty-icon">💬</div>
+                    <h2>Welcome to VOXLO</h2>
+                    <p>Select a chat or connect with someone using an invite code</p>
+                    <button class="btn-primary" id="connectBtnMain">Connect with Code</button>
+                </div>
+
+                <div id="chatContent" style="display: none;" class="chat-content">
+                    <div class="chat-header">
+                        <div class="chat-partner-info">
+                            <div class="partner-avatar" id="partnerAvatar">P</div>
+                            <div>
+                                <div class="partner-name" id="partnerName">Partner</div>
+                                <div class="typing-indicator" id="typingIndicator" style="display: none;">typing...</div>
+                            </div>
+                        </div>
+                        <div class="chat-info-badge">🔒 Messages auto-delete in 10 min</div>
+                    </div>
+
+                    <div class="messages-container" id="messagesContainer">
+                        <div class="empty-messages">
+                            <p>No messages yet. Start the conversation!</p>
+                        </div>
+                    </div>
+
+                    <form class="message-input-form" id="messageForm">
+                        <input
+                            type="text"
+                            id="messageInput"
+                            class="message-input"
+                            placeholder="Type a message..."
+                            maxlength="500"
+                        />
+                        <button type="submit" class="send-btn">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connect Modal -->
+    <div id="connectModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Connect with Invite Code</h2>
+                <button class="modal-close" id="modalCloseBtn">✕</button>
+            </div>
+            <form id="connectForm">
+                <div class="input-group">
+                    <label>Enter 6-Digit Code</label>
+                    <input
+                        type="text"
+                        id="connectCodeInput"
+                        placeholder="ABC123"
+                        maxlength="6"
+                        required
+                        style="text-transform: uppercase;"
+                    />
+                </div>
+                <button type="submit" class="btn-primary">Connect</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
