@@ -5,6 +5,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 dotenv.config();
 
@@ -24,12 +26,18 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
-// In-memory storage for active users and invite codes
-const users = new Map(); // userId -> { username, inviteCode, socketId }
+// Configuration
+const ADMIN_PASSWORD = 'Voxlo_';
+const JWT_SECRET = 'your-secret-key-change-this';
+
+// In-memory database
+const users = new Map(); // userId -> { id, firstName, lastName, email, passwordHash, inviteCode, status, createdAt }
+const usersByEmail = new Map(); // email -> userId
 const inviteCodes = new Map(); // inviteCode -> userId
+const chatUsers = new Map(); // socket.id -> { userId, firstName, lastName, inviteCode }
 const activeChats = new Map(); // roomId -> { user1, user2, messages }
 
-// Generate random 6-character alphanumeric invite code
+// Utility Functions
 function generateInviteCode() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let code = '';
@@ -39,45 +47,277 @@ function generateInviteCode() {
   return code;
 }
 
-// Create unique room ID for two users
 function getRoomId(userId1, userId2) {
   return [userId1, userId2].sort().join('-');
 }
 
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
+function generateUserId() {
+  return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
 
-  // User registration
-  socket.on('register', ({ username }) => {
-    const userId = socket.id;
+// Middleware
+function verifyAdminToken(req, res, next) {
+  const token = req.headers.authorization?.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.adminAuth = decoded;
+    next();
+  } catch (error) {
+    res.status(401).json({ message: 'Invalid token' });
+  }
+}
+
+// REST API Routes
+
+// Authentication Routes
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { firstName, lastName, email, password } = req.body;
+
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    if (usersByEmail.has(email)) {
+      return res.status(400).json({ message: 'Email already registered' });
+    }
+
+    const userId = generateUserId();
+    const passwordHash = await bcrypt.hash(password, 10);
     let inviteCode;
-    
-    // Generate unique invite code
+
     do {
       inviteCode = generateInviteCode();
     } while (inviteCodes.has(inviteCode));
 
-    users.set(userId, {
-      username,
+    const user = {
+      id: userId,
+      firstName,
+      lastName,
+      email,
+      passwordHash,
       inviteCode,
-      socketId: socket.id
-    });
-    
+      status: 'active',
+      createdAt: new Date()
+    };
+
+    users.set(userId, user);
+    usersByEmail.set(email, userId);
     inviteCodes.set(inviteCode, userId);
+
+    res.status(201).json({ message: 'User registered successfully' });
+  } catch (error) {
+    console.error('Register error:', error);
+    res.status(500).json({ message: 'Registration failed' });
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password required' });
+    }
+
+    const userId = usersByEmail.get(email);
+    if (!userId) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    const user = users.get(userId);
+    const validPassword = await bcrypt.compare(password, user.passwordHash);
+
+    if (!validPassword) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    if (user.status !== 'active') {
+      return res.status(403).json({ message: 'User account is inactive' });
+    }
+
+    res.json({
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Login failed' });
+  }
+});
+
+// Admin Routes
+app.post('/api/admin/login', (req, res) => {
+  try {
+    const { password } = req.body;
+
+    if (password !== ADMIN_PASSWORD) {
+      return res.status(401).json({ message: 'Invalid admin password' });
+    }
+
+    const token = jwt.sign({ admin: true }, JWT_SECRET, { expiresIn: '24h' });
+    res.json({ token });
+  } catch (error) {
+    console.error('Admin login error:', error);
+    res.status(500).json({ message: 'Admin login failed' });
+  }
+});
+
+app.post('/api/admin/create-user', verifyAdminToken, async (req, res) => {
+  try {
+    const { firstName, lastName, email, password } = req.body;
+
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    if (usersByEmail.has(email)) {
+      return res.status(400).json({ message: 'Email already in use' });
+    }
+
+    const userId = generateUserId();
+    const passwordHash = await bcrypt.hash(password, 10);
+    let inviteCode;
+
+    do {
+      inviteCode = generateInviteCode();
+    } while (inviteCodes.has(inviteCode));
+
+    const user = {
+      id: userId,
+      firstName,
+      lastName,
+      email,
+      passwordHash,
+      inviteCode,
+      status: 'active',
+      createdAt: new Date()
+    };
+
+    users.set(userId, user);
+    usersByEmail.set(email, userId);
+    inviteCodes.set(inviteCode, userId);
+
+    res.status(201).json({ message: 'User created successfully' });
+  } catch (error) {
+    console.error('Create user error:', error);
+    res.status(500).json({ message: 'Failed to create user' });
+  }
+});
+
+app.get('/api/admin/users', verifyAdminToken, (req, res) => {
+  try {
+    const userList = Array.from(users.values()).map(user => ({
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      status: user.status,
+      createdAt: user.createdAt
+    }));
+
+    res.json({ users: userList });
+  } catch (error) {
+    console.error('Get users error:', error);
+    res.status(500).json({ message: 'Failed to fetch users' });
+  }
+});
+
+app.put('/api/admin/users/:userId/deactivate', verifyAdminToken, (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = users.get(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.status = 'inactive';
+    res.json({ message: 'User deactivated' });
+  } catch (error) {
+    console.error('Deactivate user error:', error);
+    res.status(500).json({ message: 'Failed to deactivate user' });
+  }
+});
+
+app.put('/api/admin/users/:userId/reactivate', verifyAdminToken, (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = users.get(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.status = 'active';
+    res.json({ message: 'User reactivated' });
+  } catch (error) {
+    console.error('Reactivate user error:', error);
+    res.status(500).json({ message: 'Failed to reactivate user' });
+  }
+});
+
+app.delete('/api/admin/users/:userId', verifyAdminToken, (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = users.get(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    usersByEmail.delete(user.email);
+    inviteCodes.delete(user.inviteCode);
+    users.delete(userId);
+
+    res.json({ message: 'User deleted' });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({ message: 'Failed to delete user' });
+  }
+});
+
+// Socket.io Events
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+
+  socket.on('register', ({ userId, firstName, lastName }) => {
+    const user = users.get(userId);
+
+    if (!user) {
+      socket.emit('error', { message: 'User not found' });
+      return;
+    }
+
+    chatUsers.set(socket.id, {
+      userId,
+      firstName,
+      lastName,
+      inviteCode: user.inviteCode
+    });
 
     socket.emit('registered', {
       userId,
-      username,
-      inviteCode
+      firstName,
+      lastName,
+      inviteCode: user.inviteCode
     });
 
-    console.log(`User registered: ${username} with code ${inviteCode}`);
+    console.log(`User registered: ${firstName} ${lastName}`);
   });
 
-  // Connect with another user using invite code
   socket.on('connectWithCode', ({ inviteCode, myUserId }) => {
     const targetUserId = inviteCodes.get(inviteCode);
-    
+
     if (!targetUserId) {
       socket.emit('error', { message: 'Invalid invite code' });
       return;
@@ -96,13 +336,15 @@ io.on('connection', (socket) => {
       return;
     }
 
-    const roomId = getRoomId(myUserId, targetUserId);
-    
-    // Join both users to the room
-    socket.join(roomId);
-    io.to(targetUser.socketId).socketsJoin(roomId);
+    if (targetUser.status !== 'active' || currentUser.status !== 'active') {
+      socket.emit('error', { message: 'One or both users are inactive' });
+      return;
+    }
 
-    // Initialize or get existing chat
+    const roomId = getRoomId(myUserId, targetUserId);
+
+    socket.join(roomId);
+
     if (!activeChats.has(roomId)) {
       activeChats.set(roomId, {
         user1: myUserId,
@@ -111,65 +353,73 @@ io.on('connection', (socket) => {
       });
     }
 
-    // Notify both users
     const chatData = {
       roomId,
       partnerId: targetUserId,
-      partnerName: targetUser.username
+      partnerName: `${targetUser.firstName} ${targetUser.lastName}`
     };
 
     socket.emit('chatConnected', chatData);
-    
-    io.to(targetUser.socketId).emit('chatConnected', {
-      roomId,
-      partnerId: myUserId,
-      partnerName: currentUser.username
-    });
 
-    console.log(`Chat connected: ${currentUser.username} <-> ${targetUser.username}`);
+    // Find target socket
+    const targetSocket = Array.from(io.sockets.sockets.values()).find(
+      s => chatUsers.get(s.id)?.userId === targetUserId
+    );
+
+    if (targetSocket) {
+      targetSocket.join(roomId);
+      targetSocket.emit('chatConnected', {
+        roomId,
+        partnerId: myUserId,
+        partnerName: `${currentUser.firstName} ${currentUser.lastName}`
+      });
+    }
+
+    console.log(`Chat connected: ${currentUser.firstName} <-> ${targetUser.firstName}`);
   });
 
   socket.on('sendMessage', ({ roomId, message, timestamp }) => {
     const chat = activeChats.get(roomId);
-    
+
     if (!chat) {
       socket.emit('error', { message: 'Chat room not found' });
       return;
     }
 
+    const senderInfo = chatUsers.get(socket.id);
     const messageData = {
       id: Date.now() + Math.random(),
-      senderId: socket.id,
+      senderId: senderInfo?.userId || socket.id,
+      roomId,
       message,
-      timestamp,
-      isOwnMessage: false
+      timestamp
     };
 
     chat.messages.push(messageData);
-
-    // Broadcast message to room
     io.to(roomId).emit('newMessage', messageData);
 
     console.log(`Message in room ${roomId}:`, message);
   });
 
-  // Typing indicator
   socket.on('typing', ({ roomId, isTyping }) => {
-    socket.to(roomId).emit('userTyping', { userId: socket.id, isTyping });
+    const senderInfo = chatUsers.get(socket.id);
+    socket.to(roomId).emit('userTyping', {
+      userId: senderInfo?.userId || socket.id,
+      isTyping
+    });
   });
 
-  // Disconnect
   socket.on('disconnect', () => {
-    const user = users.get(socket.id);
-    
+    const user = chatUsers.get(socket.id);
+
     if (user) {
-      inviteCodes.delete(user.inviteCode);
-      users.delete(socket.id);
-      console.log(`User disconnected: ${user.username}`);
+      console.log(`User disconnected: ${user.firstName} ${user.lastName}`);
+      chatUsers.delete(socket.id);
     }
   });
 });
 
+// Serve HTML
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
@@ -181,4 +431,5 @@ app.get('/health', (req, res) => {
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, () => {
   console.log(`🚀 VOXLO server running on port ${PORT}`);
+  console.log(`Admin password: ${ADMIN_PASSWORD}`);
 });
