@@ -1,21 +1,10 @@
-// Configuration
-const SERVER_URL = window.location.hostname === 'localhost' 
-    ? 'http://localhost:3001' 
-    : window.location.origin.replace(/^http/, 'ws');
+// Chat Logic (runs after auth.js)
 
-// State
 let socket = null;
-let currentUser = null;
 let chats = [];
 let activeChat = null;
 
 // DOM Elements
-const welcomeScreen = document.getElementById('welcomeScreen');
-const chatScreen = document.getElementById('chatScreen');
-const registerForm = document.getElementById('registerForm');
-const usernameInput = document.getElementById('username');
-const userAvatar = document.getElementById('userAvatar');
-const userName = document.getElementById('userName');
 const myCodeBtn = document.getElementById('myCodeBtn');
 const connectBtn = document.getElementById('connectBtn');
 const connectBtnMain = document.getElementById('connectBtnMain');
@@ -24,7 +13,6 @@ const inviteCodeDisplay = document.getElementById('inviteCodeDisplay');
 const chatList = document.getElementById('chatList');
 const noChatSelected = document.getElementById('noChatSelected');
 const chatContent = document.getElementById('chatContent');
-const chatHeader = document.getElementById('chatHeader');
 const partnerName = document.getElementById('partnerName');
 const partnerAvatar = document.getElementById('partnerAvatar');
 const messagesContainer = document.getElementById('messagesContainer');
@@ -37,54 +25,36 @@ const connectCodeInput = document.getElementById('connectCodeInput');
 const modalCloseBtn = document.getElementById('modalCloseBtn');
 const clearChatsBtn = document.getElementById('clearChatsBtn');
 
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    initializeSocket();
-    loadUserFromStorage();
-    loadChatsFromStorage();
-    setupEventListeners();
-});
-
-// Setup Event Listeners
-function setupEventListeners() {
-    registerForm.addEventListener('submit', handleRegister);
-    messageForm.addEventListener('submit', handleSendMessage);
-    messageInput.addEventListener('input', handleTyping);
-    connectForm.addEventListener('submit', handleConnectWithCode);
-    myCodeBtn.addEventListener('click', toggleMyCodeCard);
-    connectBtn.addEventListener('click', openConnectModal);
-    connectBtnMain.addEventListener('click', openConnectModal);
-    modalCloseBtn.addEventListener('click', closeConnectModal);
-    connectModal.addEventListener('click', closeConnectModalOnOverlay);
-    clearChatsBtn.addEventListener('click', handleClearChats);
-    inviteCodeDisplay.addEventListener('click', copyInviteCode);
-}
-
 // Initialize Socket.io
 function initializeSocket() {
+    if (socket) return;
+
     socket = io(SERVER_URL, {
         autoConnect: true,
         reconnection: true,
         reconnectionDelay: 1000,
         reconnectionAttempts: 5,
-        reconnectionDelayMax: 5000
+        extraHeaders: {
+            'Authorization': currentUser ? currentUser.id : ''
+        }
     });
 
     socket.on('connect', () => {
         console.log('Connected to server');
         if (currentUser) {
-            socket.emit('register', { username: currentUser.username });
+            socket.emit('register', { 
+                userId: currentUser.id,
+                firstName: currentUser.firstName,
+                lastName: currentUser.lastName
+            });
         }
     });
 
     socket.on('registered', (data) => {
-        currentUser = {
-            userId: data.userId,
-            username: data.username,
-            inviteCode: data.inviteCode
-        };
-        saveUserToStorage();
-        showChatScreen();
+        currentUser.inviteCode = data.inviteCode;
+        localStorage.setItem('voxlo_user', JSON.stringify(currentUser));
+        inviteCodeDisplay.textContent = data.inviteCode;
+        setupChatEventListeners();
     });
 
     socket.on('chatConnected', (data) => {
@@ -107,10 +77,7 @@ function initializeSocket() {
     });
 
     socket.on('newMessage', (messageData) => {
-        const chat = chats.find(c => 
-            (c.partnerId === messageData.senderId && messageData.isOwnMessage === false) ||
-            (messageData.isOwnMessage === true)
-        );
+        const chat = chats.find(c => c.roomId === messageData.roomId);
 
         if (chat) {
             const msg = {
@@ -118,7 +85,7 @@ function initializeSocket() {
                 senderId: messageData.senderId,
                 message: messageData.message,
                 timestamp: messageData.timestamp,
-                isOwn: messageData.senderId === currentUser.userId
+                isOwn: messageData.senderId === currentUser.id
             };
             chat.messages.push(msg);
             saveChatsToStorage();
@@ -141,87 +108,18 @@ function initializeSocket() {
     });
 }
 
-// Handle Register
-function handleRegister(e) {
-    e.preventDefault();
-    const username = usernameInput.value.trim();
-    if (username && socket) {
-        socket.emit('register', { username });
-    }
-}
-
-// Handle Send Message
-function handleSendMessage(e) {
-    e.preventDefault();
-    const message = messageInput.value.trim();
-    
-    if (message && activeChat && socket) {
-        socket.emit('sendMessage', {
-            roomId: activeChat.roomId,
-            message,
-            timestamp: Date.now()
-        });
-        messageInput.value = '';
-    }
-}
-
-// Handle Typing
-let typingTimeout;
-function handleTyping() {
-    if (activeChat && socket) {
-        socket.emit('typing', { roomId: activeChat.roomId, isTyping: true });
-        
-        clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => {
-            socket.emit('typing', { roomId: activeChat.roomId, isTyping: false });
-        }, 1000);
-    }
-}
-
-// Handle Connect with Code
-function handleConnectWithCode(e) {
-    e.preventDefault();
-    const code = connectCodeInput.value.trim().toUpperCase();
-    
-    if (code.length === 6 && socket) {
-        socket.emit('connectWithCode', {
-            inviteCode: code,
-            myUserId: currentUser.userId
-        });
-        connectCodeInput.value = '';
-        closeConnectModal();
-    }
-}
-
-// Handle Clear Chats
-function handleClearChats() {
-    if (confirm('Clear all chats? This cannot be undone.')) {
-        chats = [];
-        activeChat = null;
-        saveChatsToStorage();
-        renderChatList();
-        showNoChatSelected();
-    }
-}
-
-// UI Functions
-function showChatScreen() {
-    welcomeScreen.classList.remove('active');
-    chatScreen.classList.add('active');
-    updateUserDisplay();
-    renderChatList();
-}
-
-function showNoChatSelected() {
-    noChatSelected.style.display = 'flex';
-    chatContent.style.display = 'none';
-}
-
-function updateUserDisplay() {
-    if (currentUser) {
-        userAvatar.textContent = currentUser.username.charAt(0).toUpperCase();
-        userName.textContent = currentUser.username;
-        inviteCodeDisplay.textContent = currentUser.inviteCode;
+function setupChatEventListeners() {
+    if (myCodeBtn && myCodeBtn.onclick === null) {
+        myCodeBtn.addEventListener('click', toggleMyCodeCard);
+        connectBtn.addEventListener('click', openConnectModal);
+        connectBtnMain.addEventListener('click', openConnectModal);
+        modalCloseBtn.addEventListener('click', closeConnectModal);
+        connectModal.addEventListener('click', closeConnectModalOnOverlay);
+        messageForm.addEventListener('submit', handleSendMessage);
+        messageInput.addEventListener('input', handleTyping);
+        connectForm.addEventListener('submit', handleConnectWithCode);
+        clearChatsBtn.addEventListener('click', handleClearChats);
+        inviteCodeDisplay.addEventListener('click', copyInviteCode);
     }
 }
 
@@ -245,8 +143,58 @@ function closeConnectModalOnOverlay(e) {
 }
 
 function copyInviteCode() {
-    navigator.clipboard.writeText(currentUser.inviteCode);
+    navigator.clipboard.writeText(inviteCodeDisplay.textContent);
     alert('Invite code copied to clipboard!');
+}
+
+function handleSendMessage(e) {
+    e.preventDefault();
+    const message = messageInput.value.trim();
+    
+    if (message && activeChat && socket) {
+        socket.emit('sendMessage', {
+            roomId: activeChat.roomId,
+            message,
+            timestamp: Date.now()
+        });
+        messageInput.value = '';
+    }
+}
+
+let typingTimeout;
+function handleTyping() {
+    if (activeChat && socket) {
+        socket.emit('typing', { roomId: activeChat.roomId, isTyping: true });
+        
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+            socket.emit('typing', { roomId: activeChat.roomId, isTyping: false });
+        }, 1000);
+    }
+}
+
+function handleConnectWithCode(e) {
+    e.preventDefault();
+    const code = connectCodeInput.value.trim().toUpperCase();
+    
+    if (code.length === 6 && socket) {
+        socket.emit('connectWithCode', {
+            inviteCode: code,
+            myUserId: currentUser.id
+        });
+        connectCodeInput.value = '';
+        closeConnectModal();
+    }
+}
+
+function handleClearChats() {
+    if (confirm('Clear all chats? This cannot be undone.')) {
+        chats = [];
+        activeChat = null;
+        saveChatsToStorage();
+        renderChatList();
+        showNoChatSelected();
+    }
 }
 
 function selectChat(chat) {
@@ -272,7 +220,7 @@ function renderChatList() {
     }
 
     chatList.innerHTML = chats.map(chat => `
-        <div class="chat-item ${activeChat?.roomId === chat.roomId ? 'active' : ''}" onclick="selectChat(${JSON.stringify(chat).replace(/"/g, '&quot;')})">
+        <div class="chat-item ${activeChat?.roomId === chat.roomId ? 'active' : ''}" onclick="selectChatFromList(${JSON.stringify(chat).replace(/"/g, '&quot;')})">
             <div class="chat-avatar">${chat.partnerName.charAt(0).toUpperCase()}</div>
             <div class="chat-info">
                 <div class="chat-name">${chat.partnerName}</div>
@@ -281,6 +229,11 @@ function renderChatList() {
             ${chat.messages.length > 0 ? `<div class="chat-timer">${getTimeRemaining(chat.messages[chat.messages.length - 1].timestamp)}</div>` : ''}
         </div>
     `).join('');
+}
+
+function selectChatFromList(chat) {
+    const fullChat = chats.find(c => c.roomId === chat.roomId);
+    if (fullChat) selectChat(fullChat);
 }
 
 function renderMessages() {
@@ -326,20 +279,9 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Storage Functions
-function saveUserToStorage() {
-    localStorage.setItem('voxlo_user', JSON.stringify(currentUser));
-}
-
-function loadUserFromStorage() {
-    const saved = localStorage.getItem('voxlo_user');
-    if (saved) {
-        currentUser = JSON.parse(saved);
-        showChatScreen();
-        if (socket) {
-            socket.emit('register', { username: currentUser.username });
-        }
-    }
+function showNoChatSelected() {
+    noChatSelected.style.display = 'flex';
+    chatContent.style.display = 'none';
 }
 
 function saveChatsToStorage() {
@@ -376,4 +318,10 @@ setInterval(() => {
         renderMessages();
         renderChatList();
     }
-}, 60000); // Check every minute
+}, 60000);
+
+// Initialize when chat screen is shown
+window.initializeSocket = initializeSocket;
+
+// Load chats from storage
+loadChatsFromStorage();

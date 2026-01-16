@@ -7,50 +7,215 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Welcome Screen -->
-    <div id="welcomeScreen" class="screen active">
-        <div class="welcome-container">
-            <div class="welcome-card">
-                <div class="logo">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="screen active">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="logo-small">
                     <div class="logo-icon">🔐</div>
                     <h1>VOXLO</h1>
                 </div>
                 
-                <p class="tagline">Secure Ephemeral Messaging</p>
-                
-                <div class="features">
-                    <div class="feature">
-                        <span class="feature-icon">🔒</span>
-                        <span>Local Storage Only</span>
-                    </div>
-                    <div class="feature">
-                        <span class="feature-icon">⏱️</span>
-                        <span>10-Min Auto-Delete</span>
-                    </div>
-                    <div class="feature">
-                        <span class="feature-icon">🎫</span>
-                        <span>Invite Code System</span>
-                    </div>
-                </div>
-
-                <form id="registerForm" class="register-form">
+                <form id="loginForm" class="auth-form">
                     <div class="input-group">
-                        <label for="username">Enter Your Name</label>
+                        <label for="loginEmail">Email</label>
                         <input
-                            id="username"
-                            type="text"
-                            placeholder="John Doe"
-                            maxlength="20"
+                            id="loginEmail"
+                            type="email"
+                            placeholder="your@email.com"
                             required
                             autofocus
                         />
                     </div>
                     
-                    <button type="submit" class="btn-primary">Get Started</button>
+                    <div class="input-group">
+                        <label for="loginPassword">Password</label>
+                        <input
+                            id="loginPassword"
+                            type="password"
+                            placeholder="Enter your password"
+                            required
+                        />
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">Login</button>
                 </form>
 
-                <div class="disclaimer">
-                    <p>Messages are stored locally and automatically deleted after 10 minutes</p>
+                <div class="auth-divider">OR</div>
+
+                <button class="btn-secondary" id="switchToRegisterBtn">Create New Account</button>
+
+                <div class="admin-link">
+                    <a href="#" id="adminLoginLink">Admin Login</a>
+                </div>
+
+                <div id="loginError" class="error-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Screen -->
+    <div id="registerScreen" class="screen">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="logo-small">
+                    <div class="logo-icon">📝</div>
+                    <h1>Create Account</h1>
+                </div>
+                
+                <form id="registerForm" class="auth-form">
+                    <div class="input-group">
+                        <label for="regFirstName">First Name</label>
+                        <input
+                            id="regFirstName"
+                            type="text"
+                            placeholder="John"
+                            maxlength="20"
+                            required
+                            autofocus
+                        />
+                    </div>
+
+                    <div class="input-group">
+                        <label for="regLastName">Last Name</label>
+                        <input
+                            id="regLastName"
+                            type="text"
+                            placeholder="Doe"
+                            maxlength="20"
+                            required
+                        />
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="regEmail">Email</label>
+                        <input
+                            id="regEmail"
+                            type="email"
+                            placeholder="your@email.com"
+                            required
+                        />
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="regPassword">Password</label>
+                        <input
+                            id="regPassword"
+                            type="password"
+                            placeholder="Create a password"
+                            required
+                        />
+                    </div>
+
+                    <div class="input-group">
+                        <label for="regPasswordConfirm">Confirm Password</label>
+                        <input
+                            id="regPasswordConfirm"
+                            type="password"
+                            placeholder="Confirm your password"
+                            required
+                        />
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">Register</button>
+                </form>
+
+                <button class="btn-link" id="switchToLoginBtn">Back to Login</button>
+                <div id="registerError" class="error-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Screen -->
+    <div id="adminLoginScreen" class="screen">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="logo-small">
+                    <div class="logo-icon">👑</div>
+                    <h1>Admin Login</h1>
+                </div>
+                
+                <form id="adminLoginForm" class="auth-form">
+                    <div class="input-group">
+                        <label for="adminPassword">Admin Password</label>
+                        <input
+                            id="adminPassword"
+                            type="password"
+                            placeholder="Enter admin password"
+                            required
+                            autofocus
+                        />
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">Access Admin Panel</button>
+                </form>
+
+                <button class="btn-link" id="backToLoginBtn">Back to Login</button>
+                <div id="adminLoginError" class="error-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="adminScreen" class="screen">
+        <div class="admin-container">
+            <div class="admin-header">
+                <div class="admin-title">
+                    <h1>👑 Admin Dashboard</h1>
+                </div>
+                <button class="btn-danger" id="adminLogoutBtn">Logout</button>
+            </div>
+
+            <div class="admin-content">
+                <div class="admin-section">
+                    <h2>Create New User</h2>
+                    <form id="adminCreateUserForm" class="admin-form">
+                        <div class="form-row">
+                            <div class="input-group">
+                                <label>First Name</label>
+                                <input type="text" id="adminFirstName" required />
+                            </div>
+                            <div class="input-group">
+                                <label>Last Name</label>
+                                <input type="text" id="adminLastName" required />
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="input-group">
+                                <label>Email</label>
+                                <input type="email" id="adminEmail" required />
+                            </div>
+                            <div class="input-group">
+                                <label>Password</label>
+                                <input type="password" id="adminUserPassword" required />
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary">Create User</button>
+                    </form>
+                    <div id="adminCreateError" class="error-message"></div>
+                    <div id="adminCreateSuccess" class="success-message"></div>
+                </div>
+
+                <div class="admin-section">
+                    <h2>Active Users (<span id="userCount">0</span>)</h2>
+                    <div class="users-table-container">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: var(--text-secondary);">Loading users...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -73,6 +238,7 @@
                     <div class="sidebar-actions">
                         <button class="icon-btn" id="myCodeBtn" title="My Invite Code">🎫</button>
                         <button class="icon-btn" id="connectBtn" title="Connect with Code">➕</button>
+                        <button class="icon-btn" id="logoutBtn" title="Logout">🚪</button>
                     </div>
                 </div>
 
@@ -163,6 +329,7 @@
     </div>
 
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <script src="auth.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
