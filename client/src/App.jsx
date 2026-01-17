@@ -18,6 +18,7 @@ function App() {
     if (savedUser) {
       try {
         const parsed = JSON.parse(savedUser);
+        console.log('👤 Loaded user from localStorage:', parsed.firstName, parsed.lastName);
         setUser(parsed);
       } catch (e) {
         console.error('Error loading saved user:', e);
@@ -29,6 +30,7 @@ function App() {
     if (savedChats) {
       try {
         const parsed = JSON.parse(savedChats);
+        console.log('💬 Loaded', parsed.length, 'chats from localStorage');
         
         // Clean up only expired MESSAGES, but keep the chat connections
         const now = Date.now();
@@ -39,11 +41,14 @@ function App() {
           )
         }));
         
+        console.log('✅ After cleanup:', chatsWithValidMessages.length, 'chats still valid');
         localStorage.setItem('voxlo_chats', JSON.stringify(chatsWithValidMessages));
         setChats(chatsWithValidMessages);
       } catch (e) {
         console.error('Error loading saved chats:', e);
       }
+    } else {
+      console.log('📭 No saved chats in localStorage');
     }
 
     // Initialize Socket.io
@@ -114,14 +119,21 @@ function App() {
     });
 
     socket.on('chatsLoaded', (data) => {
+      console.log('📥 chatsLoaded event received:', data.chats.length, 'chats from server');
+      
       // Merge server chats with local chats, keeping local messages and merging with server state
       setChats(prev => {
+        console.log('📊 Current local chats before merge:', prev.length);
+        console.log('📊 Server chats to merge:', data.chats.length);
+        
         const merged = new Map();
         
         // First add all local chats
         prev.forEach(chat => {
           merged.set(chat.roomId, chat);
         });
+        
+        console.log('📊 After adding local chats to merge map:', merged.size);
         
         // Then merge with server chats
         data.chats.forEach(serverChat => {
@@ -155,7 +167,13 @@ function App() {
         });
         
         const result = Array.from(merged.values());
-        localStorage.setItem('voxlo_chats', JSON.stringify(result));
+        // Strip out isOwn flag before saving to localStorage to keep data clean
+        const cleanResult = result.map(chat => ({
+          ...chat,
+          messages: chat.messages.map(({ isOwn, ...msg }) => msg)
+        }));
+        console.log('✅ Final merged chats:', result.length);
+        localStorage.setItem('voxlo_chats', JSON.stringify(cleanResult));
         return result;
       });
     });
@@ -250,7 +268,7 @@ function App() {
       socket.off('error');
       socket.off('disconnect');
     };
-  }, [socket, user, activeChat]);
+  }, [socket, user]);
 
   // Auto-cleanup expired messages every minute (but keep chat connections)
   useEffect(() => {

@@ -15,6 +15,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const DATA_FILE = path.join(__dirname, 'users-data.json');
+const CHATS_FILE = path.join(__dirname, 'chats-data.json');
 
 const app = express();
 const httpServer = createServer(app);
@@ -77,6 +78,48 @@ function saveUsersToFile() {
     fs.writeFileSync(DATA_FILE, JSON.stringify(usersObj, null, 2));
   } catch (error) {
     console.error('Error saving users to file:', error);
+  }
+}
+
+function loadChatsFromFile() {
+  try {
+    if (fs.existsSync(CHATS_FILE)) {
+      const data = fs.readFileSync(CHATS_FILE, 'utf8');
+      const parsedChats = JSON.parse(data);
+      
+      // Restore Map structure
+      Object.entries(parsedChats).forEach(([roomId, chatData]) => {
+        // Filter out expired messages (older than 10 minutes)
+        const now = Date.now();
+        const validMessages = chatData.messages.filter(msg => 
+          (now - msg.timestamp) < 10 * 60 * 1000
+        );
+        
+        if (validMessages.length > 0 || true) { // Keep chat even if no messages
+          activeChats.set(roomId, {
+            ...chatData,
+            messages: validMessages
+          });
+        }
+      });
+      
+      console.log(`✅ Loaded ${activeChats.size} chat rooms from persistent storage`);
+    }
+  } catch (error) {
+    console.error('Error loading chats from file:', error);
+  }
+}
+
+function saveChatsToFile() {
+  try {
+    const chatsObj = {};
+    activeChats.forEach((chatData, roomId) => {
+      chatsObj[roomId] = chatData;
+    });
+    
+    fs.writeFileSync(CHATS_FILE, JSON.stringify(chatsObj, null, 2));
+  } catch (error) {
+    console.error('Error saving chats to file:', error);
   }
 }
 
@@ -515,6 +558,7 @@ io.on('connection', (socket) => {
         messages: [],
         unreadCount: {}
       });
+      saveChatsToFile(); // Persist new chat
     }
 
     const chatData = {
@@ -569,6 +613,7 @@ io.on('connection', (socket) => {
     };
 
     chat.messages.push(messageData);
+    saveChatsToFile(); // Persist message
     
     // Broadcast to all connections in the room
     io.to(roomId).emit('newMessage', messageData);
@@ -619,6 +664,9 @@ const PORT = process.env.PORT || 3001;
 async function initializeServer() {
   // Load existing users from file
   loadUsersFromFile();
+  
+  // Load existing chats from file
+  loadChatsFromFile();
   
   // Initialize test users
   await initializeTestUsers();

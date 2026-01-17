@@ -34,5 +34,6 @@ Thumbs.db
 # Temporary files
 *.tmp
 .cache/
-# Persistent user data
+# Persistent data files
 server/users-data.json
+server/chats-data.json
