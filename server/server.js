@@ -7,11 +7,14 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import fs from 'fs';
 
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const DATA_FILE = path.join(__dirname, 'users-data.json');
 
 const app = express();
 const httpServer = createServer(app);
@@ -36,12 +39,85 @@ const ADMIN_PASSWORD = 'Voxlo_';
 const JWT_SECRET = 'your-secret-key-change-this';
 
 // In-memory database
-const users = new Map(); // userId -> { id, firstName, lastName, email, passwordHash, inviteCode, status, createdAt }
+const users = new Map(); // userId -> { id, firstName, lastName, email, passwordHash, inviteCode, status, createdAt, isTestUser }
 const usersByEmail = new Map(); // email -> userId
 const inviteCodes = new Map(); // inviteCode -> userId
 const chatUsers = new Map(); // socket.id -> { userId, firstName, lastName, inviteCode }
 const activeChats = new Map(); // roomId -> { user1, user2, messages, unreadCount }
 const userConnections = new Map(); // userId -> Set of socket.ids (support multiple connections)
+
+// Persistent Storage Functions
+function loadUsersFromFile() {
+  try {
+    if (fs.existsSync(DATA_FILE)) {
+      const data = fs.readFileSync(DATA_FILE, 'utf8');
+      const parsedUsers = JSON.parse(data);
+      
+      // Restore Map structure
+      Object.entries(parsedUsers).forEach(([userId, userData]) => {
+        users.set(userId, userData);
+        usersByEmail.set(userData.email, userId);
+        inviteCodes.set(userData.inviteCode, userId);
+      });
+      
+      console.log(`✅ Loaded ${users.size} users from persistent storage`);
+    }
+  } catch (error) {
+    console.error('Error loading users from file:', error);
+  }
+}
+
+function saveUsersToFile() {
+  try {
+    const usersObj = {};
+    users.forEach((userData, userId) => {
+      usersObj[userId] = userData;
+    });
+    
+    fs.writeFileSync(DATA_FILE, JSON.stringify(usersObj, null, 2));
+  } catch (error) {
+    console.error('Error saving users to file:', error);
+  }
+}
+
+async function initializeTestUsers() {
+  const testUsers = [
+    { email: 'user1@test.com', firstName: 'Test', lastName: 'User One' },
+    { email: 'user2@test.com', firstName: 'Test', lastName: 'User Two' }
+  ];
+
+  for (const testUser of testUsers) {
+    if (!usersByEmail.has(testUser.email)) {
+      const userId = generateUserId();
+      const passwordHash = await bcrypt.hash('jaggibaba', 10);
+      let inviteCode;
+
+      do {
+        inviteCode = generateInviteCode();
+      } while (inviteCodes.has(inviteCode));
+
+      const user = {
+        id: userId,
+        firstName: testUser.firstName,
+        lastName: testUser.lastName,
+        email: testUser.email,
+        passwordHash,
+        inviteCode,
+        status: 'active',
+        createdAt: new Date(),
+        isTestUser: true // Mark as test user - cannot be deleted
+      };
+
+      users.set(userId, user);
+      usersByEmail.set(testUser.email, userId);
+      inviteCodes.set(inviteCode, userId);
+      
+      console.log(`✅ Created test user: ${testUser.email}`);
+    }
+  }
+  
+  saveUsersToFile();
+}
 
 // Utility Functions
 function generateInviteCode() {
@@ -109,12 +185,15 @@ app.post('/api/auth/register', async (req, res) => {
       passwordHash,
       inviteCode,
       status: 'active',
-      createdAt: new Date()
+      createdAt: new Date(),
+      isTestUser: false
     };
 
     users.set(userId, user);
     usersByEmail.set(email, userId);
     inviteCodes.set(inviteCode, userId);
+    
+    saveUsersToFile();
 
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
@@ -228,7 +307,8 @@ app.get('/api/admin/users', verifyAdminToken, (req, res) => {
       lastName: user.lastName,
       email: user.email,
       status: user.status,
-      createdAt: user.createdAt
+      createdAt: user.createdAt,
+      isTestUser: user.isTestUser
     }));
 
     res.json({ users: userList });
@@ -248,6 +328,7 @@ app.put('/api/admin/users/:userId/deactivate', verifyAdminToken, (req, res) => {
     }
 
     user.status = 'inactive';
+    saveUsersToFile();
     res.json({ message: 'User deactivated' });
   } catch (error) {
     console.error('Deactivate user error:', error);
@@ -265,6 +346,7 @@ app.put('/api/admin/users/:userId/reactivate', verifyAdminToken, (req, res) => {
     }
 
     user.status = 'active';
+    saveUsersToFile();
     res.json({ message: 'User reactivated' });
   } catch (error) {
     console.error('Reactivate user error:', error);
@@ -281,9 +363,16 @@ app.delete('/api/admin/users/:userId', verifyAdminToken, (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Prevent deletion of test users
+    if (user.isTestUser) {
+      return res.status(403).json({ message: 'Cannot delete test users. Deactivate instead.' });
+    }
+
     usersByEmail.delete(user.email);
     inviteCodes.delete(user.inviteCode);
     users.delete(userId);
+    
+    saveUsersToFile();
 
     res.json({ message: 'User deleted' });
   } catch (error) {
@@ -480,7 +569,22 @@ app.get('/health', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-httpServer.listen(PORT, () => {
-  console.log(`🚀 VOXLO server running on port ${PORT}`);
-  console.log(`Admin password: ${ADMIN_PASSWORD}`);
-});
+
+// Initialize server
+async function initializeServer() {
+  // Load existing users from file
+  loadUsersFromFile();
+  
+  // Initialize test users
+  await initializeTestUsers();
+  
+  httpServer.listen(PORT, () => {
+    console.log(`🚀 VOXLO server running on port ${PORT}`);
+    console.log(`Admin password: ${ADMIN_PASSWORD}`);
+    console.log(`📝 Test Users:`);
+    console.log(`   Email: user1@test.com | Password: jaggibaba`);
+    console.log(`   Email: user2@test.com | Password: jaggibaba`);
+  });
+}
+
+initializeServer();
