@@ -29,19 +29,18 @@ function App() {
     if (savedChats) {
       try {
         const parsed = JSON.parse(savedChats);
-        setChats(parsed);
         
-        // Clean up expired chats (older than 10 minutes)
+        // Clean up only expired MESSAGES, but keep the chat connections
         const now = Date.now();
-        const validChats = parsed.filter(chat => {
-          const lastMessage = chat.messages[chat.messages.length - 1];
-          return lastMessage && (now - lastMessage.timestamp) < 10 * 60 * 1000;
-        });
+        const chatsWithValidMessages = parsed.map(chat => ({
+          ...chat,
+          messages: chat.messages.filter(msg => 
+            (now - msg.timestamp) < 10 * 60 * 1000
+          )
+        }));
         
-        if (validChats.length !== parsed.length) {
-          localStorage.setItem('voxlo_chats', JSON.stringify(validChats));
-          setChats(validChats);
-        }
+        localStorage.setItem('voxlo_chats', JSON.stringify(chatsWithValidMessages));
+        setChats(chatsWithValidMessages);
       } catch (e) {
         console.error('Error loading saved chats:', e);
       }
@@ -227,7 +226,7 @@ function App() {
     };
   }, [socket, user, activeChat]);
 
-  // Auto-cleanup expired messages every minute
+  // Auto-cleanup expired messages every minute (but keep chat connections)
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
@@ -238,12 +237,9 @@ function App() {
           messages: chat.messages.filter(msg => 
             (now - msg.timestamp) < 10 * 60 * 1000
           )
-        })).filter(chat => chat.messages.length > 0);
+        }));
         
-        if (updated.length !== prev.length) {
-          localStorage.setItem('voxlo_chats', JSON.stringify(updated));
-        }
-        
+        localStorage.setItem('voxlo_chats', JSON.stringify(updated));
         return updated;
       });
     }, 60000); // Check every minute
