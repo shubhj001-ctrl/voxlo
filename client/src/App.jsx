@@ -77,8 +77,10 @@ function App() {
           lastName: user.lastName
         });
         
-        // Restore chats from server
-        socket.emit('getChats', { userId: user.userId });
+        // Restore chats from server after a brief delay to ensure registration is processed
+        setTimeout(() => {
+          socket.emit('getChats', { userId: user.userId });
+        }, 100);
       }
     });
 
@@ -93,8 +95,10 @@ function App() {
           lastName: user.lastName
         });
         
-        // Restore chats from server
-        socket.emit('getChats', { userId: user.userId });
+        // Restore chats from server after a brief delay to ensure registration is processed
+        setTimeout(() => {
+          socket.emit('getChats', { userId: user.userId });
+        }, 100);
       }
     });
 
@@ -127,15 +131,26 @@ function App() {
             const localMessageIds = new Set(local.messages.map(m => m.id));
             
             // Add any new messages from server that aren't local
-            const newMessages = serverChat.messages.filter(m => !localMessageIds.has(m.id));
+            const newMessages = serverChat.messages
+              .filter(m => !localMessageIds.has(m.id))
+              .map(m => ({
+                ...m,
+                isOwn: m.senderId === user?.userId
+              }));
             
             merged.set(serverChat.roomId, {
               ...local,
               messages: [...local.messages, ...newMessages].sort((a, b) => a.timestamp - b.timestamp)
             });
           } else {
-            // New chat from server
-            merged.set(serverChat.roomId, serverChat);
+            // New chat from server - map isOwn flag
+            merged.set(serverChat.roomId, {
+              ...serverChat,
+              messages: serverChat.messages.map(m => ({
+                ...m,
+                isOwn: m.senderId === user?.userId
+              }))
+            });
           }
         });
         
@@ -150,7 +165,7 @@ function App() {
         roomId: data.roomId,
         partnerId: data.partnerId,
         partnerName: data.partnerName,
-        messages: [],
+        messages: data.messages || [],
         createdAt: Date.now()
       };
 
@@ -158,8 +173,19 @@ function App() {
       setChats(prev => {
         const existing = prev.find(c => c.roomId === data.roomId);
         if (existing) {
-          setActiveChat(existing);
-          return prev;
+          // Merge messages if they exist in the new data
+          const merged = {
+            ...existing,
+            messages: data.messages && data.messages.length > 0 
+              ? data.messages.map(msg => ({
+                  ...msg,
+                  isOwn: msg.senderId === user?.userId
+                }))
+              : existing.messages
+          };
+          setActiveChat(merged);
+          localStorage.setItem('voxlo_chats', JSON.stringify(prev.map(c => c.roomId === data.roomId ? merged : c)));
+          return prev.map(c => c.roomId === data.roomId ? merged : c);
         }
         const updated = [...prev, newChat];
         localStorage.setItem('voxlo_chats', JSON.stringify(updated));

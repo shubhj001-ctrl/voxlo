@@ -423,12 +423,38 @@ io.on('connection', (socket) => {
   socket.on('getChats', ({ userId }) => {
     if (!userId) return;
 
+    const user = users.get(userId);
+    if (!user) {
+      socket.emit('error', { message: 'User not found' });
+      return;
+    }
+
+    // Track this socket for the user
+    if (!userConnections.has(userId)) {
+      userConnections.set(userId, new Set());
+    }
+    userConnections.get(userId).add(socket.id);
+    
+    // Register this socket with user info
+    if (!chatUsers.has(socket.id)) {
+      chatUsers.set(socket.id, {
+        userId,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        inviteCode: user.inviteCode
+      });
+    }
+
     // Send all active chats this user is part of
     const userChats = [];
     activeChats.forEach((chat, roomId) => {
       if (chat.user1 === userId || chat.user2 === userId) {
         const partnerId = chat.user1 === userId ? chat.user2 : chat.user1;
         const partner = users.get(partnerId);
+        
+        // Join socket to all existing chat rooms
+        socket.join(roomId);
+        
         userChats.push({
           roomId,
           partnerId,
@@ -470,8 +496,18 @@ io.on('connection', (socket) => {
 
     const roomId = getRoomId(myUserId, targetUserId);
 
+    // Ensure current user is tracked
+    if (!userConnections.has(myUserId)) {
+      userConnections.set(myUserId, new Set());
+    }
+    if (!userConnections.get(myUserId).has(socket.id)) {
+      userConnections.get(myUserId).add(socket.id);
+    }
+
+    // Join current user to room
     socket.join(roomId);
 
+    // Create or get existing chat room
     if (!activeChats.has(roomId)) {
       activeChats.set(roomId, {
         user1: myUserId,
@@ -484,7 +520,8 @@ io.on('connection', (socket) => {
     const chatData = {
       roomId,
       partnerId: targetUserId,
-      partnerName: `${targetUser.firstName} ${targetUser.lastName}`
+      partnerName: `${targetUser.firstName} ${targetUser.lastName}`,
+      messages: activeChats.get(roomId).messages.filter(msg => (Date.now() - msg.timestamp) < 10 * 60 * 1000)
     };
 
     socket.emit('chatConnected', chatData);
@@ -498,7 +535,8 @@ io.on('connection', (socket) => {
         targetSocket.emit('chatConnected', {
           roomId,
           partnerId: myUserId,
-          partnerName: `${currentUser.firstName} ${currentUser.lastName}`
+          partnerName: `${currentUser.firstName} ${currentUser.lastName}`,
+          messages: activeChats.get(roomId).messages.filter(msg => (Date.now() - msg.timestamp) < 10 * 60 * 1000)
         });
       }
     });
@@ -510,14 +548,21 @@ io.on('connection', (socket) => {
     const chat = activeChats.get(roomId);
 
     if (!chat) {
+      console.error(`❌ Chat room not found: ${roomId}`);
       socket.emit('error', { message: 'Chat room not found' });
       return;
     }
 
     const senderInfo = chatUsers.get(socket.id);
+    if (!senderInfo) {
+      console.error(`❌ Sender not registered for socket: ${socket.id}`);
+      socket.emit('error', { message: 'Sender not registered' });
+      return;
+    }
+
     const messageData = {
       id: Date.now() + Math.random(),
-      senderId: senderInfo?.userId || socket.id,
+      senderId: senderInfo.userId,
       roomId,
       message,
       timestamp
@@ -528,7 +573,7 @@ io.on('connection', (socket) => {
     // Broadcast to all connections in the room
     io.to(roomId).emit('newMessage', messageData);
 
-    console.log(`Message in room ${roomId}:`, message);
+    console.log(`✅ Message in room ${roomId} from ${senderInfo.firstName}:`, message);
   });
 
   socket.on('typing', ({ roomId, isTyping }) => {
