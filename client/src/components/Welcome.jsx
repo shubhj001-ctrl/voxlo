@@ -2,12 +2,13 @@ import { useState } from 'react';
 import './Welcome.css';
 
 function Welcome({ onRegister }) {
-  const [username, setUsername] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (username.trim()) {
-      onRegister(username.trim());
+    if (firstName.trim() && lastName.trim()) {
+      onRegister(firstName.trim(), lastName.trim());
     }
   };
 
@@ -56,15 +57,28 @@ function Welcome({ onRegister }) {
 
         <form onSubmit={handleSubmit} className="register-form">
           <div className="input-group">
-            <label htmlFor="username">Enter Your Name</label>
+            <label htmlFor="firstName">First Name</label>
             <input
-              id="username"
+              id="firstName"
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="John Doe"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="John"
               maxLength={20}
               autoFocus
+              required
+            />
+          </div>
+          
+          <div className="input-group">
+            <label htmlFor="lastName">Last Name</label>
+            <input
+              id="lastName"
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Doe"
+              maxLength={20}
               required
             />
           </div>

@@ -52,7 +52,9 @@ function App() {
       autoConnect: true,
       reconnection: true,
       reconnectionDelay: 1000,
-      reconnectionAttempts: 5
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: Infinity,
+      transports: ['websocket', 'polling']
     });
 
     setSocket(newSocket);
@@ -70,18 +72,78 @@ function App() {
       
       // Re-register if user exists
       if (user) {
-        socket.emit('register', { username: user.username });
+        socket.emit('register', { 
+          userId: user.userId,
+          firstName: user.firstName,
+          lastName: user.lastName
+        });
+        
+        // Restore chats from server
+        socket.emit('getChats', { userId: user.userId });
+      }
+    });
+
+    socket.on('reconnect', () => {
+      console.log('Reconnected to server');
+      
+      // Re-register if user exists
+      if (user) {
+        socket.emit('register', { 
+          userId: user.userId,
+          firstName: user.firstName,
+          lastName: user.lastName
+        });
+        
+        // Restore chats from server
+        socket.emit('getChats', { userId: user.userId });
       }
     });
 
     socket.on('registered', (data) => {
       const userData = {
         userId: data.userId,
-        username: data.username,
+        firstName: data.firstName,
+        lastName: data.lastName,
         inviteCode: data.inviteCode
       };
       setUser(userData);
       localStorage.setItem('voxlo_user', JSON.stringify(userData));
+    });
+
+    socket.on('chatsLoaded', (data) => {
+      // Merge server chats with local chats, keeping local messages and merging with server state
+      setChats(prev => {
+        const merged = new Map();
+        
+        // First add all local chats
+        prev.forEach(chat => {
+          merged.set(chat.roomId, chat);
+        });
+        
+        // Then merge with server chats
+        data.chats.forEach(serverChat => {
+          if (merged.has(serverChat.roomId)) {
+            // Keep local messages but update server state
+            const local = merged.get(serverChat.roomId);
+            const localMessageIds = new Set(local.messages.map(m => m.id));
+            
+            // Add any new messages from server that aren't local
+            const newMessages = serverChat.messages.filter(m => !localMessageIds.has(m.id));
+            
+            merged.set(serverChat.roomId, {
+              ...local,
+              messages: [...local.messages, ...newMessages].sort((a, b) => a.timestamp - b.timestamp)
+            });
+          } else {
+            // New chat from server
+            merged.set(serverChat.roomId, serverChat);
+          }
+        });
+        
+        const result = Array.from(merged.values());
+        localStorage.setItem('voxlo_chats', JSON.stringify(result));
+        return result;
+      });
     });
 
     socket.on('chatConnected', (data) => {
@@ -111,12 +173,16 @@ function App() {
       setChats(prev => {
         const updated = prev.map(chat => {
           // Find which chat this message belongs to
-          if (chat.partnerId === messageData.senderId || 
-              messageData.senderId === user?.userId) {
+          if (chat.roomId === messageData.roomId) {
             const newMessages = [...chat.messages, {
               ...messageData,
               isOwn: messageData.senderId === user?.userId
             }];
+            
+            // Update active chat if it's the current one
+            if (activeChat?.roomId === chat.roomId) {
+              setActiveChat({ ...chat, messages: newMessages });
+            }
             
             return { ...chat, messages: newMessages };
           }
@@ -140,18 +206,26 @@ function App() {
     });
 
     socket.on('error', (error) => {
+      console.error('Socket error:', error);
       alert(error.message);
+    });
+
+    socket.on('disconnect', (reason) => {
+      console.log('Disconnected from server:', reason);
     });
 
     return () => {
       socket.off('connect');
+      socket.off('reconnect');
       socket.off('registered');
+      socket.off('chatsLoaded');
       socket.off('chatConnected');
       socket.off('newMessage');
       socket.off('userTyping');
       socket.off('error');
+      socket.off('disconnect');
     };
-  }, [socket, user]);
+  }, [socket, user, activeChat]);
 
   // Auto-cleanup expired messages every minute
   useEffect(() => {
@@ -177,9 +251,14 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleRegister = (username) => {
+  const handleRegister = (firstName, lastName) => {
     if (socket && socket.connected) {
-      socket.emit('register', { username });
+      const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      socket.emit('register', { 
+        userId,
+        firstName, 
+        lastName 
+      });
     }
   };
 

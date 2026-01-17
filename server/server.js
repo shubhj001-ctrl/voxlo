@@ -19,7 +19,12 @@ const io = new Server(httpServer, {
   cors: {
     origin: process.env.CLIENT_URL || 'http://localhost:5173',
     methods: ['GET', 'POST']
-  }
+  },
+  pingInterval: 25000,
+  pingTimeout: 60000,
+  reconnection: true,
+  reconnectionDelay: 1000,
+  reconnectionAttempts: Infinity
 });
 
 app.use(cors());
@@ -35,7 +40,8 @@ const users = new Map(); // userId -> { id, firstName, lastName, email, password
 const usersByEmail = new Map(); // email -> userId
 const inviteCodes = new Map(); // inviteCode -> userId
 const chatUsers = new Map(); // socket.id -> { userId, firstName, lastName, inviteCode }
-const activeChats = new Map(); // roomId -> { user1, user2, messages }
+const activeChats = new Map(); // roomId -> { user1, user2, messages, unreadCount }
+const userConnections = new Map(); // userId -> Set of socket.ids (support multiple connections)
 
 // Utility Functions
 function generateInviteCode() {
@@ -298,6 +304,12 @@ io.on('connection', (socket) => {
       return;
     }
 
+    // Track this socket connection for the user
+    if (!userConnections.has(userId)) {
+      userConnections.set(userId, new Set());
+    }
+    userConnections.get(userId).add(socket.id);
+
     chatUsers.set(socket.id, {
       userId,
       firstName,
@@ -312,7 +324,33 @@ io.on('connection', (socket) => {
       inviteCode: user.inviteCode
     });
 
-    console.log(`User registered: ${firstName} ${lastName}`);
+    console.log(`User registered: ${firstName} ${lastName} (${socket.id})`);
+  });
+
+  socket.on('reconnect', () => {
+    console.log('User reconnected:', socket.id);
+  });
+
+  socket.on('getChats', ({ userId }) => {
+    if (!userId) return;
+
+    // Send all active chats this user is part of
+    const userChats = [];
+    activeChats.forEach((chat, roomId) => {
+      if (chat.user1 === userId || chat.user2 === userId) {
+        const partnerId = chat.user1 === userId ? chat.user2 : chat.user1;
+        const partner = users.get(partnerId);
+        userChats.push({
+          roomId,
+          partnerId,
+          partnerName: `${partner.firstName} ${partner.lastName}`,
+          messages: chat.messages.filter(msg => (Date.now() - msg.timestamp) < 10 * 60 * 1000), // Only active messages
+          unreadCount: 0
+        });
+      }
+    });
+
+    socket.emit('chatsLoaded', { chats: userChats });
   });
 
   socket.on('connectWithCode', ({ inviteCode, myUserId }) => {
@@ -349,7 +387,8 @@ io.on('connection', (socket) => {
       activeChats.set(roomId, {
         user1: myUserId,
         user2: targetUserId,
-        messages: []
+        messages: [],
+        unreadCount: {}
       });
     }
 
@@ -361,19 +400,19 @@ io.on('connection', (socket) => {
 
     socket.emit('chatConnected', chatData);
 
-    // Find target socket
-    const targetSocket = Array.from(io.sockets.sockets.values()).find(
-      s => chatUsers.get(s.id)?.userId === targetUserId
-    );
-
-    if (targetSocket) {
-      targetSocket.join(roomId);
-      targetSocket.emit('chatConnected', {
-        roomId,
-        partnerId: myUserId,
-        partnerName: `${currentUser.firstName} ${currentUser.lastName}`
-      });
-    }
+    // Join all sockets of the target user to the room
+    const targetSockets = userConnections.get(targetUserId) || new Set();
+    targetSockets.forEach(socketId => {
+      const targetSocket = io.sockets.sockets.get(socketId);
+      if (targetSocket) {
+        targetSocket.join(roomId);
+        targetSocket.emit('chatConnected', {
+          roomId,
+          partnerId: myUserId,
+          partnerName: `${currentUser.firstName} ${currentUser.lastName}`
+        });
+      }
+    });
 
     console.log(`Chat connected: ${currentUser.firstName} <-> ${targetUser.firstName}`);
   });
@@ -396,6 +435,8 @@ io.on('connection', (socket) => {
     };
 
     chat.messages.push(messageData);
+    
+    // Broadcast to all connections in the room
     io.to(roomId).emit('newMessage', messageData);
 
     console.log(`Message in room ${roomId}:`, message);
@@ -414,6 +455,16 @@ io.on('connection', (socket) => {
 
     if (user) {
       console.log(`User disconnected: ${user.firstName} ${user.lastName}`);
+      
+      // Remove this socket connection from the user
+      const userSockets = userConnections.get(user.userId);
+      if (userSockets) {
+        userSockets.delete(socket.id);
+        if (userSockets.size === 0) {
+          userConnections.delete(user.userId);
+        }
+      }
+      
       chatUsers.delete(socket.id);
     }
   });

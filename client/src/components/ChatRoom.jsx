@@ -85,10 +85,10 @@ function ChatRoom({
         <div className="sidebar-header">
           <div className="user-info">
             <div className="user-avatar">
-              {user.username.charAt(0).toUpperCase()}
+              {user.firstName?.charAt(0).toUpperCase()}
             </div>
             <div>
-              <div className="user-name">{user.username}</div>
+              <div className="user-name">{user.firstName} {user.lastName}</div>
               <div className="user-status">Online</div>
             </div>
           </div>
