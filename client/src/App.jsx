@@ -6,6 +6,22 @@ import './App.css';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
 
+// Helper function to save chats properly (split metadata and messages)
+function saveChatState(chats) {
+  // Save connection metadata (never expires)
+  const connections = chats.map(({ messages, ...metadata }) => metadata);
+  localStorage.setItem('voxlo_connections', JSON.stringify(connections));
+  
+  // Save messages separately (can expire)
+  const messages = {};
+  chats.forEach(chat => {
+    if (chat.messages && chat.messages.length > 0) {
+      messages[chat.roomId] = chat.messages.map(({ isOwn, ...msg }) => msg);
+    }
+  });
+  localStorage.setItem('voxlo_messages', JSON.stringify(messages));
+}
+
 function App() {
   const [socket, setSocket] = useState(null);
   const [user, setUser] = useState(null);
@@ -25,32 +41,60 @@ function App() {
       }
     }
 
-    // Load saved connections (these are your direct contacts)
-    const savedChats = localStorage.getItem('voxlo_chats');
-    if (savedChats) {
+    // Load saved connections (METADATA - never expires)
+    const savedConnections = localStorage.getItem('voxlo_connections');
+    const connectionMetadata = new Map();
+    
+    if (savedConnections) {
       try {
-        const parsed = JSON.parse(savedChats);
-        console.log('👥 Loaded', parsed.length, 'direct connections from localStorage');
+        const parsed = JSON.parse(savedConnections);
+        console.log('👥 Loaded', parsed.length, 'direct connections metadata from localStorage');
         console.log('📋 Connections:', parsed.map(c => c.partnerName));
-        
-        // Keep all connections, but clean up expired messages
-        const now = Date.now();
-        const chatsWithValidMessages = parsed.map(chat => ({
-          ...chat,
-          messages: chat.messages.filter(msg => 
-            (now - msg.timestamp) < 10 * 60 * 1000
-          )
-        }));
-        
-        console.log('✅ After cleanup:', chatsWithValidMessages.length, 'connections still active');
-        localStorage.setItem('voxlo_chats', JSON.stringify(chatsWithValidMessages));
-        setChats(chatsWithValidMessages);
+        parsed.forEach(conn => {
+          connectionMetadata.set(conn.roomId, conn);
+        });
       } catch (e) {
-        console.error('Error loading saved chats:', e);
+        console.error('Error loading saved connections:', e);
       }
-    } else {
-      console.log('📭 No saved connections yet');
     }
+
+    // Load saved messages (temporary - expires after 10 min)
+    const savedMessages = localStorage.getItem('voxlo_messages');
+    const messagesByRoom = new Map();
+    
+    if (savedMessages) {
+      try {
+        const parsed = JSON.parse(savedMessages);
+        console.log('💬 Loaded messages from localStorage');
+        
+        // Clean up expired messages
+        const now = Date.now();
+        Object.entries(parsed).forEach(([roomId, messages]) => {
+          const validMessages = messages.filter(msg => 
+            (now - msg.timestamp) < 10 * 60 * 1000
+          );
+          if (validMessages.length > 0) {
+            messagesByRoom.set(roomId, validMessages);
+            console.log(`  ✅ ${roomId}: ${validMessages.length} recent messages`);
+          }
+        });
+        localStorage.setItem('voxlo_messages', JSON.stringify(Object.fromEntries(messagesByRoom)));
+      } catch (e) {
+        console.error('Error loading saved messages:', e);
+      }
+    }
+
+    // Merge connections with their messages
+    const chats = Array.from(connectionMetadata.values()).map(conn => ({
+      ...conn,
+      messages: messagesByRoom.get(conn.roomId) || []
+    }));
+    
+    console.log('✅ After cleanup:', chats.length, 'connections still active');
+    localStorage.setItem('voxlo_connections', JSON.stringify(
+      chats.map(({ messages, ...conn }) => conn) // Save only metadata
+    ));
+    setChats(chats);
 
     // Initialize Socket.io
     const newSocket = io(SERVER_URL, {
@@ -153,12 +197,8 @@ function App() {
         
         console.log('✅ Final merged connections:', result.length);
         
-        // Save clean version (without isOwn) to localStorage
-        const cleanResult = result.map(chat => ({
-          ...chat,
-          messages: chat.messages.map(({ isOwn, ...msg }) => msg)
-        }));
-        localStorage.setItem('voxlo_chats', JSON.stringify(cleanResult));
+        // Save using new split storage system
+        saveChatState(result);
         
         return result;
       });
@@ -193,10 +233,7 @@ function App() {
           };
           
           const updated = prev.map(c => c.roomId === data.roomId ? merged : c);
-          localStorage.setItem('voxlo_chats', JSON.stringify(updated.map(c => ({
-            ...c,
-            messages: c.messages.map(({ isOwn, ...msg }) => msg)
-          }))));
+          saveChatState(updated);
           setActiveChat(merged);
           return updated;
         }
@@ -204,10 +241,7 @@ function App() {
         // New connection
         console.log('➕ Adding new connection:', data.partnerName);
         const updated = [...prev, newConnection];
-        localStorage.setItem('voxlo_chats', JSON.stringify(updated.map(c => ({
-          ...c,
-          messages: c.messages.map(({ isOwn, ...msg }) => msg)
-        }))));
+        saveChatState(updated);
         setActiveChat(newConnection);
         return updated;
       });
@@ -233,7 +267,7 @@ function App() {
           return chat;
         });
         
-        localStorage.setItem('voxlo_chats', JSON.stringify(updated));
+        saveChatState(updated);
         return updated;
       });
     });
@@ -284,7 +318,8 @@ function App() {
           )
         }));
         
-        localStorage.setItem('voxlo_chats', JSON.stringify(updated));
+        // Save with split storage - connections stay, only messages cleaned
+        saveChatState(updated);
         return updated;
       });
     }, 60000); // Check every minute
