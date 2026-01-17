@@ -12,7 +12,13 @@ class ConnectionStore {
   static saveConnections(connections) {
     try {
       const connData = connections.map(({ messages, ...conn }) => conn);
-      localStorage.setItem('voxlo_connections', JSON.stringify(connData));
+      const json = JSON.stringify(connData);
+      console.log('💾 SAVING to localStorage:', json);
+      localStorage.setItem('voxlo_connections', json);
+      
+      // VERIFY IT WAS SAVED
+      const verify = localStorage.getItem('voxlo_connections');
+      console.log('✅ VERIFIED saved:', verify);
       console.log('💾 Saved', connData.length, 'connections to localStorage (PERMANENT)');
     } catch (e) {
       console.error('❌ Failed to save connections:', e);
@@ -97,6 +103,10 @@ window.debugVoxloStorage = function() {
   const user = localStorage.getItem('voxlo_user');
   
   console.log('\n=== VOXLO STORAGE DEBUG ===');
+  console.log('RAW voxlo_connections:', conns);
+  console.log('RAW voxlo_messages:', msgs);
+  console.log('RAW voxlo_user:', user);
+  console.log('');
   console.log('👥 Connections (PERMANENT):', conns ? JSON.parse(conns).length : 0);
   if (conns) {
     JSON.parse(conns).forEach(c => {
@@ -106,7 +116,22 @@ window.debugVoxloStorage = function() {
   console.log('💬 Messages (10 min expiry):', msgs ? Object.keys(JSON.parse(msgs)).length : 0, 'chats');
   console.log('👤 User:', user ? JSON.parse(user).firstName : 'Not logged in');
   console.log('=========================\n');
+  
+  return {
+    connections: conns ? JSON.parse(conns) : [],
+    messages: msgs ? JSON.parse(msgs) : {},
+    user: user ? JSON.parse(user) : null
+  };
 };
+
+// TEST localStorage immediately on script load
+console.log('🔴 SCRIPT LOADED - Testing localStorage...');
+const testKey = 'voxlo_test_' + Date.now();
+localStorage.setItem(testKey, 'works');
+const testResult = localStorage.getItem(testKey);
+localStorage.removeItem(testKey);
+console.log('🔴 localStorage test:', testResult === 'works' ? '✅ WORKING' : '❌ BROKEN');
+console.log('🔴 Current voxlo_connections:', localStorage.getItem('voxlo_connections'));
 
 function App() {
   const [socket, setSocket] = useState(null);
@@ -116,17 +141,22 @@ function App() {
 
   // LOAD INITIAL STATE FROM LOCALSTORAGE
   useEffect(() => {
-    console.log('\n🚀 App starting - loading from localStorage...\n');
+    console.log('\n🚀 App starting - loading from localStorage...');
+    console.log('🔍 Raw localStorage.getItem("voxlo_connections"):', localStorage.getItem('voxlo_connections'));
+    console.log('🔍 Raw localStorage.getItem("voxlo_user"):', localStorage.getItem('voxlo_user'));
     
     // Load user
     const savedUser = ConnectionStore.loadUser();
     if (savedUser) {
       console.log('👤 User found:', savedUser.firstName);
       setUser(savedUser);
+    } else {
+      console.log('⚠️ No saved user found');
     }
 
     // Load connections (PERMANENT - never expire)
     const connections = ConnectionStore.loadConnections();
+    console.log('📦 Loaded connections array:', connections);
     
     // Load messages (temporary - filter expired)
     const msgsByRoom = ConnectionStore.loadMessages();
@@ -138,6 +168,7 @@ function App() {
     }));
 
     console.log('📊 Total loaded:', merged.length, 'connections');
+    console.log('📋 Connection names:', merged.map(c => c.partnerName));
     setChats(merged);
   }, []);
 
