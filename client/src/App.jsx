@@ -6,52 +6,106 @@ import './App.css';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
 
-// Helper function to save chats properly (split metadata and messages)
-function saveChatState(chats) {
-  // Save connection metadata (never expires)
-  const connections = chats.map(({ messages, ...metadata }) => metadata);
-  const connectionsJson = JSON.stringify(connections);
-  localStorage.setItem('voxlo_connections', connectionsJson);
-  console.log('💾 SAVED voxlo_connections:', connections.length, 'connections');
-  console.log('   Details:', connections.map(c => `${c.roomId} (${c.partnerName})`).join(', '));
-  
-  // Verify it was saved by reading immediately
-  const verify = localStorage.getItem('voxlo_connections');
-  const verifyParsed = JSON.parse(verify || '[]');
-  console.log('✅ VERIFIED voxlo_connections saved to localStorage, count:', verifyParsed.length);
-  
-  // Save messages separately (can expire)
-  const messages = {};
-  chats.forEach(chat => {
-    if (chat.messages && chat.messages.length > 0) {
-      messages[chat.roomId] = chat.messages.map(({ isOwn, ...msg }) => msg);
+// SIMPLIFIED: Only handles localStorage, nothing else
+class ConnectionStore {
+  // CONNECTIONS = permanent friend list (survives refresh, page close, server restart)
+  static saveConnections(connections) {
+    try {
+      const connData = connections.map(({ messages, ...conn }) => conn);
+      localStorage.setItem('voxlo_connections', JSON.stringify(connData));
+      console.log('💾 Saved', connData.length, 'connections to localStorage (PERMANENT)');
+    } catch (e) {
+      console.error('❌ Failed to save connections:', e);
     }
-  });
-  localStorage.setItem('voxlo_messages', JSON.stringify(messages));
-  console.log('💾 SAVED voxlo_messages with', Object.keys(messages).length, 'rooms having messages');
+  }
+
+  static loadConnections() {
+    try {
+      const data = localStorage.getItem('voxlo_connections');
+      const conns = data ? JSON.parse(data) : [];
+      console.log('✅ Loaded', conns.length, 'connections from localStorage');
+      return conns;
+    } catch (e) {
+      console.error('❌ Failed to load connections:', e);
+      return [];
+    }
+  }
+
+  // MESSAGES = temporary (expire after 10 min)
+  static saveMessages(chats) {
+    try {
+      const msgData = {};
+      chats.forEach(chat => {
+        if (chat.messages?.length > 0) {
+          msgData[chat.roomId] = chat.messages.map(({ isOwn, ...m }) => m);
+        }
+      });
+      localStorage.setItem('voxlo_messages', JSON.stringify(msgData));
+      console.log('💾 Saved messages for', Object.keys(msgData).length, 'chats (temporary, 10 min expiry)');
+    } catch (e) {
+      console.error('❌ Failed to save messages:', e);
+    }
+  }
+
+  static loadMessages() {
+    try {
+      const data = localStorage.getItem('voxlo_messages');
+      if (!data) return {};
+      
+      const msgData = JSON.parse(data);
+      const now = Date.now();
+      const filtered = {};
+
+      // Remove expired messages (older than 10 minutes)
+      Object.entries(msgData).forEach(([roomId, messages]) => {
+        const valid = messages.filter(m => (now - m.timestamp) < 10 * 60 * 1000);
+        if (valid.length > 0) {
+          filtered[roomId] = valid;
+          console.log(`  ✅ ${roomId}: ${valid.length} messages still valid`);
+        } else {
+          console.log(`  ⏰ ${roomId}: all messages expired`);
+        }
+      });
+
+      // Save back filtered messages
+      localStorage.setItem('voxlo_messages', JSON.stringify(filtered));
+      return filtered;
+    } catch (e) {
+      console.error('❌ Failed to load messages:', e);
+      return {};
+    }
+  }
+
+  static saveUser(user) {
+    localStorage.setItem('voxlo_user', JSON.stringify(user));
+  }
+
+  static loadUser() {
+    try {
+      const data = localStorage.getItem('voxlo_user');
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      return null;
+    }
+  }
 }
 
-// DEBUGGING FUNCTION: Call from console to check localStorage state
+// Debug function - call from console
 window.debugVoxloStorage = function() {
-  console.log('====== VOXLO STORAGE DEBUG ======');
-  const conn = localStorage.getItem('voxlo_connections');
+  const conns = localStorage.getItem('voxlo_connections');
   const msgs = localStorage.getItem('voxlo_messages');
   const user = localStorage.getItem('voxlo_user');
   
-  console.log('🔍 localStorage keys:');
-  console.log('  - voxlo_connections:', conn ? `${conn.length} bytes, ${JSON.parse(conn).length} items` : 'NOT FOUND');
-  console.log('  - voxlo_messages:', msgs ? `${msgs.length} bytes` : 'NOT FOUND');
-  console.log('  - voxlo_user:', user ? 'EXISTS' : 'NOT FOUND');
-  
-  if (conn) {
-    const parsed = JSON.parse(conn);
-    console.log('\n📋 Connections saved:');
-    parsed.forEach(c => {
-      console.log(`   • ${c.roomId}: ${c.partnerName} (created: ${new Date(c.createdAt).toLocaleString()})`);
+  console.log('\n=== VOXLO STORAGE DEBUG ===');
+  console.log('👥 Connections (PERMANENT):', conns ? JSON.parse(conns).length : 0);
+  if (conns) {
+    JSON.parse(conns).forEach(c => {
+      console.log(`   • ${c.partnerName} (${c.roomId}) - created ${new Date(c.createdAt).toLocaleString()}`);
     });
   }
-  
-  console.log('\n✅ Debug complete - check above for data');
+  console.log('💬 Messages (10 min expiry):', msgs ? Object.keys(JSON.parse(msgs)).length : 0, 'chats');
+  console.log('👤 User:', user ? JSON.parse(user).firstName : 'Not logged in');
+  console.log('=========================\n');
 };
 
 function App() {
@@ -60,94 +114,35 @@ function App() {
   const [activeChat, setActiveChat] = useState(null);
   const [chats, setChats] = useState([]);
 
+  // LOAD INITIAL STATE FROM LOCALSTORAGE
   useEffect(() => {
-    // Load saved user from localStorage
-    const savedUser = localStorage.getItem('voxlo_user');
+    console.log('\n🚀 App starting - loading from localStorage...\n');
+    
+    // Load user
+    const savedUser = ConnectionStore.loadUser();
     if (savedUser) {
-      try {
-        const parsed = JSON.parse(savedUser);
-        console.log('👤 Loaded user from localStorage:', parsed.firstName, parsed.lastName);
-        setUser(parsed);
-      } catch (e) {
-        console.error('Error loading saved user:', e);
-      }
+      console.log('👤 User found:', savedUser.firstName);
+      setUser(savedUser);
     }
 
-    // Load saved connections (METADATA - never expires)
-    const savedConnections = localStorage.getItem('voxlo_connections');
-    const connectionMetadata = new Map();
+    // Load connections (PERMANENT - never expire)
+    const connections = ConnectionStore.loadConnections();
     
-    console.log('🔍 Checking localStorage for voxlo_connections...');
-    console.log('   Raw value:', savedConnections ? `${savedConnections.substring(0, 100)}...` : 'NOT FOUND');
+    // Load messages (temporary - filter expired)
+    const msgsByRoom = ConnectionStore.loadMessages();
     
-    if (savedConnections) {
-      try {
-        const parsed = JSON.parse(savedConnections);
-        console.log('✅ LOADED', parsed.length, 'direct connections metadata from localStorage');
-        console.log('📋 Connection details:', parsed.map(c => ({
-          roomId: c.roomId,
-          partner: c.partnerName,
-          userId: c.userId,
-          createdAt: new Date(c.createdAt).toLocaleString()
-        })));
-        parsed.forEach(conn => {
-          connectionMetadata.set(conn.roomId, conn);
-        });
-      } catch (e) {
-        console.error('❌ Error loading saved connections:', e);
-      }
-    } else {
-      console.log('⚠️  voxlo_connections NOT FOUND in localStorage');
-    }
-
-    // Load saved messages (temporary - expires after 10 min)
-    const savedMessages = localStorage.getItem('voxlo_messages');
-    const messagesByRoom = new Map();
-    
-    if (savedMessages) {
-      try {
-        const parsed = JSON.parse(savedMessages);
-        console.log('💬 Loaded messages from localStorage');
-        
-        // Clean up expired messages
-        const now = Date.now();
-        Object.entries(parsed).forEach(([roomId, messages]) => {
-          const validMessages = messages.filter(msg => 
-            (now - msg.timestamp) < 10 * 60 * 1000
-          );
-          if (validMessages.length > 0) {
-            messagesByRoom.set(roomId, validMessages);
-            console.log(`  ✅ ${roomId}: ${validMessages.length} recent messages`);
-          }
-        });
-        localStorage.setItem('voxlo_messages', JSON.stringify(Object.fromEntries(messagesByRoom)));
-      } catch (e) {
-        console.error('Error loading saved messages:', e);
-      }
-    }
-
-    // Merge connections with their messages
-    const chats = Array.from(connectionMetadata.values()).map(conn => ({
+    // Merge: connections + their messages
+    const merged = connections.map(conn => ({
       ...conn,
-      messages: messagesByRoom.get(conn.roomId) || []
+      messages: msgsByRoom[conn.roomId] || []
     }));
-    
-    console.log('✅ After cleanup:', chats.length, 'connections still active');
-    console.log('📊 Connection details:', chats.map(c => ({
-      roomId: c.roomId,
-      partner: c.partnerName,
-      messages: c.messages?.length || 0
-    })));
-    
-    // CRITICAL: Save the metadata back to localStorage
-    localStorage.setItem('voxlo_connections', JSON.stringify(
-      chats.map(({ messages, ...conn }) => conn) // Save only metadata
-    ));
-    console.log('💾 INITIAL LOAD: Saved', chats.length, 'connections metadata to localStorage');
-    
-    setChats(chats);
 
-    // Initialize Socket.io
+    console.log('📊 Total loaded:', merged.length, 'connections');
+    setChats(merged);
+  }, []);
+
+  // CONNECT TO SERVER
+  useEffect(() => {
     const newSocket = io(SERVER_URL, {
       autoConnect: true,
       reconnection: true,
@@ -157,58 +152,18 @@ function App() {
       transports: ['websocket', 'polling']
     });
 
-    setSocket(newSocket);
-
-    return () => {
-      newSocket.close();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.on('connect', () => {
+    newSocket.on('connect', () => {
       console.log('🔗 Connected to server');
-      
-      // Re-register if user exists
       if (user) {
-        console.log('👤 Re-registering user:', user.firstName);
-        socket.emit('register', { 
+        newSocket.emit('register', {
           userId: user.userId,
           firstName: user.firstName,
           lastName: user.lastName
         });
-        
-        // Tell server about existing connections from localStorage
-        // This rebuilds server-side state
-        setTimeout(() => {
-          console.log('📤 Rebuilding connections on server');
-          socket.emit('getChats', { userId: user.userId });
-        }, 100);
       }
     });
 
-    socket.on('reconnect', () => {
-      console.log('🔄 Reconnected to server');
-      
-      // Re-register if user exists
-      if (user) {
-        console.log('👤 Re-registering user:', user.firstName);
-        socket.emit('register', { 
-          userId: user.userId,
-          firstName: user.firstName,
-          lastName: user.lastName
-        });
-        
-        // Rebuild connections on server
-        setTimeout(() => {
-          console.log('📤 Rebuilding connections after reconnect');
-          socket.emit('getChats', { userId: user.userId });
-        }, 100);
-      }
-    });
-
-    socket.on('registered', (data) => {
+    newSocket.on('registered', (data) => {
       const userData = {
         userId: data.userId,
         firstName: data.firstName,
@@ -216,212 +171,149 @@ function App() {
         inviteCode: data.inviteCode
       };
       setUser(userData);
-      localStorage.setItem('voxlo_user', JSON.stringify(userData));
+      ConnectionStore.saveUser(userData);
+      console.log('✅ Registered:', userData.firstName);
     });
 
-    socket.on('chatsLoaded', (data) => {
-      console.log('📥 chatsLoaded from server:', data.chats.length, 'chats');
-      
+    newSocket.on('chatsLoaded', (data) => {
+      console.log('📥 Server sent', data.chats.length, 'connections');
       setChats(prev => {
-        console.log('📊 Local connections before merge:', prev.length);
-        console.log('📊 Server connections:', data.chats.length);
-        
-        // If server has chats, add any that aren't locally stored
         const localMap = new Map(prev.map(c => [c.roomId, c]));
         
+        // Add any server-side connections we don't have locally
         data.chats.forEach(serverChat => {
           if (!localMap.has(serverChat.roomId)) {
-            // Server has a connection we don't - this shouldn't happen but add it anyway
-            console.log('⚠️  Adding server-side connection:', serverChat.partnerName);
             localMap.set(serverChat.roomId, serverChat);
           }
         });
-        
-        // Map isOwn flags for display
-        const result = Array.from(localMap.values()).map(chat => ({
-          ...chat,
-          messages: chat.messages.map(m => ({
-            ...m,
-            isOwn: m.senderId === user?.userId
-          }))
-        }));
-        
-        console.log('✅ Final merged connections:', result.length);
-        
-        // Save using new split storage system
-        saveChatState(result);
-        
+
+        const result = Array.from(localMap.values());
+        ConnectionStore.saveConnections(result);
         return result;
       });
     });
 
-    socket.on('chatConnected', (data) => {
-      console.log('🤝 New connection established with:', data.partnerName);
+    newSocket.on('chatConnected', (data) => {
+      console.log('✅ New connection: ', data.partnerName);
       
-      const newConnection = {
-        roomId: data.roomId,
-        partnerId: data.partnerId,
-        partnerName: data.partnerName,
-        messages: data.messages || [],
-        createdAt: Date.now()
-      };
-
       setChats(prev => {
-        // Check if this connection already exists
-        const existing = prev.find(c => c.roomId === data.roomId);
-        
-        if (existing) {
-          console.log('✅ Connection already exists with:', data.partnerName);
-          // Update with new messages from server if any
-          const merged = {
-            ...existing,
-            messages: data.messages && data.messages.length > 0 
-              ? data.messages.map(msg => ({
-                  ...msg,
-                  isOwn: msg.senderId === user?.userId
-                }))
-              : existing.messages
-          };
-          
-          const updated = prev.map(c => c.roomId === data.roomId ? merged : c);
-          saveChatState(updated);
-          setActiveChat(merged);
-          return updated;
+        const exists = prev.some(c => c.roomId === data.roomId);
+        if (exists) {
+          console.log('   (Already connected)');
+          return prev;
         }
-        
-        // New connection
-        console.log('➕ Adding new connection:', data.partnerName);
-        const updated = [...prev, newConnection];
-        saveChatState(updated);
-        setActiveChat(newConnection);
+
+        const newConn = {
+          roomId: data.roomId,
+          partnerId: data.partnerId,
+          partnerName: data.partnerName,
+          messages: [],
+          createdAt: Date.now()
+        };
+
+        const updated = [...prev, newConn];
+        ConnectionStore.saveConnections(updated); // ✅ SAVE TO LOCALSTORAGE
+        setActiveChat(newConn);
         return updated;
       });
     });
 
-    socket.on('newMessage', (messageData) => {
+    newSocket.on('newMessage', (msg) => {
       setChats(prev => {
         const updated = prev.map(chat => {
-          // Find which chat this message belongs to
-          if (chat.roomId === messageData.roomId) {
-            const newMessages = [...chat.messages, {
-              ...messageData,
-              isOwn: messageData.senderId === user?.userId
-            }];
-            
-            // Update active chat if it's the current one
-            if (activeChat?.roomId === chat.roomId) {
-              setActiveChat({ ...chat, messages: newMessages });
-            }
-            
-            return { ...chat, messages: newMessages };
+          if (chat.roomId === msg.roomId) {
+            return {
+              ...chat,
+              messages: [...chat.messages, { ...msg, isOwn: msg.senderId === user?.userId }]
+            };
           }
           return chat;
         });
+
+        ConnectionStore.saveMessages(updated); // ✅ SAVE MESSAGES
         
-        saveChatState(updated);
+        // Update active chat if it's the current one
+        if (activeChat?.roomId === msg.roomId) {
+          setActiveChat(updated.find(c => c.roomId === msg.roomId));
+        }
+
         return updated;
       });
     });
 
-    socket.on('userTyping', ({ userId, isTyping }) => {
-      setChats(prev => {
-        return prev.map(chat => {
-          if (chat.partnerId === userId) {
-            return { ...chat, partnerTyping: isTyping };
-          }
-          return chat;
-        });
-      });
+    newSocket.on('userTyping', ({ userId, isTyping }) => {
+      setChats(prev =>
+        prev.map(c => c.partnerId === userId ? { ...c, partnerTyping: isTyping } : c)
+      );
     });
 
-    socket.on('error', (error) => {
-      console.error('Socket error:', error);
+    newSocket.on('error', (error) => {
+      console.error('❌ Server error:', error.message);
       alert(error.message);
     });
 
-    socket.on('disconnect', (reason) => {
-      console.log('Disconnected from server:', reason);
+    newSocket.on('disconnect', () => {
+      console.log('❌ Disconnected from server');
     });
 
-    return () => {
-      socket.off('connect');
-      socket.off('reconnect');
-      socket.off('registered');
-      socket.off('chatsLoaded');
-      socket.off('chatConnected');
-      socket.off('newMessage');
-      socket.off('userTyping');
-      socket.off('error');
-      socket.off('disconnect');
-    };
-  }, [socket, user]);
+    setSocket(newSocket);
 
-  // Auto-cleanup expired messages every minute (but keep chat connections)
+    return () => newSocket.close();
+  }, [user]);
+
+  // AUTO-CLEANUP: Delete expired messages every minute (keep connections!)
   useEffect(() => {
     const interval = setInterval(() => {
-      const now = Date.now();
-      
       setChats(prev => {
+        const now = Date.now();
         const updated = prev.map(chat => ({
           ...chat,
-          messages: chat.messages.filter(msg => 
-            (now - msg.timestamp) < 10 * 60 * 1000
-          )
+          messages: chat.messages.filter(m => (now - m.timestamp) < 10 * 60 * 1000)
         }));
         
-        // Save with split storage - connections stay, only messages cleaned
-        saveChatState(updated);
+        ConnectionStore.saveMessages(updated);
         return updated;
       });
-    }, 60000); // Check every minute
+    }, 60000); // Every minute
 
     return () => clearInterval(interval);
   }, []);
 
+  // HANDLERS
   const handleRegister = (firstName, lastName) => {
-    if (socket && socket.connected) {
+    if (socket?.connected) {
       const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-      socket.emit('register', { 
-        userId,
-        firstName, 
-        lastName 
-      });
+      socket.emit('register', { userId, firstName, lastName });
     }
   };
 
-  const handleConnectWithCode = (inviteCode) => {
-    if (socket && socket.connected && user) {
-      socket.emit('connectWithCode', { 
-        inviteCode: inviteCode.toUpperCase(), 
-        myUserId: user.userId 
-      });
+  const handleConnectWithCode = (code) => {
+    if (socket?.connected && user) {
+      socket.emit('connectWithCode', { inviteCode: code.toUpperCase(), myUserId: user.userId });
     }
   };
 
-  const handleSendMessage = (message) => {
-    if (socket && socket.connected && activeChat) {
-      const timestamp = Date.now();
+  const handleSendMessage = (text) => {
+    if (socket?.connected && activeChat) {
       socket.emit('sendMessage', {
         roomId: activeChat.roomId,
-        message,
-        timestamp
+        message: text,
+        timestamp: Date.now()
       });
     }
   };
 
   const handleTyping = (isTyping) => {
-    if (socket && socket.connected && activeChat) {
-      socket.emit('typing', {
-        roomId: activeChat.roomId,
-        isTyping
-      });
+    if (socket?.connected && activeChat) {
+      socket.emit('typing', { roomId: activeChat.roomId, isTyping });
     }
   };
 
   const handleClearChats = () => {
     setChats([]);
     setActiveChat(null);
-    localStorage.removeItem('voxlo_chats');
+    localStorage.removeItem('voxlo_connections');
+    localStorage.removeItem('voxlo_messages');
   };
 
   if (!user) {
