@@ -10,7 +10,15 @@ const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
 function saveChatState(chats) {
   // Save connection metadata (never expires)
   const connections = chats.map(({ messages, ...metadata }) => metadata);
-  localStorage.setItem('voxlo_connections', JSON.stringify(connections));
+  const connectionsJson = JSON.stringify(connections);
+  localStorage.setItem('voxlo_connections', connectionsJson);
+  console.log('💾 SAVED voxlo_connections:', connections.length, 'connections');
+  console.log('   Details:', connections.map(c => `${c.roomId} (${c.partnerName})`).join(', '));
+  
+  // Verify it was saved by reading immediately
+  const verify = localStorage.getItem('voxlo_connections');
+  const verifyParsed = JSON.parse(verify || '[]');
+  console.log('✅ VERIFIED voxlo_connections saved to localStorage, count:', verifyParsed.length);
   
   // Save messages separately (can expire)
   const messages = {};
@@ -20,7 +28,31 @@ function saveChatState(chats) {
     }
   });
   localStorage.setItem('voxlo_messages', JSON.stringify(messages));
+  console.log('💾 SAVED voxlo_messages with', Object.keys(messages).length, 'rooms having messages');
 }
+
+// DEBUGGING FUNCTION: Call from console to check localStorage state
+window.debugVoxloStorage = function() {
+  console.log('====== VOXLO STORAGE DEBUG ======');
+  const conn = localStorage.getItem('voxlo_connections');
+  const msgs = localStorage.getItem('voxlo_messages');
+  const user = localStorage.getItem('voxlo_user');
+  
+  console.log('🔍 localStorage keys:');
+  console.log('  - voxlo_connections:', conn ? `${conn.length} bytes, ${JSON.parse(conn).length} items` : 'NOT FOUND');
+  console.log('  - voxlo_messages:', msgs ? `${msgs.length} bytes` : 'NOT FOUND');
+  console.log('  - voxlo_user:', user ? 'EXISTS' : 'NOT FOUND');
+  
+  if (conn) {
+    const parsed = JSON.parse(conn);
+    console.log('\n📋 Connections saved:');
+    parsed.forEach(c => {
+      console.log(`   • ${c.roomId}: ${c.partnerName} (created: ${new Date(c.createdAt).toLocaleString()})`);
+    });
+  }
+  
+  console.log('\n✅ Debug complete - check above for data');
+};
 
 function App() {
   const [socket, setSocket] = useState(null);
@@ -45,17 +77,27 @@ function App() {
     const savedConnections = localStorage.getItem('voxlo_connections');
     const connectionMetadata = new Map();
     
+    console.log('🔍 Checking localStorage for voxlo_connections...');
+    console.log('   Raw value:', savedConnections ? `${savedConnections.substring(0, 100)}...` : 'NOT FOUND');
+    
     if (savedConnections) {
       try {
         const parsed = JSON.parse(savedConnections);
-        console.log('👥 Loaded', parsed.length, 'direct connections metadata from localStorage');
-        console.log('📋 Connections:', parsed.map(c => c.partnerName));
+        console.log('✅ LOADED', parsed.length, 'direct connections metadata from localStorage');
+        console.log('📋 Connection details:', parsed.map(c => ({
+          roomId: c.roomId,
+          partner: c.partnerName,
+          userId: c.userId,
+          createdAt: new Date(c.createdAt).toLocaleString()
+        })));
         parsed.forEach(conn => {
           connectionMetadata.set(conn.roomId, conn);
         });
       } catch (e) {
-        console.error('Error loading saved connections:', e);
+        console.error('❌ Error loading saved connections:', e);
       }
+    } else {
+      console.log('⚠️  voxlo_connections NOT FOUND in localStorage');
     }
 
     // Load saved messages (temporary - expires after 10 min)
@@ -91,9 +133,18 @@ function App() {
     }));
     
     console.log('✅ After cleanup:', chats.length, 'connections still active');
+    console.log('📊 Connection details:', chats.map(c => ({
+      roomId: c.roomId,
+      partner: c.partnerName,
+      messages: c.messages?.length || 0
+    })));
+    
+    // CRITICAL: Save the metadata back to localStorage
     localStorage.setItem('voxlo_connections', JSON.stringify(
       chats.map(({ messages, ...conn }) => conn) // Save only metadata
     ));
+    console.log('💾 INITIAL LOAD: Saved', chats.length, 'connections metadata to localStorage');
+    
     setChats(chats);
 
     // Initialize Socket.io

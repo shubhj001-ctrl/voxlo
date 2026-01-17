@@ -102,7 +102,7 @@ function loadChatsFromFile() {
             ...chatData,
             messages: validMessages
           });
-          console.log(`  ✅ Loaded connection: ${chatData.user1} ↔️  ${chatData.user2} (${validMessages.length} recent messages)`);
+          console.log(`  ✅ Restored: ${roomId}, created ${new Date(chatData.createdAt).toLocaleString()}, ${validMessages.length} recent messages`);
         }
       });
       
@@ -111,7 +111,7 @@ function loadChatsFromFile() {
       console.log(`📭 No chats-data.json found (first run)`);
     }
   } catch (error) {
-    console.error('Error loading chats from file:', error);
+    console.error('❌ Error loading chats from file:', error);
   }
 }
 
@@ -123,9 +123,14 @@ function saveChatsToFile() {
     });
     
     fs.writeFileSync(CHATS_FILE, JSON.stringify(chatsObj, null, 2));
-    console.log(`💾 Saved ${activeChats.size} connections to disk`);
+    console.log(`💾 Saved ${activeChats.size} connections to disk (chats-data.json)`);
+    
+    // Log details of each connection saved
+    Array.from(activeChats.entries()).forEach(([roomId, data]) => {
+      console.log(`   ✅ ${roomId}: created ${new Date(data.createdAt).toLocaleString()}, ${data.messages?.length || 0} messages`);
+    });
   } catch (error) {
-    console.error('Error saving chats to file:', error);
+    console.error('❌ Error saving chats to file:', error);
   }
 }
 
@@ -562,15 +567,18 @@ io.on('connection', (socket) => {
         user1: myUserId,
         user2: targetUserId,
         messages: [],
-        unreadCount: {}
+        unreadCount: {},
+        createdAt: Date.now() // CRITICAL: Store creation time
       });
-      saveChatsToFile(); // Persist new chat
+      console.log(`📝 NEW CHAT CREATED: ${roomId}, saving to disk...`);
+      saveChatsToFile(); // Persist new chat with metadata
     }
 
     const chatData = {
       roomId,
       partnerId: targetUserId,
       partnerName: `${targetUser.firstName} ${targetUser.lastName}`,
+      createdAt: Date.now(),
       messages: activeChats.get(roomId).messages.filter(msg => (Date.now() - msg.timestamp) < 10 * 60 * 1000)
     };
 
@@ -586,6 +594,7 @@ io.on('connection', (socket) => {
           roomId,
           partnerId: myUserId,
           partnerName: `${currentUser.firstName} ${currentUser.lastName}`,
+          createdAt: Date.now(),
           messages: activeChats.get(roomId).messages.filter(msg => (Date.now() - msg.timestamp) < 10 * 60 * 1000)
         });
       }
