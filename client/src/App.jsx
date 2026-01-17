@@ -25,14 +25,15 @@ function App() {
       }
     }
 
-    // Load saved chats
+    // Load saved connections (these are your direct contacts)
     const savedChats = localStorage.getItem('voxlo_chats');
     if (savedChats) {
       try {
         const parsed = JSON.parse(savedChats);
-        console.log('💬 Loaded', parsed.length, 'chats from localStorage');
+        console.log('👥 Loaded', parsed.length, 'direct connections from localStorage');
+        console.log('📋 Connections:', parsed.map(c => c.partnerName));
         
-        // Clean up only expired MESSAGES, but keep the chat connections
+        // Keep all connections, but clean up expired messages
         const now = Date.now();
         const chatsWithValidMessages = parsed.map(chat => ({
           ...chat,
@@ -41,14 +42,14 @@ function App() {
           )
         }));
         
-        console.log('✅ After cleanup:', chatsWithValidMessages.length, 'chats still valid');
+        console.log('✅ After cleanup:', chatsWithValidMessages.length, 'connections still active');
         localStorage.setItem('voxlo_chats', JSON.stringify(chatsWithValidMessages));
         setChats(chatsWithValidMessages);
       } catch (e) {
         console.error('Error loading saved chats:', e);
       }
     } else {
-      console.log('📭 No saved chats in localStorage');
+      console.log('📭 No saved connections yet');
     }
 
     // Initialize Socket.io
@@ -72,36 +73,41 @@ function App() {
     if (!socket) return;
 
     socket.on('connect', () => {
-      console.log('Connected to server');
+      console.log('🔗 Connected to server');
       
       // Re-register if user exists
       if (user) {
+        console.log('👤 Re-registering user:', user.firstName);
         socket.emit('register', { 
           userId: user.userId,
           firstName: user.firstName,
           lastName: user.lastName
         });
         
-        // Restore chats from server after a brief delay to ensure registration is processed
+        // Tell server about existing connections from localStorage
+        // This rebuilds server-side state
         setTimeout(() => {
+          console.log('📤 Rebuilding connections on server');
           socket.emit('getChats', { userId: user.userId });
         }, 100);
       }
     });
 
     socket.on('reconnect', () => {
-      console.log('Reconnected to server');
+      console.log('🔄 Reconnected to server');
       
       // Re-register if user exists
       if (user) {
+        console.log('👤 Re-registering user:', user.firstName);
         socket.emit('register', { 
           userId: user.userId,
           firstName: user.firstName,
           lastName: user.lastName
         });
         
-        // Restore chats from server after a brief delay to ensure registration is processed
+        // Rebuild connections on server
         setTimeout(() => {
+          console.log('📤 Rebuilding connections after reconnect');
           socket.emit('getChats', { userId: user.userId });
         }, 100);
       }
@@ -119,67 +125,49 @@ function App() {
     });
 
     socket.on('chatsLoaded', (data) => {
-      console.log('📥 chatsLoaded event received:', data.chats.length, 'chats from server');
+      console.log('📥 chatsLoaded from server:', data.chats.length, 'chats');
       
-      // Merge server chats with local chats, keeping local messages and merging with server state
       setChats(prev => {
-        console.log('📊 Current local chats before merge:', prev.length);
-        console.log('📊 Server chats to merge:', data.chats.length);
+        console.log('📊 Local connections before merge:', prev.length);
+        console.log('📊 Server connections:', data.chats.length);
         
-        const merged = new Map();
+        // If server has chats, add any that aren't locally stored
+        const localMap = new Map(prev.map(c => [c.roomId, c]));
         
-        // First add all local chats
-        prev.forEach(chat => {
-          merged.set(chat.roomId, chat);
-        });
-        
-        console.log('📊 After adding local chats to merge map:', merged.size);
-        
-        // Then merge with server chats
         data.chats.forEach(serverChat => {
-          if (merged.has(serverChat.roomId)) {
-            // Keep local messages but update server state
-            const local = merged.get(serverChat.roomId);
-            const localMessageIds = new Set(local.messages.map(m => m.id));
-            
-            // Add any new messages from server that aren't local
-            const newMessages = serverChat.messages
-              .filter(m => !localMessageIds.has(m.id))
-              .map(m => ({
-                ...m,
-                isOwn: m.senderId === user?.userId
-              }));
-            
-            merged.set(serverChat.roomId, {
-              ...local,
-              messages: [...local.messages, ...newMessages].sort((a, b) => a.timestamp - b.timestamp)
-            });
-          } else {
-            // New chat from server - map isOwn flag
-            merged.set(serverChat.roomId, {
-              ...serverChat,
-              messages: serverChat.messages.map(m => ({
-                ...m,
-                isOwn: m.senderId === user?.userId
-              }))
-            });
+          if (!localMap.has(serverChat.roomId)) {
+            // Server has a connection we don't - this shouldn't happen but add it anyway
+            console.log('⚠️  Adding server-side connection:', serverChat.partnerName);
+            localMap.set(serverChat.roomId, serverChat);
           }
         });
         
-        const result = Array.from(merged.values());
-        // Strip out isOwn flag before saving to localStorage to keep data clean
+        // Map isOwn flags for display
+        const result = Array.from(localMap.values()).map(chat => ({
+          ...chat,
+          messages: chat.messages.map(m => ({
+            ...m,
+            isOwn: m.senderId === user?.userId
+          }))
+        }));
+        
+        console.log('✅ Final merged connections:', result.length);
+        
+        // Save clean version (without isOwn) to localStorage
         const cleanResult = result.map(chat => ({
           ...chat,
           messages: chat.messages.map(({ isOwn, ...msg }) => msg)
         }));
-        console.log('✅ Final merged chats:', result.length);
         localStorage.setItem('voxlo_chats', JSON.stringify(cleanResult));
+        
         return result;
       });
     });
 
     socket.on('chatConnected', (data) => {
-      const newChat = {
+      console.log('🤝 New connection established with:', data.partnerName);
+      
+      const newConnection = {
         roomId: data.roomId,
         partnerId: data.partnerId,
         partnerName: data.partnerName,
@@ -187,11 +175,13 @@ function App() {
         createdAt: Date.now()
       };
 
-      // Check if chat already exists
       setChats(prev => {
+        // Check if this connection already exists
         const existing = prev.find(c => c.roomId === data.roomId);
+        
         if (existing) {
-          // Merge messages if they exist in the new data
+          console.log('✅ Connection already exists with:', data.partnerName);
+          // Update with new messages from server if any
           const merged = {
             ...existing,
             messages: data.messages && data.messages.length > 0 
@@ -201,13 +191,24 @@ function App() {
                 }))
               : existing.messages
           };
+          
+          const updated = prev.map(c => c.roomId === data.roomId ? merged : c);
+          localStorage.setItem('voxlo_chats', JSON.stringify(updated.map(c => ({
+            ...c,
+            messages: c.messages.map(({ isOwn, ...msg }) => msg)
+          }))));
           setActiveChat(merged);
-          localStorage.setItem('voxlo_chats', JSON.stringify(prev.map(c => c.roomId === data.roomId ? merged : c)));
-          return prev.map(c => c.roomId === data.roomId ? merged : c);
+          return updated;
         }
-        const updated = [...prev, newChat];
-        localStorage.setItem('voxlo_chats', JSON.stringify(updated));
-        setActiveChat(newChat);
+        
+        // New connection
+        console.log('➕ Adding new connection:', data.partnerName);
+        const updated = [...prev, newConnection];
+        localStorage.setItem('voxlo_chats', JSON.stringify(updated.map(c => ({
+          ...c,
+          messages: c.messages.map(({ isOwn, ...msg }) => msg)
+        }))));
+        setActiveChat(newConnection);
         return updated;
       });
     });

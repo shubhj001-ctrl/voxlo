@@ -87,6 +87,8 @@ function loadChatsFromFile() {
       const data = fs.readFileSync(CHATS_FILE, 'utf8');
       const parsedChats = JSON.parse(data);
       
+      console.log(`📂 Found chats-data.json with ${Object.keys(parsedChats).length} entries`);
+      
       // Restore Map structure
       Object.entries(parsedChats).forEach(([roomId, chatData]) => {
         // Filter out expired messages (older than 10 minutes)
@@ -100,10 +102,13 @@ function loadChatsFromFile() {
             ...chatData,
             messages: validMessages
           });
+          console.log(`  ✅ Loaded connection: ${chatData.user1} ↔️  ${chatData.user2} (${validMessages.length} recent messages)`);
         }
       });
       
-      console.log(`✅ Loaded ${activeChats.size} chat rooms from persistent storage`);
+      console.log(`✅ Loaded ${activeChats.size} connections from persistent storage`);
+    } else {
+      console.log(`📭 No chats-data.json found (first run)`);
     }
   } catch (error) {
     console.error('Error loading chats from file:', error);
@@ -118,6 +123,7 @@ function saveChatsToFile() {
     });
     
     fs.writeFileSync(CHATS_FILE, JSON.stringify(chatsObj, null, 2));
+    console.log(`💾 Saved ${activeChats.size} connections to disk`);
   } catch (error) {
     console.error('Error saving chats to file:', error);
   }
