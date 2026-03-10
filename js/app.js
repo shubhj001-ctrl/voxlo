@@ -384,7 +384,7 @@ function startOTPTimer(){
   }, 1000);
 }
 
-async function verifyOTP(){
+window.verifyOTP = async function verifyOTP(){
   const entered = document.getElementById('otpInput').value.trim().toUpperCase();
   const errEl = document.getElementById('otpError');
   const btn = document.getElementById('otpVerifyBtn');
@@ -424,7 +424,7 @@ async function verifyOTP(){
   }
 }
 
-async function resendOTP(){
+window.resendOTP = async function resendOTP(){
   const btn = document.getElementById('otpResendBtn');
   btn.disabled=true; btn.textContent='Sending...';
   try{
@@ -989,6 +989,17 @@ function simulateReply(uid){
 //  BOOT
 // ══════════════════════════════
 window.addEventListener('DOMContentLoaded',()=>{
+
+  // ── OTP button listeners (must be here, not inline, because this is an ES module) ──
+  document.getElementById('otpVerifyBtn').textContent = 'Verify Code ✦';
+  document.getElementById('otpVerifyBtn').addEventListener('click', ()=> window.verifyOTP());
+  document.getElementById('otpResendBtn').addEventListener('click', ()=> window.resendOTP());
+
+  // ── Also allow Enter key in OTP input ──
+  document.getElementById('otpInput').addEventListener('keydown', e=>{
+    if(e.key === 'Enter') window.verifyOTP();
+  });
+
   if(S.fbReady){
     setLoaderMsg('Connecting...');
     setupAuthListener();
