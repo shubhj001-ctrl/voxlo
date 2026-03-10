@@ -224,6 +224,7 @@
     <div class="sb-nav">
       <button class="nav-pill active" data-view="chats">Chats</button>
       <button class="nav-pill" data-view="discover">Discover</button>
+      <button class="nav-pill" data-view="requests" id="navRequests">Requests <span class="req-badge hidden" id="reqBadge">0</span></button>
     </div>
     <div class="chat-list" id="chatList"></div>
     <div class="sb-prof">
@@ -255,6 +256,19 @@
         </div>
       </div>
       <div class="disc-grid" id="discGrid"></div>
+    </div>
+
+    <!-- REQUESTS PANEL -->
+    <div class="requests-panel hidden" id="requestsPanel">
+      <div class="req-panel-head">
+        <div class="req-panel-title">Friend Requests</div>
+        <div class="req-panel-sub" id="reqPanelSub">People who want to connect with you</div>
+      </div>
+      <div class="req-tabs">
+        <button class="req-tab active" id="reqTabIncoming" onclick="showReqTab('incoming')">Incoming</button>
+        <button class="req-tab" id="reqTabSent" onclick="showReqTab('sent')">Sent</button>
+      </div>
+      <div id="reqList" class="req-list"></div>
     </div>
 
     <!-- CHAT -->
@@ -366,6 +380,17 @@
       <div class="fg">
         <label>Bio</label>
         <textarea id="set-bio" style="background:var(--bg2);border:1px solid var(--br);border-radius:var(--rsm);padding:13px 15px;color:var(--t1);font-family:var(--font-b);font-size:14px;outline:none;resize:none;width:100%;min-height:90px" placeholder="Tell your story..."></textarea>
+      </div>
+      <!-- Privacy Toggle -->
+      <div class="privacy-row">
+        <div class="privacy-info">
+          <div class="privacy-label">🔒 Private Account</div>
+          <div class="privacy-desc">When on, others must send a friend request to chat with you</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="set-private"/>
+          <span class="toggle-slider"></span>
+        </label>
       </div>
       <button class="btn-full" id="saveSettings">Save Changes ✦</button>
     </div>

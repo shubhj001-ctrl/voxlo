@@ -5,7 +5,7 @@
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, query, orderBy, onSnapshot, serverTimestamp, updateDoc, where, limit } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, deleteDoc, query, orderBy, onSnapshot, serverTimestamp, updateDoc, where, limit } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 import firebaseConfig from '../firebase-config.js';
 
@@ -453,7 +453,10 @@ function initApp(){
   initChatInput();
   initNav();
   showDiscover();
-  if(S.fbReady) setOnlineStatus(true);
+  if(S.fbReady){
+    setOnlineStatus(true);
+    loadFriendData();
+  }
 }
 
 function updateSidebarProfile(){
@@ -481,7 +484,10 @@ function initNav(){
     p.onclick=()=>{
       document.querySelectorAll('.nav-pill').forEach(x=>x.classList.remove('active'));
       p.classList.add('active');
-      p.dataset.view==='discover' ? showDiscover() : showChatListView();
+      const view = p.dataset.view;
+      if(view === 'discover') showDiscover();
+      else if(view === 'requests') showRequestsPanel();
+      else showChatListView();
     };
   });
   document.getElementById('btnDiscover').onclick=()=>{
@@ -515,6 +521,7 @@ function initNav(){
 function showDiscover(){
   document.getElementById('discPanel').classList.remove('hidden');
   document.getElementById('chatPanel').classList.remove('active');
+  document.getElementById('requestsPanel').classList.add('hidden');
   document.querySelectorAll('.chat-item').forEach(i=>i.classList.remove('active'));
   S.chatId=null;
   if(S.unsubMsgs){ S.unsubMsgs(); S.unsubMsgs=null; }
@@ -522,6 +529,7 @@ function showDiscover(){
 
 function showChatListView(){
   document.getElementById('discPanel').classList.add('hidden');
+  document.getElementById('requestsPanel').classList.add('hidden');
 }
 
 async function logout(){
@@ -585,18 +593,34 @@ function renderDiscover(filter='all'){
     card.className='pcard';
     card.style.cssText=`animation:fiu .4s ease forwards;animation-delay:${idx*.05}s;opacity:0`;
     const matchScore = calcMatch(u);
+    const status = S.fbReady ? getFriendStatus(u.uid) : 'none';
+    const isPrivate = u.isPrivate;
+    const privBadge = isPrivate ? '<span style="font-size:10px;color:var(--t3);margin-left:6px">🔒</span>' : '';
+
+    let btnHtml = '';
+    if(status==='friends')
+      btnHtml=`<button class="btn-conn friends" onclick="startChat('${u.uid}',event)">💬 Chat</button>`;
+    else if(status==='requested')
+      btnHtml=`<button class="btn-conn requested" disabled>✓ Requested</button>`;
+    else if(status==='incoming')
+      btnHtml=`<button class="btn-conn friends" onclick="startChat('${u.uid}',event)">Accept & Chat</button>`;
+    else if(isPrivate)
+      btnHtml=`<button class="btn-conn private-lock" onclick="sendFriendRequest('${u.uid}',event)">🔒 Add Friend</button>`;
+    else
+      btnHtml=`<button class="btn-conn" onclick="startChat('${u.uid}',event)">Connect</button>`;
+
     card.innerHTML=`
       <div class="card-hd">
         <div class="av ${av}" style="position:relative">${initials(u.name)}${u.online?'<div class="ondot"></div>':''}</div>
-        <div><div class="card-nm">${esc(u.name)}</div><div class="card-loc">📍 ${esc(u.location||'Earth')}</div></div>
+        <div><div class="card-nm">${esc(u.name)}${privBadge}</div><div class="card-loc">📍 ${esc(u.location||'Earth')}</div></div>
       </div>
       <div class="card-bio">${esc(u.bio||'')}</div>
       <div class="tags">${(u.interests||[]).map((t,i)=>`<span class="tag ${tagColor(i)}">${esc(t)}</span>`).join('')}</div>
       <div class="card-ft">
         <div class="match">⚡ ${matchScore}% match</div>
-        <button class="btn-conn" onclick="startChat('${u.uid}',event)">Connect</button>
+        ${btnHtml}
       </div>`;
-    card.onclick=()=>openChat(u.uid);
+    card.onclick=()=>{ if(status==='friends'||!isPrivate) openChat(u.uid); };
     grid.appendChild(card);
   });
 }
@@ -611,27 +635,151 @@ function calcMatch(user){
 }
 
 // ══════════════════════════════
+//  FRIEND REQUEST SYSTEM
+// ══════════════════════════════
+let myFriends = new Set();
+let sentRequests = new Set();
+let incomingRequests = [];
+let sentRequestsList = [];
+
+async function loadFriendData(){
+  if(!S.fbReady || !S.user) return;
+  const myUid = S.user.uid;
+  const reqRef = collection(S.db,'friendRequests');
+  onSnapshot(query(reqRef, where('toUid','==',myUid)), snap=>{
+    incomingRequests = [];
+    myFriends = new Set();
+    snap.forEach(d=>{ const r={id:d.id,...d.data()}; incomingRequests.push(r); if(r.status==='accepted') myFriends.add(r.fromUid); });
+    updateReqBadge(); renderDiscover(); renderChatList();
+    if(document.getElementById('reqTabIncoming')?.classList.contains('active')) renderReqList('incoming');
+  });
+  onSnapshot(query(reqRef, where('fromUid','==',myUid)), snap=>{
+    sentRequestsList = []; sentRequests = new Set();
+    snap.forEach(d=>{ const r={id:d.id,...d.data()}; sentRequestsList.push(r); if(r.status==='pending') sentRequests.add(r.toUid); if(r.status==='accepted') myFriends.add(r.toUid); });
+    updateReqBadge(); renderDiscover(); renderChatList();
+    if(document.getElementById('reqTabSent')?.classList.contains('active')) renderReqList('sent');
+  });
+}
+
+function updateReqBadge(){
+  const pending = incomingRequests.filter(r=>r.status==='pending').length;
+  const badge = document.getElementById('reqBadge');
+  if(!badge) return;
+  pending > 0 ? (badge.textContent=pending, badge.classList.remove('hidden')) : badge.classList.add('hidden');
+}
+
+function getFriendStatus(uid){
+  if(myFriends.has(uid)) return 'friends';
+  if(sentRequests.has(uid)) return 'requested';
+  if(incomingRequests.find(r=>r.fromUid===uid && r.status==='pending')) return 'incoming';
+  return 'none';
+}
+
+async function sendFriendRequest(uid, e){
+  if(e) e.stopPropagation();
+  if(!S.fbReady){ toast('Connect Firebase to use this feature','err'); return; }
+  try{
+    const existing = await getDocs(query(collection(S.db,'friendRequests'), where('fromUid','==',S.user.uid), where('toUid','==',uid)));
+    if(!existing.empty){ toast('Request already sent!'); return; }
+    await addDoc(collection(S.db,'friendRequests'),{
+      fromUid:S.user.uid, toUid:uid,
+      fromName:S.profile.name, fromHandle:S.profile.handle, fromBio:S.profile.bio||'',
+      status:'pending', createdAt:serverTimestamp()
+    });
+    toast('Friend request sent! 🤝');
+  } catch(e){ console.error(e); toast('Failed to send request','err'); }
+}
+
+async function acceptRequest(requestId, fromUid){
+  try{
+    await updateDoc(doc(S.db,'friendRequests',requestId),{status:'accepted'});
+    toast('Friend accepted! 🎉');
+    setTimeout(()=>openChat(fromUid),400);
+  } catch(e){ toast('Error','err'); }
+}
+
+async function declineRequest(requestId){
+  try{ await updateDoc(doc(S.db,'friendRequests',requestId),{status:'declined'}); toast('Request declined'); }
+  catch(e){ toast('Error','err'); }
+}
+
+async function cancelRequest(requestId){
+  try{ await deleteDoc(doc(S.db,'friendRequests',requestId)); toast('Request cancelled'); }
+  catch(e){ toast('Error','err'); }
+}
+
+window.showReqTab = (tab)=>{
+  document.getElementById('reqTabIncoming').classList.toggle('active',tab==='incoming');
+  document.getElementById('reqTabSent').classList.toggle('active',tab==='sent');
+  renderReqList(tab);
+};
+
+function showRequestsPanel(){
+  document.getElementById('discPanel').classList.add('hidden');
+  document.getElementById('chatPanel').classList.remove('active');
+  document.getElementById('requestsPanel').classList.remove('hidden');
+  renderReqList('incoming');
+}
+
+function renderReqList(tab){
+  const list = document.getElementById('reqList'); if(!list) return;
+  list.innerHTML='';
+  const items = tab==='incoming' ? incomingRequests.filter(r=>r.status==='pending') : sentRequestsList.filter(r=>r.status==='pending');
+  if(!items.length){
+    list.innerHTML=`<div class="empty" style="padding:40px 0"><div class="empty-ico">${tab==='incoming'?'📭':'📤'}</div><h3>${tab==='incoming'?'No incoming requests':'No sent requests'}</h3><p>${tab==='incoming'?"When someone wants to connect, they'll appear here":'Requests you send will appear here'}</p></div>`;
+    return;
+  }
+  items.forEach(r=>{
+    const user = tab==='incoming'
+      ? allUsers.find(u=>u.uid===r.fromUid)||{name:r.fromName,handle:r.fromHandle,bio:r.fromBio,uid:r.fromUid}
+      : allUsers.find(u=>u.uid===r.toUid)||{name:'User',handle:'',uid:r.toUid};
+    const av=avColor(user.uid);
+    const card=document.createElement('div');
+    card.className='req-card';
+    card.innerHTML=`
+      <div class="req-card-hd">
+        <div class="av av-sm ${av}">${initials(user.name||'?')}</div>
+        <div class="req-card-info"><div class="req-card-name">${esc(user.name||'Unknown')}</div><div class="req-card-handle">${esc(user.handle||'')}</div></div>
+        <span class="req-status-badge pending">Pending</span>
+      </div>
+      <div class="req-card-bio">${esc(user.bio||r.fromBio||'')}</div>
+      <div class="req-card-acts">
+        ${tab==='incoming'
+          ? `<button class="btn-accept" data-id="${r.id}">Accept ✓</button><button class="btn-decline" data-id="${r.id}">Decline</button>`
+          : `<button class="btn-cancel-req" data-id="${r.id}">Cancel Request</button>`}
+      </div>`;
+    if(tab==='incoming'){
+      card.querySelector('.btn-accept').onclick=()=>acceptRequest(r.id,r.fromUid);
+      card.querySelector('.btn-decline').onclick=()=>declineRequest(r.id);
+    } else {
+      card.querySelector('.btn-cancel-req').onclick=()=>cancelRequest(r.id);
+    }
+    list.appendChild(card);
+  });
+}
+
+// ══════════════════════════════
 //  CHAT LIST
 // ══════════════════════════════
 function renderChatList(){
   const list=document.getElementById('chatList');
   list.innerHTML='';
-  const users = allUsers.slice(0,8);
+  let users = S.fbReady
+    ? allUsers.filter(u=>{ const s=getFriendStatus(u.uid); return s==='friends'||!u.isPrivate; })
+    : allUsers.slice(0,8);
   if(!users.length){
-    list.innerHTML='<div style="padding:20px;text-align:center;color:var(--t3);font-size:13px">No chats yet.<br>Discover people to start!</div>';
+    list.innerHTML='<div style="padding:20px;text-align:center;color:var(--t3);font-size:13px">No contacts yet.<br>Discover people to connect!</div>';
     return;
   }
   users.forEach(u=>{
     const av=avColor(u.uid);
     const item=document.createElement('div');
-    item.className='chat-item';
-    item.dataset.uid=u.uid;
+    item.className='chat-item'; item.dataset.uid=u.uid;
+    const isFriend = getFriendStatus(u.uid)==='friends';
+    const friendTag = isFriend ? '<span style="font-size:10px;color:var(--g);margin-left:4px">✓</span>' : '';
     item.innerHTML=`
       <div class="av ${av}" style="position:relative">${initials(u.name)}${u.online?'<div class="ondot"></div>':''}</div>
-      <div class="ci">
-        <div class="cn">${esc(u.name)}</div>
-        <div class="cp">${u.online?'🟢 Online':'Last seen recently'}</div>
-      </div>
+      <div class="ci"><div class="cn">${esc(u.name)}${friendTag}</div><div class="cp">${u.online?'🟢 Online':'Last seen recently'}</div></div>
       <div class="cm"><div class="ct">${u.online?'now':''}</div></div>`;
     item.onclick=()=>openChat(u.uid);
     list.appendChild(item);
@@ -642,8 +790,18 @@ function renderChatList(){
 //  OPEN CHAT
 // ══════════════════════════════
 window.startChat = (uid,e)=>{ if(e) e.stopPropagation(); openChat(uid); };
+window.sendFriendRequest = sendFriendRequest;
 
 async function openChat(uid){
+  // Guard: if user is private and not a friend, block
+  if(S.fbReady){
+    const user = allUsers.find(u=>u.uid===uid);
+    if(user?.isPrivate && getFriendStatus(uid) !== 'friends'){
+      toast('Send a friend request to chat 🔒','err');
+      return;
+    }
+  }
+
   S.chatId = uid;
   const user = allUsers.find(u=>u.uid===uid) || DEMO_USERS.find(u=>u.uid===uid);
   if(!user) return;
@@ -880,24 +1038,30 @@ function updateProfPanel(u){
 // ══════════════════════════════
 function openSettings(){
   if(S.profile){
-    document.getElementById('set-name').value=S.profile.name||'';
-    document.getElementById('set-bio').value=S.profile.bio||'';
+    document.getElementById('set-name').value = S.profile.name || '';
+    document.getElementById('set-bio').value = S.profile.bio || '';
+    document.getElementById('set-private').checked = S.profile.isPrivate || false;
   }
   document.getElementById('settingsModal').classList.add('active');
 }
 
 async function saveSettings(){
-  const name=document.getElementById('set-name').value.trim();
-  const bio=document.getElementById('set-bio').value.trim();
-  if(!name){toast('Name cannot be empty','err');return;}
-  S.profile.name=name; S.profile.bio=bio;
-  S.profile.handle='@'+name.toLowerCase().replace(/\s/g,'.');
-  if(S.fbReady&&S.user){
-    await updateDoc(doc(S.db,'users',S.user.uid),{name,bio,handle:S.profile.handle}).catch(e=>console.error(e));
+  const name = document.getElementById('set-name').value.trim();
+  const bio = document.getElementById('set-bio').value.trim();
+  const isPrivate = document.getElementById('set-private').checked;
+  if(!name){ toast('Name cannot be empty','err'); return; }
+  S.profile.name = name;
+  S.profile.bio = bio;
+  S.profile.isPrivate = isPrivate;
+  S.profile.handle = '@'+name.toLowerCase().replace(/\s+/g,'.');
+  if(S.fbReady && S.user){
+    await updateDoc(doc(S.db,'users',S.user.uid),{
+      name, bio, isPrivate, handle: S.profile.handle
+    }).catch(e=>console.error(e));
   }
   updateSidebarProfile();
   document.getElementById('settingsModal').classList.remove('active');
-  toast('Profile updated! ✓');
+  toast(isPrivate ? 'Profile updated! Account is now 🔒 Private' : 'Profile updated! Account is 🌐 Public');
 }
 
 // ══════════════════════════════
