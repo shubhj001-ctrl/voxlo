@@ -9,19 +9,50 @@ import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, query, 
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 import firebaseConfig from '../firebase-config.js';
 
+// ── EMAILJS CONFIG ──
+const EMAILJS_PUBLIC_KEY  = 'fZ7BAKMM1BlBU07S3';
+const EMAILJS_SERVICE_ID  = 'service_ay6r58h';
+const EMAILJS_TEMPLATE_ID = 'template_rsxuxol';
+
 // ── STATE ──
 const S = {
   app: null, auth: null, db: null, storage: null,
-  user: null,         // Firebase auth user
-  profile: null,      // Firestore user profile
-  chatId: null,       // current open chat
-  chatUser: null,     // current chat partner profile
-  unsubMsgs: null,    // message listener unsub
-  unsubUsers: null,   // users listener unsub
+  user: null, profile: null,
+  chatId: null, chatUser: null,
+  unsubMsgs: null, unsubUsers: null,
   pendingImgs: [],
   fbReady: false,
   demoMode: true,
+  twoFA: {
+    pendingEmail: null, pendingPass: null, pendingName: null,
+    otp: null, otpExpiry: null, isLogin: false, timerInterval: null,
+  }
 };
+
+// ── OTP HELPERS ──
+function generateOTP(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let otp = '';
+  for(let i = 0; i < 6; i++) otp += chars[Math.floor(Math.random() * chars.length)];
+  return otp;
+}
+
+async function sendOTPEmail(email, name, otp){
+  if(!window.emailjs){
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+    window.emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+  }
+  return window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    to_name:  name || 'there',
+    to_email: email,
+    otp_code: otp,
+  });
+}
 
 // ── AVATAR COLORS ──
 const AV_COLORS = ['av1','av2','av3','av4','av5','av6'];
