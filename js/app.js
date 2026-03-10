@@ -37,21 +37,42 @@ function generateOTP(){
   return otp;
 }
 
-async function sendOTPEmail(email, name, otp){
+let emailjsReady = false;
+
+async function loadEmailJS(){
+  if(emailjsReady) return;
   if(!window.emailjs){
     await new Promise((res, rej) => {
+      // Check if script already added
+      if(document.querySelector('script[src*="emailjs"]')){ 
+        const wait = setInterval(()=>{ if(window.emailjs){ clearInterval(wait); res(); } }, 50);
+        return;
+      }
       const s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
-      s.onload = res; s.onerror = rej;
+      s.onload = res;
+      s.onerror = () => rej(new Error('Failed to load EmailJS SDK'));
       document.head.appendChild(s);
     });
-    window.emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
   }
-  return window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-    to_name:  name || 'there',
-    to_email: email,
-    otp_code: otp,
-  });
+  window.emailjs.init(EMAILJS_PUBLIC_KEY);
+  emailjsReady = true;
+}
+
+async function sendOTPEmail(email, name, otp){
+  try{
+    await loadEmailJS();
+    const result = await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      email:    email,
+      passcode: otp,
+      time:     new Date(Date.now() + 10*60*1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
+    });
+    console.log('EmailJS success:', result);
+    return result;
+  } catch(e){
+    console.error('EmailJS full error:', JSON.stringify(e), e);
+    throw new Error(e?.text || e?.message || JSON.stringify(e) || 'Email sending failed');
+  }
 }
 
 // ── AVATAR COLORS ──
