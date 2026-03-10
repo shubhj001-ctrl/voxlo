@@ -313,3 +313,34 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:1
   font-family: var(--font-d);
   letter-spacing: .04em;
 }
+
+/* ─── REGISTRATION STEPS ─── */
+.reg-steps{
+  display:flex;align-items:center;justify-content:center;
+  gap:0;margin-bottom:28px;
+}
+.reg-step{display:flex;flex-direction:column;align-items:center;gap:5px}
+.reg-step-dot{
+  width:30px;height:30px;border-radius:50%;
+  background:var(--bg4);border:2px solid var(--br2);
+  color:var(--t3);font-size:12px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .3s;font-family:var(--font-d);
+}
+.reg-step.active .reg-step-dot{
+  background:var(--grd1);border-color:transparent;color:#fff;
+  box-shadow:0 0 16px rgba(124,58,237,.4);
+}
+.reg-step.done .reg-step-dot{
+  background:var(--g);border-color:transparent;color:#fff;
+}
+.reg-step-label{font-size:10px;color:var(--t3);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.reg-step.active .reg-step-label{color:var(--p2)}
+.reg-step.done .reg-step-label{color:var(--g)}
+.reg-step-line{
+  width:40px;height:2px;
+  background:var(--br2);
+  margin-bottom:16px;
+  transition:background .3s;
+}
+.reg-step-line.done{background:var(--g)}

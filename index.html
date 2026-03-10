@@ -57,32 +57,63 @@
       <button class="a-tab" data-tab="reg">Join VOXLO</button>
       <button class="a-tab active" data-tab="login">Sign In</button>
     </div>
-    <!-- REGISTER -->
+
+    <!-- ── STEP 1: EMAIL + PASSWORD ── -->
     <div id="reg-form" class="auth-form hidden">
-      <div class="fg"><label>Your Name</label><input type="text" id="reg-name" placeholder="What do people call you?"/></div>
-      <div class="fg"><label>Email</label><input type="email" id="reg-email" placeholder="your@email.com"/></div>
-      <div class="fg"><label>Password</label><input type="password" id="reg-pass" placeholder="Min 6 characters"/></div>
-      <div class="fg">
-        <label>Your Bio <span style="color:var(--t3);font-weight:400;text-transform:none">(Your first impression — make it real)</span></label>
-        <textarea id="reg-bio" placeholder="Who are you beyond your job title?"></textarea>
-      </div>
-      <div class="fg">
-        <label>Interests <span style="color:var(--t3);font-weight:400;text-transform:none">(pick any)</span></label>
-        <div class="itags">
-          <button class="itag">Tech</button><button class="itag">Music</button><button class="itag">Design</button>
-          <button class="itag">Coding</button><button class="itag">Travel</button><button class="itag">Gaming</button>
-          <button class="itag">Books</button><button class="itag">Art</button><button class="itag">Film</button>
-          <button class="itag">Sports</button><button class="itag">Food</button><button class="itag">Anime</button>
+      <!-- Progress bar -->
+      <div class="reg-steps">
+        <div class="reg-step active" id="rstep1">
+          <div class="reg-step-dot">1</div>
+          <div class="reg-step-label">Credentials</div>
+        </div>
+        <div class="reg-step-line"></div>
+        <div class="reg-step" id="rstep2">
+          <div class="reg-step-dot">2</div>
+          <div class="reg-step-label">Verify</div>
+        </div>
+        <div class="reg-step-line"></div>
+        <div class="reg-step" id="rstep3">
+          <div class="reg-step-dot">3</div>
+          <div class="reg-step-label">Profile</div>
         </div>
       </div>
-      <button class="btn-full" id="regBtn">Create My Profile ✦</button>
+
+      <!-- Step 1 fields -->
+      <div id="reg-step1">
+        <div class="fg" style="margin-bottom:14px"><label>Email</label><input type="email" id="reg-email" placeholder="your@email.com"/></div>
+        <div class="fg" style="margin-bottom:14px"><label>Password</label><input type="password" id="reg-pass" placeholder="Min 6 characters"/></div>
+        <div class="fg" style="margin-bottom:14px"><label>Confirm Password</label><input type="password" id="reg-pass2" placeholder="Repeat password"/></div>
+        <button class="btn-full" id="regBtn">Send Verification Code 📧</button>
+        <p style="text-align:center;font-size:12px;color:var(--t3);margin-top:12px">Already have an account? <a href="#" style="color:#b89ffc;text-decoration:none" onclick="switchToLogin()">Sign In</a></p>
+      </div>
+
+      <!-- Step 3: Profile setup (shown after OTP verified) -->
+      <div id="reg-step3" class="hidden">
+        <p style="font-size:13px;color:var(--t2);margin-bottom:18px;line-height:1.6">✅ Email verified! Now set up your profile.</p>
+        <div class="fg" style="margin-bottom:14px"><label>Your Name</label><input type="text" id="reg-name" placeholder="What do people call you?"/></div>
+        <div class="fg" style="margin-bottom:14px">
+          <label>Your Bio <span style="color:var(--t3);font-weight:400;text-transform:none">(Make it real)</span></label>
+          <textarea id="reg-bio" placeholder="Who are you beyond your job title?"></textarea>
+        </div>
+        <div class="fg" style="margin-bottom:18px">
+          <label>Interests <span style="color:var(--t3);font-weight:400;text-transform:none">(pick any)</span></label>
+          <div class="itags">
+            <button class="itag">Tech</button><button class="itag">Music</button><button class="itag">Design</button>
+            <button class="itag">Coding</button><button class="itag">Travel</button><button class="itag">Gaming</button>
+            <button class="itag">Books</button><button class="itag">Art</button><button class="itag">Film</button>
+            <button class="itag">Sports</button><button class="itag">Food</button><button class="itag">Anime</button>
+          </div>
+        </div>
+        <button class="btn-full" id="completeProfileBtn">Create My Profile ✦</button>
+      </div>
     </div>
+
     <!-- LOGIN -->
     <div id="login-form" class="auth-form">
-      <div class="fg"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com"/></div>
-      <div class="fg"><label>Password</label><input type="password" id="login-pass" placeholder="Your password"/></div>
+      <div class="fg" style="margin-bottom:14px"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com"/></div>
+      <div class="fg" style="margin-bottom:14px"><label>Password</label><input type="password" id="login-pass" placeholder="Your password"/></div>
       <button class="btn-full" id="loginBtn">Sign In to VOXLO ✦</button>
-      <p style="text-align:center;font-size:12px;color:var(--t3);margin-top:6px">
+      <p style="text-align:center;font-size:12px;color:var(--t3);margin-top:12px">
         No account? <a href="#" style="color:#b89ffc;text-decoration:none" onclick="switchToReg()">Join for free</a>
       </p>
     </div>

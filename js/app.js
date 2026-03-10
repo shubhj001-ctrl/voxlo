@@ -140,6 +140,13 @@ document.getElementById('btnSignIn').onclick = ()=>showPage('pg-auth');
 // ══════════════════════════════
 //  AUTH
 // ══════════════════════════════
+window.switchToLogin = ()=>{
+  document.querySelectorAll('.a-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector('[data-tab="login"]').classList.add('active');
+  document.getElementById('reg-form').classList.add('hidden');
+  document.getElementById('login-form').classList.remove('hidden');
+};
+
 window.switchToReg = ()=>{
   document.querySelectorAll('.a-tab').forEach(t=>t.classList.remove('active'));
   document.querySelector('[data-tab="reg"]').classList.add('active');
@@ -159,36 +166,88 @@ document.querySelectorAll('.a-tab').forEach(tab=>{
 
 document.querySelectorAll('.itag').forEach(t=>t.onclick=()=>t.classList.toggle('sel'));
 
-// REGISTER
+// ── STEP INDICATOR ──
+function setRegStep(step){
+  [1,2,3].forEach(n=>{
+    const el=document.getElementById('rstep'+n);
+    if(!el) return;
+    el.classList.remove('active','done');
+    if(n < step) el.classList.add('done');
+    if(n === step) el.classList.add('active');
+  });
+  document.querySelectorAll('.reg-step-line').forEach((l,i)=>{
+    l.classList.toggle('done', i+1 < step);
+  });
+}
+
+// REGISTER — Step 1: Email + Password → Send OTP
 document.getElementById('regBtn').onclick = async ()=>{
-  const name = document.getElementById('reg-name').value.trim();
   const email = document.getElementById('reg-email').value.trim();
-  const pass = document.getElementById('reg-pass').value;
-  const bio = document.getElementById('reg-bio').value.trim();
-  const interests = [...document.querySelectorAll('.itag.sel')].map(t=>t.textContent);
-  if(!name||!email||!pass||!bio){ toast('Please fill all fields','err'); return; }
+  const pass  = document.getElementById('reg-pass').value;
+  const pass2 = document.getElementById('reg-pass2').value;
+  if(!email||!pass){ toast('Please enter email and password','err'); return; }
   if(pass.length<6){ toast('Password must be at least 6 characters','err'); return; }
+  if(pass !== pass2){ toast('Passwords do not match','err'); return; }
 
   const btn = document.getElementById('regBtn');
-  btn.disabled=true; btn.textContent='Creating account...';
+  btn.disabled=true; btn.textContent='Sending code... 📧';
 
   if(!S.fbReady){
-    // DEMO MODE
-    S.profile = { uid:'demo_'+Date.now(), name, email, bio, interests, handle:'@'+name.toLowerCase().replace(/\s/g,'.'), online:true };
-    S.user = { uid: S.profile.uid };
-    toast('Welcome to VOXLO! 🎉 (Demo mode)');
-    setTimeout(()=>initApp(),400);
-    btn.disabled=false; btn.textContent='Create My Profile ✦';
+    S.twoFA = { pendingEmail:email, pendingPass:pass, isLogin:false, otp:'DEMO01', otpExpiry:Date.now()+600000 };
+    setRegStep(2);
+    showOTPScreen(email);
+    btn.disabled=false; btn.textContent='Send Verification Code 📧';
     return;
   }
 
   try{
-    const cred = await createUserWithEmailAndPassword(S.auth, email, pass);
+    const otp = generateOTP();
+    S.twoFA = { pendingEmail:email, pendingPass:pass,
+      otp, otpExpiry: Date.now()+10*60*1000, isLogin:false };
+    await sendOTPEmail(email, email.split('@')[0], otp);
+    toast('Code sent! Check your email 📧');
+    setRegStep(2);
+    showOTPScreen(email);
+  } catch(e){
+    console.error('OTP error:', e);
+    toast('Failed to send code: '+e.message,'err');
+  }
+  btn.disabled=false; btn.textContent='Send Verification Code 📧';
+};
+
+// REGISTER — Step 3: Profile setup (called after OTP verified)
+window.initProfileStep = ()=>{
+  setRegStep(3);
+  document.getElementById('reg-step1').classList.add('hidden');
+  document.getElementById('reg-step3').classList.remove('hidden');
+  document.querySelectorAll('.itag').forEach(t=>t.onclick=()=>t.classList.toggle('sel'));
+};
+
+document.getElementById('completeProfileBtn').onclick = async ()=>{
+  const name = document.getElementById('reg-name').value.trim();
+  const bio  = document.getElementById('reg-bio').value.trim();
+  const interests = [...document.querySelectorAll('.itag.sel')].map(t=>t.textContent);
+  if(!name||!bio){ toast('Please fill in name and bio','err'); return; }
+
+  const btn = document.getElementById('completeProfileBtn');
+  btn.disabled=true; btn.textContent='Creating profile...';
+
+  if(!S.fbReady){
+    S.profile = { uid:'demo_'+Date.now(), name, email:S.twoFA.pendingEmail, bio, interests,
+      handle:'@'+name.toLowerCase().replace(/\s+/g,'.'), online:true };
+    S.user = { uid: S.profile.uid };
+    toast('Welcome to VOXLO! 🎉');
+    setTimeout(()=>initApp(),400);
+    return;
+  }
+
+  try{
+    const cred = await createUserWithEmailAndPassword(S.auth, S.twoFA.pendingEmail, S.twoFA.pendingPass);
     await updateProfile(cred.user, { displayName: name });
     const profile = {
-      uid: cred.user.uid, name, email, bio,
+      uid: cred.user.uid, name, email: S.twoFA.pendingEmail, bio,
       interests: interests.length ? interests : ['Vibes'],
-      handle: '@'+name.toLowerCase().replace(/\s/g,'.'),
+      handle: '@'+name.toLowerCase().replace(/\s+/g,'.'),
       online: true, createdAt: serverTimestamp(), lastSeen: serverTimestamp()
     };
     await setDoc(doc(S.db,'users',cred.user.uid), profile);
@@ -291,36 +350,25 @@ async function verifyOTP(){
   }
 
   // OTP correct!
-  btn.disabled=true; btn.textContent='Verifying...';
+  btn.disabled=true; btn.textContent='Verified! ✓';
   clearInterval(S.twoFA.timerInterval);
 
-  try{
-    if(S.twoFA.isLogin){
-      // Login flow — sign in for real now
+  if(S.twoFA.isLogin){
+    // Login flow — sign in for real now
+    try{
       await signInWithEmailAndPassword(S.auth, S.twoFA.pendingEmail, S.twoFA.pendingPass);
       toast('Welcome back! 👋');
-    } else {
-      // Register flow — create account now
-      const cred = await createUserWithEmailAndPassword(S.auth, S.twoFA.pendingEmail, S.twoFA.pendingPass);
-      await updateProfile(cred.user, { displayName: S.twoFA.pendingName });
-      const profile = {
-        uid: cred.user.uid,
-        name: S.twoFA.pendingName,
-        email: S.twoFA.pendingEmail,
-        bio: S.twoFA.pendingBio || '',
-        interests: S.twoFA.pendingInterests?.length ? S.twoFA.pendingInterests : ['Vibes'],
-        handle: '@'+S.twoFA.pendingName.toLowerCase().replace(/\s+/g,'.'),
-        online: true, createdAt: serverTimestamp(), lastSeen: serverTimestamp()
-      };
-      await setDoc(doc(S.db,'users',cred.user.uid), profile);
-      S.profile = profile;
-      toast('Welcome to VOXLO! 🎉');
+      document.getElementById('otpModal').classList.remove('active');
+    } catch(e){
+      console.error('Login error:', e);
+      errEl.textContent = e.message;
+      btn.disabled=false; btn.textContent='Verify Code ✦';
     }
+  } else {
+    // Register flow — email verified, now show profile setup (Step 3)
     document.getElementById('otpModal').classList.remove('active');
-  } catch(e){
-    console.error('Final auth error:', e);
-    errEl.textContent = e.message;
-    btn.disabled=false; btn.textContent='Verify Code ✦';
+    toast('Email verified! ✅ Now set up your profile.');
+    initProfileStep();
   }
 }
 
