@@ -193,29 +193,45 @@ document.getElementById('btnSignIn').onclick = ()=>{ showPage('pg-auth'); switch
 //  AUTH
 // ══════════════════════════════
 window.switchToLogin = ()=>{
-  document.querySelectorAll('.a-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelector('[data-tab="login"]').classList.add('active');
-  document.getElementById('reg-form').classList.add('hidden');
-  document.getElementById('login-form').classList.remove('hidden');
+  document.getElementById('loginPanel').classList.remove('hidden');
+  document.getElementById('journeyWrap').classList.add('hidden');
 };
 
 window.switchToReg = ()=>{
-  document.querySelectorAll('.a-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelector('[data-tab="reg"]').classList.add('active');
-  document.getElementById('reg-form').classList.remove('hidden');
-  document.getElementById('login-form').classList.add('hidden');
+  document.getElementById('loginPanel').classList.add('hidden');
+  document.getElementById('journeyWrap').classList.remove('hidden');
+  goToSlide(1);
 };
 
-document.querySelectorAll('.a-tab').forEach(tab=>{
-  tab.onclick = ()=>{
-    document.querySelectorAll('.a-tab').forEach(t=>t.classList.remove('active'));
-    tab.classList.add('active');
-    const t = tab.dataset.tab;
-    document.getElementById('reg-form').classList.toggle('hidden', t!=='reg');
-    document.getElementById('login-form').classList.toggle('hidden', t!=='login');
-  };
-});
+// ── JOURNEY SLIDE SYSTEM ──
+let currentSlide = 1;
 
+function goToSlide(n, goingBack=false){
+  const prev = document.getElementById('jslide'+currentSlide);
+  if(prev){ prev.classList.remove('active','back-anim'); }
+  currentSlide = n;
+  const next = document.getElementById('jslide'+n);
+  if(next){
+    if(goingBack) next.classList.add('back-anim');
+    else next.classList.remove('back-anim');
+    next.classList.add('active');
+    setTimeout(()=>{ const inp=next.querySelector('input,select,textarea'); if(inp) inp.focus(); },120);
+  }
+  // Update progress dots
+  for(let i=1;i<=5;i++){
+    const dot=document.getElementById('jp'+i);
+    if(!dot) continue;
+    dot.classList.remove('active','done');
+    if(i<n) dot.classList.add('done');
+    if(i===n) dot.classList.add('active');
+  }
+  for(let i=1;i<5;i++){
+    const line=document.getElementById('jl'+i);
+    if(line) line.classList.toggle('done', i<n);
+  }
+}
+
+// Remove old tab listeners (tabs no longer exist in new UI)
 document.querySelectorAll('.itag').forEach(t=>t.onclick=()=>t.classList.toggle('sel'));
 
 // ══ JOURNEY REGISTRATION FLOW ══
