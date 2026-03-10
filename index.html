@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VOXLO — Connect Beyond Looks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<!-- LOADER -->
+<div class="loader-ov" id="loader">
+  <div class="loader-orb1"></div>
+  <div class="loader-orb2"></div>
+  <div class="loader-logo">✦ VOXLO</div>
+  <div class="loader-sub" id="loaderSub">Connecting...</div>
+  <div class="loader-dots">
+    <div class="loader-dot"></div>
+    <div class="loader-dot"></div>
+    <div class="loader-dot"></div>
+  </div>
+</div>
+
+<!-- ══════════ LANDING ══════════ -->
+<div id="pg-land" class="page">
+  <div class="orbs"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+  <div class="land-c">
+    <div class="badge"><span>✦</span> Now in Beta</div>
+    <h1 class="h1">Connect through<br><span class="gt">personality</span><br>not <span class="gt2">appearance</span></h1>
+    <p class="sub">VOXLO is where Gen Z connects for real.<br>Bio-first matching, photo sharing, and conversations that actually go somewhere.</p>
+    <div class="cta">
+      <button class="btn-p" id="btnGetStarted">Get Started — It's Free ✦</button>
+      <button class="btn-s" id="btnSignIn">Sign In</button>
+    </div>
+    <div class="stats">
+      <div><div class="stat-n">12K+</div><div class="stat-l">Active Users</div></div>
+      <div><div class="stat-n">94%</div><div class="stat-l">Match Rate</div></div>
+      <div><div class="stat-n">50K+</div><div class="stat-l">Vibes Shared</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ AUTH ══════════ -->
+<div id="pg-auth" class="page">
+  <div class="orbs"><div class="orb o1" style="position:fixed"></div><div class="orb o2" style="position:fixed"></div></div>
+  <div class="auth-card">
+    <div class="auth-logo">✦ VOXLO</div>
+    <div class="auth-tag">Your voice. Your world. Your VOXLO.</div>
+    <!-- Firebase not configured banner -->
+    <div class="fb-banner" id="fbBanner">
+      ⚠️ Firebase not configured yet. <a href="#" onclick="showFbHelp()">See setup guide</a> to connect your database. Running in demo mode.
+    </div>
+    <div class="auth-tabs">
+      <button class="a-tab" data-tab="reg">Join VOXLO</button>
+      <button class="a-tab active" data-tab="login">Sign In</button>
+    </div>
+    <!-- REGISTER -->
+    <div id="reg-form" class="auth-form hidden">
+      <div class="fg"><label>Your Name</label><input type="text" id="reg-name" placeholder="What do people call you?"/></div>
+      <div class="fg"><label>Email</label><input type="email" id="reg-email" placeholder="your@email.com"/></div>
+      <div class="fg"><label>Password</label><input type="password" id="reg-pass" placeholder="Min 6 characters"/></div>
+      <div class="fg">
+        <label>Your Bio <span style="color:var(--t3);font-weight:400;text-transform:none">(Your first impression — make it real)</span></label>
+        <textarea id="reg-bio" placeholder="Who are you beyond your job title?"></textarea>
+      </div>
+      <div class="fg">
+        <label>Interests <span style="color:var(--t3);font-weight:400;text-transform:none">(pick any)</span></label>
+        <div class="itags">
+          <button class="itag">Tech</button><button class="itag">Music</button><button class="itag">Design</button>
+          <button class="itag">Coding</button><button class="itag">Travel</button><button class="itag">Gaming</button>
+          <button class="itag">Books</button><button class="itag">Art</button><button class="itag">Film</button>
+          <button class="itag">Sports</button><button class="itag">Food</button><button class="itag">Anime</button>
+        </div>
+      </div>
+      <button class="btn-full" id="regBtn">Create My Profile ✦</button>
+    </div>
+    <!-- LOGIN -->
+    <div id="login-form" class="auth-form">
+      <div class="fg"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com"/></div>
+      <div class="fg"><label>Password</label><input type="password" id="login-pass" placeholder="Your password"/></div>
+      <button class="btn-full" id="loginBtn">Sign In to VOXLO ✦</button>
+      <p style="text-align:center;font-size:12px;color:var(--t3);margin-top:6px">
+        No account? <a href="#" style="color:#b89ffc;text-decoration:none" onclick="switchToReg()">Join for free</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ APP ══════════ -->
+<div id="pg-app" class="page">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-head">
+      <div class="sb-logo">✦ VOXLO</div>
+      <div class="sb-acts">
+        <button class="ico-btn" id="btnDiscover" title="Discover">🧭</button>
+        <button class="ico-btn" id="btnSettings" title="Settings">⚙️</button>
+      </div>
+    </div>
+    <div class="sb-search">
+      <div class="srch-wrap">
+        <span class="srch-ico">🔍</span>
+        <input type="text" id="chatSearch" placeholder="Search chats..."/>
+      </div>
+    </div>
+    <div class="sb-nav">
+      <button class="nav-pill active" data-view="chats">Chats</button>
+      <button class="nav-pill" data-view="discover">Discover</button>
+    </div>
+    <div class="chat-list" id="chatList"></div>
+    <div class="sb-prof">
+      <div class="av av-sm av1" id="sbAvatar">SJ</div>
+      <div class="pi">
+        <div class="pn" id="sbName">Loading...</div>
+        <div class="ph" id="sbHandle">@voxlo</div>
+      </div>
+      <button class="ico-btn" id="btnLogout" title="Logout">🚪</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main-area">
+
+    <!-- DISCOVER -->
+    <div class="disc-panel" id="discPanel">
+      <div class="disc-head">
+        <div>
+          <div class="disc-title">Discover People ✦</div>
+          <div class="online-ctr"><div class="onpulse"></div><span id="onlineCount">0 people online</span></div>
+        </div>
+        <div class="filter-bar">
+          <button class="fchip active" data-filter="all">All</button>
+          <button class="fchip" data-filter="tech">Tech</button>
+          <button class="fchip" data-filter="music">Music</button>
+          <button class="fchip" data-filter="art">Art</button>
+          <button class="fchip" data-filter="gaming">Gaming</button>
+        </div>
+      </div>
+      <div class="disc-grid" id="discGrid"></div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="chat-panel" id="chatPanel">
+      <div class="chat-head">
+        <div class="av av1" id="chAv">?</div>
+        <div class="ch-info">
+          <div class="ch-name" id="chName">Select a chat</div>
+          <div class="ch-status" id="chStatus"></div>
+        </div>
+        <div class="ch-acts">
+          <button class="ico-btn" id="btnViewProf" title="View Profile">👤</button>
+        </div>
+      </div>
+      <div class="msgs" id="msgsContainer"></div>
+      <div class="chat-inp-area">
+        <div class="img-prev-strip" id="imgPrevStrip"></div>
+        <div class="upload-prog" id="uploadProg">
+          <div class="upload-prog-bar"><div class="upload-fill" id="uploadFill"></div></div>
+          <div class="upload-label">
+            <div class="upload-spinner"></div>
+            <span id="uploadLabel">Uploading photo...</span>
+            <div class="upload-pct" id="uploadPct">0%</div>
+          </div>
+        </div>
+        <div class="inp-wrap">
+          <button class="inp-ico" id="attachBtn" title="Share Photo">📷</button>
+          <textarea id="chatInput" placeholder="Type a message... (Enter to send)" rows="1"></textarea>
+          <button class="send-btn" id="sendBtn">➤</button>
+        </div>
+        <input type="file" id="imgInput" accept="image/*" multiple style="display:none"/>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PROFILE PANEL -->
+  <div class="prof-panel" id="profPanel">
+    <div class="pp-head">
+      <h3>Profile</h3>
+      <button class="modal-close" id="btnCloseProf">✕</button>
+    </div>
+    <div class="pp-body">
+      <div class="pp-av-sec">
+        <div class="av av-lg av2" id="ppAv">A</div>
+        <div class="pp-name" id="ppName">-</div>
+        <div class="pp-handle" id="ppHandle">-</div>
+        <div class="pp-bio" id="ppBio"></div>
+      </div>
+      <div><div class="sec-lbl">Location</div><div style="font-size:13px;color:var(--t2)" id="ppLoc"></div></div>
+      <div><div class="sec-lbl">Interests</div><div class="tags" id="ppTags"></div></div>
+      <div class="match-pill" id="ppMatch"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════ OTP MODAL ══════════ -->
+<div class="modal-ov" id="otpModal">
+  <div class="modal otp-modal">
+    <div style="text-align:center;margin-bottom:24px">
+      <div class="otp-icon">🔐</div>
+      <div class="modal-title" style="margin-top:12px">Verify it's you</div>
+      <p style="font-size:13px;color:var(--t2);margin-top:8px;line-height:1.6">
+        We sent a 6-character code to<br>
+        <strong style="color:var(--t1)" id="otpEmail">your email</strong>
+      </p>
+    </div>
+
+    <!-- OTP Input -->
+    <div style="margin-bottom:16px">
+      <input type="text" id="otpInput" class="otp-input"
+        maxlength="6" placeholder="A1B2C3"
+        autocomplete="one-time-code" spellcheck="false"/>
+      <div id="otpError" class="otp-error"></div>
+    </div>
+
+    <!-- Timer -->
+    <div class="otp-timer-row">
+      <span style="color:var(--t3);font-size:12px">Code expires in</span>
+      <span class="otp-timer-badge" id="otpTimer">10:00</span>
+    </div>
+
+    <!-- Verify Button -->
+    <button class="btn-full" id="otpVerifyBtn" onclick="verifyOTP()" style="margin-top:16px">
+      Verify Code ✦
+    </button>
+
+    <!-- Resend -->
+    <div style="text-align:center;margin-top:14px">
+      <span style="font-size:12px;color:var(--t3)">Didn't get it? </span>
+      <button id="otpResendBtn" onclick="resendOTP()"
+        style="background:none;border:none;color:#b89ffc;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-b)">
+        Resend Code
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SETTINGS MODAL ══════════ -->
+<div class="modal-ov" id="settingsModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">Edit Profile</div>
+      <button class="modal-close" id="closeSettings">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="fg"><label>Display Name</label><input type="text" id="set-name" placeholder="Your name"/></div>
+      <div class="fg">
+        <label>Bio</label>
+        <textarea id="set-bio" style="background:var(--bg2);border:1px solid var(--br);border-radius:var(--rsm);padding:13px 15px;color:var(--t1);font-family:var(--font-b);font-size:14px;outline:none;resize:none;width:100%;min-height:90px" placeholder="Tell your story..."></textarea>
+      </div>
+      <button class="btn-full" id="saveSettings">Save Changes ✦</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ FIREBASE SETUP MODAL ══════════ -->
+<div class="modal-ov" id="fbSetupModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">🔥 Connect Firebase</div>
+      <button class="modal-close" id="closeFbSetup">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px;font-size:13px;color:var(--t2);line-height:1.8">
+      <p>To make VOXLO work with real users, paste your Firebase config below:</p>
+      <div class="fg">
+        <label>Firebase Config (JSON)</label>
+        <textarea id="fbConfigInput" style="background:var(--bg2);border:1px solid var(--br);border-radius:var(--rsm);padding:13px 15px;color:var(--t1);font-family:monospace;font-size:12px;outline:none;resize:none;width:100%;min-height:140px" placeholder='{
+  "apiKey": "AIza...",
+  "authDomain": "your-app.firebaseapp.com",
+  "projectId": "your-app",
+  "storageBucket": "your-app.appspot.com",
+  "messagingSenderId": "1234...",
+  "appId": "1:1234..."
+}'></textarea>
+      </div>
+      <button class="btn-full" id="saveFbConfig">Connect Firebase ✦</button>
+      <div style="background:var(--bg2);border-radius:10px;padding:14px;font-size:12px">
+        <strong style="color:var(--t1)">How to get your config:</strong><br>
+        1. Go to <a href="https://console.firebase.google.com" target="_blank" style="color:#b89ffc">console.firebase.google.com</a><br>
+        2. Create project → name it <strong style="color:var(--t1)">voxlo</strong><br>
+        3. Project Settings ⚙️ → Your Apps → Web → Register<br>
+        4. Copy the firebaseConfig object and paste above<br><br>
+        <strong style="color:var(--t1)">Also enable in Firebase console:</strong><br>
+        • Authentication → Email/Password<br>
+        • Firestore Database → Create (test mode)<br>
+        • Storage → Get started
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ LIGHTBOX ══════════ -->
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('active')">
+  <button class="lb-close" onclick="document.getElementById('lightbox').classList.remove('active')">✕</button>
+  <img id="lbImg" src="" alt=""/>
+</div>
+
+<!-- ══════════ TOASTS ══════════ -->
+<div class="toast-c" id="toastC"></div>
+
+<!-- ══════════ SCRIPTS ══════════ -->
+<script type="module" src="js/app.js"></script>
+
+</body>
+</html>
