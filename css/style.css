@@ -344,3 +344,48 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:1
   transition:background .3s;
 }
 .reg-step-line.done{background:var(--g)}
+
+/* ─── LOGO SVG ─── */
+.voxlo-logo-svg{
+  display:block;
+  height:36px;
+  width:auto;
+}
+/* Loader logo — bigger */
+.loader-logo .voxlo-logo-svg{
+  height:48px;
+  filter:drop-shadow(0 0 18px rgba(124,58,237,0.5));
+  animation:logoPulse 2s ease-in-out infinite;
+}
+/* Auth card logo */
+.auth-logo .voxlo-logo-svg{
+  height:38px;
+  margin:0 auto;
+  filter:drop-shadow(0 0 10px rgba(124,58,237,0.3));
+}
+.auth-logo{
+  display:flex;
+  justify-content:center;
+  margin-bottom:6px;
+}
+/* Sidebar logo */
+.sb-logo{
+  display:flex;
+  align-items:center;
+}
+.sb-logo .voxlo-logo-svg{
+  height:28px;
+  filter:drop-shadow(0 0 6px rgba(124,58,237,0.25));
+}
+/* Landing page icon */
+.land-logo-wrap{
+  display:flex;
+  justify-content:center;
+  margin-bottom:18px;
+}
+.land-logo-svg{
+  width:80px;
+  height:80px;
+  filter:drop-shadow(0 0 28px rgba(124,58,237,0.45)) drop-shadow(0 0 10px rgba(34,211,238,0.2));
+  animation:logoPulse 3s ease-in-out infinite;
+}

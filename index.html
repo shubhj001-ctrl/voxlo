@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2308080e'/%3E%3Ccircle cx='25' cy='25' r='30' fill='%237c3aed' opacity='0.25'/%3E%3Ccircle cx='78' cy='78' r='25' fill='%2322d3ee' opacity='0.18'/%3E%3Cdefs%3E%3ClinearGradient id='g1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%237c3aed'/%3E%3Cstop offset='100%25' stop-color='%2322d3ee'/%3E%3C/linearGradient%3E%3ClinearGradient id='g2' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23f472b6'/%3E%3Cstop offset='100%25' stop-color='%23fbbf24'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='22' y='41' width='6' height='18' rx='3' fill='url(%23g1)' opacity='0.6'/%3E%3Crect x='31' y='35' width='6' height='30' rx='3' fill='url(%23g1)' opacity='0.85'/%3E%3Cpath d='M41,33 L50,63 L59,33' fill='none' stroke='url(%23g1)' stroke-width='5.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='63' y='35' width='6' height='30' rx='3' fill='url(%23g2)' opacity='0.85'/%3E%3Crect x='72' y='41' width='6' height='18' rx='3' fill='url(%23g2)' opacity='0.6'/%3E%3Ccircle cx='50' cy='71' r='3' fill='%2322d3ee' opacity='0.8'/%3E%3C/svg%3E"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>VOXLO — Connect Beyond Looks</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +16,34 @@
 <div class="loader-ov" id="loader">
   <div class="loader-orb1"></div>
   <div class="loader-orb2"></div>
-  <div class="loader-logo">✦ VOXLO</div>
+  <div class="loader-logo"><svg class="voxlo-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 44" aria-label="VOXLO">
+  <defs>
+    <linearGradient id="vl1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="vl2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f472b6"/><stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+    <linearGradient id="vl3" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="55%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+    <mask id="vlm"><text x="52" y="31" font-family="Arial Black,Impact,sans-serif" font-size="26" font-weight="900" letter-spacing="2" fill="white">VOXLO</text></mask>
+  </defs>
+  <!-- Icon mark -->
+  <rect x="2" y="18" width="4" height="14" rx="2" fill="url(#vl1)" opacity="0.6"/>
+  <rect x="8" y="12" width="4" height="20" rx="2" fill="url(#vl1)" opacity="0.9"/>
+  <path d="M14,10 L21,30 L28,10" fill="none" stroke="url(#vl1)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="30" y="12" width="4" height="20" rx="2" fill="url(#vl2)" opacity="0.9"/>
+  <rect x="36" y="18" width="4" height="14" rx="2" fill="url(#vl2)" opacity="0.6"/>
+  <path d="M38,7 L39,10 L42,11 L39,12 L38,15 L37,12 L34,11 L37,10 Z" fill="#f472b6" opacity="0.9"/>
+  <circle cx="21" cy="35" r="2" fill="#22d3ee" opacity="0.7"/>
+  <!-- Divider -->
+  <line x1="48" y1="8" x2="48" y2="38" stroke="#252535" stroke-width="1"/>
+  <!-- Wordmark -->
+  <rect x="50" y="8" width="148" height="28" fill="url(#vl3)" mask="url(#vlm)"/>
+</svg></div>
   <div class="loader-sub" id="loaderSub">Connecting...</div>
   <div class="loader-dots">
     <div class="loader-dot"></div>
@@ -28,6 +56,7 @@
 <div id="pg-land" class="page">
   <div class="orbs"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
   <div class="land-c">
+    <div class="land-logo-wrap"><svg class="land-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="ll1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#22d3ee"/></linearGradient><linearGradient id="ll2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f472b6"/><stop offset="100%" stop-color="#fbbf24"/></linearGradient></defs><circle cx="25" cy="25" r="30" fill="#7c3aed" opacity="0.12"/><circle cx="78" cy="78" r="25" fill="#22d3ee" opacity="0.09"/><rect x="22" y="41" width="6" height="18" rx="3" fill="url(#ll1)" opacity="0.6"/><rect x="31" y="35" width="6" height="30" rx="3" fill="url(#ll1)" opacity="0.85"/><path d="M41,33 L50,63 L59,33" fill="none" stroke="url(#ll1)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><rect x="63" y="35" width="6" height="30" rx="3" fill="url(#ll2)" opacity="0.85"/><rect x="72" y="41" width="6" height="18" rx="3" fill="url(#ll2)" opacity="0.6"/><path d="M72,18 L73.5,22 L78,23 L74.5,26 L75.5,31 L72,28 L68.5,31 L69.5,26 L66,23 L70.5,22 Z" fill="#f472b6" opacity="0.9"/><circle cx="50" cy="71" r="3" fill="#22d3ee" opacity="0.75"/></svg></div>
     <div class="badge"><span>✦</span> Now in Beta</div>
     <h1 class="h1">Connect through<br><span class="gt">personality</span><br>not <span class="gt2">appearance</span></h1>
     <p class="sub">VOXLO is where Gen Z connects for real.<br>Bio-first matching, photo sharing, and conversations that actually go somewhere.</p>
@@ -47,7 +76,34 @@
 <div id="pg-auth" class="page">
   <div class="orbs"><div class="orb o1" style="position:fixed"></div><div class="orb o2" style="position:fixed"></div></div>
   <div class="auth-card">
-    <div class="auth-logo">✦ VOXLO</div>
+    <div class="auth-logo"><svg class="voxlo-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 44" aria-label="VOXLO">
+  <defs>
+    <linearGradient id="vl1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="vl2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f472b6"/><stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+    <linearGradient id="vl3" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="55%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+    <mask id="vlm"><text x="52" y="31" font-family="Arial Black,Impact,sans-serif" font-size="26" font-weight="900" letter-spacing="2" fill="white">VOXLO</text></mask>
+  </defs>
+  <!-- Icon mark -->
+  <rect x="2" y="18" width="4" height="14" rx="2" fill="url(#vl1)" opacity="0.6"/>
+  <rect x="8" y="12" width="4" height="20" rx="2" fill="url(#vl1)" opacity="0.9"/>
+  <path d="M14,10 L21,30 L28,10" fill="none" stroke="url(#vl1)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="30" y="12" width="4" height="20" rx="2" fill="url(#vl2)" opacity="0.9"/>
+  <rect x="36" y="18" width="4" height="14" rx="2" fill="url(#vl2)" opacity="0.6"/>
+  <path d="M38,7 L39,10 L42,11 L39,12 L38,15 L37,12 L34,11 L37,10 Z" fill="#f472b6" opacity="0.9"/>
+  <circle cx="21" cy="35" r="2" fill="#22d3ee" opacity="0.7"/>
+  <!-- Divider -->
+  <line x1="48" y1="8" x2="48" y2="38" stroke="#252535" stroke-width="1"/>
+  <!-- Wordmark -->
+  <rect x="50" y="8" width="148" height="28" fill="url(#vl3)" mask="url(#vlm)"/>
+</svg></div>
     <div class="auth-tag">Your voice. Your world. Your VOXLO.</div>
     <!-- Firebase not configured banner -->
     <div class="fb-banner" id="fbBanner">
@@ -126,7 +182,34 @@
   <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="sb-head">
-      <div class="sb-logo">✦ VOXLO</div>
+      <div class="sb-logo"><svg class="voxlo-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 44" aria-label="VOXLO">
+  <defs>
+    <linearGradient id="vl1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="vl2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f472b6"/><stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+    <linearGradient id="vl3" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="55%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+    <mask id="vlm"><text x="52" y="31" font-family="Arial Black,Impact,sans-serif" font-size="26" font-weight="900" letter-spacing="2" fill="white">VOXLO</text></mask>
+  </defs>
+  <!-- Icon mark -->
+  <rect x="2" y="18" width="4" height="14" rx="2" fill="url(#vl1)" opacity="0.6"/>
+  <rect x="8" y="12" width="4" height="20" rx="2" fill="url(#vl1)" opacity="0.9"/>
+  <path d="M14,10 L21,30 L28,10" fill="none" stroke="url(#vl1)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="30" y="12" width="4" height="20" rx="2" fill="url(#vl2)" opacity="0.9"/>
+  <rect x="36" y="18" width="4" height="14" rx="2" fill="url(#vl2)" opacity="0.6"/>
+  <path d="M38,7 L39,10 L42,11 L39,12 L38,15 L37,12 L34,11 L37,10 Z" fill="#f472b6" opacity="0.9"/>
+  <circle cx="21" cy="35" r="2" fill="#22d3ee" opacity="0.7"/>
+  <!-- Divider -->
+  <line x1="48" y1="8" x2="48" y2="38" stroke="#252535" stroke-width="1"/>
+  <!-- Wordmark -->
+  <rect x="50" y="8" width="148" height="28" fill="url(#vl3)" mask="url(#vlm)"/>
+</svg></div>
       <div class="sb-acts">
         <button class="ico-btn" id="btnDiscover" title="Discover">🧭</button>
         <button class="ico-btn" id="btnSettings" title="Settings">⚙️</button>
