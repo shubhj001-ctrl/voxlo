@@ -187,7 +187,7 @@ function setupAuthListener(){
 //  LANDING
 // ══════════════════════════════
 document.getElementById('btnGetStarted').onclick = ()=>{ showPage('pg-auth'); switchToReg(); };
-document.getElementById('btnSignIn').onclick = ()=>showPage('pg-auth');
+document.getElementById('btnSignIn').onclick = ()=>{ showPage('pg-auth'); switchToLogin(); };
 
 // ══════════════════════════════
 //  AUTH
@@ -218,21 +218,19 @@ document.querySelectorAll('.a-tab').forEach(tab=>{
 
 document.querySelectorAll('.itag').forEach(t=>t.onclick=()=>t.classList.toggle('sel'));
 
-// ── STEP INDICATOR ──
-function setRegStep(step){
-  [1,2,3].forEach(n=>{
-    const el=document.getElementById('rstep'+n);
-    if(!el) return;
-    el.classList.remove('active','done');
-    if(n < step) el.classList.add('done');
-    if(n === step) el.classList.add('active');
-  });
-  document.querySelectorAll('.reg-step-line').forEach((l,i)=>{
-    l.classList.toggle('done', i+1 < step);
-  });
-}
+// ══ JOURNEY REGISTRATION FLOW ══
 
-// REGISTER — Step 1: Email + Password → Send OTP
+// Slide 1 → 2: Name
+document.getElementById('jbtn1').onclick = ()=>{
+  const name = document.getElementById('reg-name').value.trim();
+  if(!name){ toast('Enter your name to continue','err'); return; }
+  // Personalise slide 2 title
+  document.getElementById('slide2Title').textContent = `Hey ${name.split(' ')[0]}, let's verify you 🔐`;
+  goToSlide(2);
+};
+document.getElementById('jback2').onclick = ()=> goToSlide(1, true);
+
+// Slide 2: Send OTP
 document.getElementById('regBtn').onclick = async ()=>{
   const email = document.getElementById('reg-email').value.trim();
   const pass  = document.getElementById('reg-pass').value;
@@ -246,61 +244,74 @@ document.getElementById('regBtn').onclick = async ()=>{
 
   if(!S.fbReady){
     S.twoFA = { pendingEmail:email, pendingPass:pass, isLogin:false, otp:'DEMO01', otpExpiry:Date.now()+600000 };
-    setRegStep(2);
     showOTPScreen(email);
     btn.disabled=false; btn.textContent='Send Verification Code 📧';
     return;
   }
-
   try{
     const otp = generateOTP();
-    S.twoFA = { pendingEmail:email, pendingPass:pass,
-      otp, otpExpiry: Date.now()+10*60*1000, isLogin:false };
-    await sendOTPEmail(email, email.split('@')[0], otp);
+    S.twoFA = { pendingEmail:email, pendingPass:pass, otp, otpExpiry:Date.now()+10*60*1000, isLogin:false };
+    await sendOTPEmail(email, document.getElementById('reg-name').value.trim(), otp);
     toast('Code sent! Check your email 📧');
-    setRegStep(2);
     showOTPScreen(email);
   } catch(e){
-    console.error('OTP error:', e);
     toast('Failed to send code: '+e.message,'err');
   }
   btn.disabled=false; btn.textContent='Send Verification Code 📧';
 };
 
-// REGISTER — Step 3: Profile setup (called after OTP verified)
+// After OTP verified → go to slide 3 (location)
 window.initProfileStep = ()=>{
-  setRegStep(3);
-  document.getElementById('reg-step1').classList.add('hidden');
-  document.getElementById('reg-step3').classList.remove('hidden');
-  document.querySelectorAll('.itag').forEach(t=>t.onclick=()=>t.classList.toggle('sel'));
+  goToSlide(3);
+  document.getElementById('otpModal').classList.remove('active');
+  toast('Email verified! ✅');
 };
 
+document.getElementById('jbtn3').onclick = ()=>{
+  goToSlide(4);
+};
+document.getElementById('jback3').onclick = ()=> goToSlide(2, true);
+
+// Slide 4: Bio — live char counter
+document.getElementById('reg-bio').addEventListener('input', e=>{
+  document.getElementById('bioCount').textContent = e.target.value.length;
+});
+document.getElementById('jbtn4').onclick = ()=>{
+  const bio = document.getElementById('reg-bio').value.trim();
+  if(!bio){ toast('Add a short bio to continue','err'); return; }
+  goToSlide(5);
+};
+document.getElementById('jback4').onclick = ()=> goToSlide(3, true);
+document.getElementById('jback5').onclick = ()=> goToSlide(4, true);
+
+// Slide 5: Interests + Complete Profile
 document.getElementById('completeProfileBtn').onclick = async ()=>{
-  const name = document.getElementById('reg-name').value.trim();
-  const bio  = document.getElementById('reg-bio').value.trim();
+  const name      = document.getElementById('reg-name').value.trim();
+  const bio       = document.getElementById('reg-bio').value.trim();
+  const country   = document.getElementById('reg-country').value || 'Earth';
   const interests = [...document.querySelectorAll('.itag.sel')].map(t=>t.textContent);
-  if(!name||!bio){ toast('Please fill in name and bio','err'); return; }
+  if(!name||!bio){ toast('Please complete all steps','err'); return; }
 
   const btn = document.getElementById('completeProfileBtn');
-  btn.disabled=true; btn.textContent='Creating profile...';
+  btn.disabled=true; btn.textContent='Creating your profile... ✨';
 
   if(!S.fbReady){
-    S.profile = { uid:'demo_'+Date.now(), name, email:S.twoFA.pendingEmail, bio, interests,
-      handle:'@'+name.toLowerCase().replace(/\s+/g,'.'), online:true };
-    S.user = { uid: S.profile.uid };
+    S.profile = { uid:'demo_'+Date.now(), name, email:S.twoFA?.pendingEmail||'demo@voxlo.app', bio,
+      interests, location:country, handle:'@'+name.toLowerCase().replace(/\s+/g,'.'), online:true };
+    S.user = { uid:S.profile.uid };
     toast('Welcome to VOXLO! 🎉');
-    setTimeout(()=>initApp(),400);
+    setTimeout(()=>initApp(),500);
     return;
   }
-
   try{
     const cred = await createUserWithEmailAndPassword(S.auth, S.twoFA.pendingEmail, S.twoFA.pendingPass);
     await updateProfile(cred.user, { displayName: name });
     const profile = {
-      uid: cred.user.uid, name, email: S.twoFA.pendingEmail, bio,
+      uid:cred.user.uid, name, email:S.twoFA.pendingEmail, bio,
       interests: interests.length ? interests : ['Vibes'],
-      handle: '@'+name.toLowerCase().replace(/\s+/g,'.'),
-      online: true, createdAt: serverTimestamp(), lastSeen: serverTimestamp()
+      location: country,
+      handle:'@'+name.toLowerCase().replace(/\s+/g,'.'),
+      online:true, createdAt:serverTimestamp(), lastSeen:serverTimestamp()
     };
     await setDoc(doc(S.db,'users',cred.user.uid), profile);
     S.profile = profile;

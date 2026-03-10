@@ -73,107 +73,137 @@
 </div>
 
 <!-- ══════════ AUTH ══════════ -->
-<div id="pg-auth" class="page">
+<div id="pg-auth" class="page journey-page">
   <div class="orbs"><div class="orb o1" style="position:fixed"></div><div class="orb o2" style="position:fixed"></div></div>
-  <div class="auth-card">
-    <div class="auth-logo"><svg class="voxlo-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 44" aria-label="VOXLO">
-  <defs>
-    <linearGradient id="vl1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#22d3ee"/>
-    </linearGradient>
-    <linearGradient id="vl2" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#f472b6"/><stop offset="100%" stop-color="#fbbf24"/>
-    </linearGradient>
-    <linearGradient id="vl3" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#7c3aed"/>
-      <stop offset="55%" stop-color="#a855f7"/>
-      <stop offset="100%" stop-color="#22d3ee"/>
-    </linearGradient>
-    <mask id="vlm"><text x="52" y="31" font-family="Arial Black,Impact,sans-serif" font-size="26" font-weight="900" letter-spacing="2" fill="white">VOXLO</text></mask>
-  </defs>
-  <!-- Icon mark -->
-  <rect x="2" y="18" width="4" height="14" rx="2" fill="url(#vl1)" opacity="0.6"/>
-  <rect x="8" y="12" width="4" height="20" rx="2" fill="url(#vl1)" opacity="0.9"/>
-  <path d="M14,10 L21,30 L28,10" fill="none" stroke="url(#vl1)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="30" y="12" width="4" height="20" rx="2" fill="url(#vl2)" opacity="0.9"/>
-  <rect x="36" y="18" width="4" height="14" rx="2" fill="url(#vl2)" opacity="0.6"/>
-  <path d="M38,7 L39,10 L42,11 L39,12 L38,15 L37,12 L34,11 L37,10 Z" fill="#f472b6" opacity="0.9"/>
-  <circle cx="21" cy="35" r="2" fill="#22d3ee" opacity="0.7"/>
-  <!-- Divider -->
-  <line x1="48" y1="8" x2="48" y2="38" stroke="#252535" stroke-width="1"/>
-  <!-- Wordmark -->
-  <rect x="50" y="8" width="148" height="28" fill="url(#vl3)" mask="url(#vlm)"/>
-</svg></div>
-    <div class="auth-tag">Your voice. Your world. Your VOXLO.</div>
-    <!-- Firebase not configured banner -->
-    <div class="fb-banner" id="fbBanner">
-      ⚠️ Firebase not configured yet. <a href="#" onclick="showFbHelp()">See setup guide</a> to connect your database. Running in demo mode.
-    </div>
-    <div class="auth-tabs">
-      <button class="a-tab" data-tab="reg">Join VOXLO</button>
-      <button class="a-tab active" data-tab="login">Sign In</button>
-    </div>
 
-    <!-- ── STEP 1: EMAIL + PASSWORD ── -->
-    <div id="reg-form" class="auth-form hidden">
-      <!-- Progress bar -->
-      <div class="reg-steps">
-        <div class="reg-step active" id="rstep1">
-          <div class="reg-step-dot">1</div>
-          <div class="reg-step-label">Credentials</div>
-        </div>
-        <div class="reg-step-line"></div>
-        <div class="reg-step" id="rstep2">
-          <div class="reg-step-dot">2</div>
-          <div class="reg-step-label">Verify</div>
-        </div>
-        <div class="reg-step-line"></div>
-        <div class="reg-step" id="rstep3">
-          <div class="reg-step-dot">3</div>
-          <div class="reg-step-label">Profile</div>
-        </div>
-      </div>
+  <!-- Firebase banner -->
+  <div class="fb-banner" id="fbBanner" style="position:fixed;top:0;left:0;right:0;z-index:100;border-radius:0">
+    ⚠️ Firebase not configured. <a href="#" onclick="showFbHelp()">Setup guide</a> — Running in demo mode.
+  </div>
 
-      <!-- Step 1 fields -->
-      <div id="reg-step1">
-        <div class="fg" style="margin-bottom:14px"><label>Email</label><input type="email" id="reg-email" placeholder="your@email.com"/></div>
-        <div class="fg" style="margin-bottom:14px"><label>Password</label><input type="password" id="reg-pass" placeholder="Min 6 characters"/></div>
-        <div class="fg" style="margin-bottom:14px"><label>Confirm Password</label><input type="password" id="reg-pass2" placeholder="Repeat password"/></div>
-        <button class="btn-full" id="regBtn">Send Verification Code 📧</button>
-        <p style="text-align:center;font-size:12px;color:var(--t3);margin-top:12px">Already have an account? <a href="#" style="color:#b89ffc;text-decoration:none" onclick="switchToLogin()">Sign In</a></p>
-      </div>
-
-      <!-- Step 3: Profile setup (shown after OTP verified) -->
-      <div id="reg-step3" class="hidden">
-        <p style="font-size:13px;color:var(--t2);margin-bottom:18px;line-height:1.6">✅ Email verified! Now set up your profile.</p>
-        <div class="fg" style="margin-bottom:14px"><label>Your Name</label><input type="text" id="reg-name" placeholder="What do people call you?"/></div>
-        <div class="fg" style="margin-bottom:14px">
-          <label>Your Bio <span style="color:var(--t3);font-weight:400;text-transform:none">(Make it real)</span></label>
-          <textarea id="reg-bio" placeholder="Who are you beyond your job title?"></textarea>
-        </div>
-        <div class="fg" style="margin-bottom:18px">
-          <label>Interests <span style="color:var(--t3);font-weight:400;text-transform:none">(pick any)</span></label>
-          <div class="itags">
-            <button class="itag">Tech</button><button class="itag">Music</button><button class="itag">Design</button>
-            <button class="itag">Coding</button><button class="itag">Travel</button><button class="itag">Gaming</button>
-            <button class="itag">Books</button><button class="itag">Art</button><button class="itag">Film</button>
-            <button class="itag">Sports</button><button class="itag">Food</button><button class="itag">Anime</button>
-          </div>
-        </div>
-        <button class="btn-full" id="completeProfileBtn">Create My Profile ✦</button>
-      </div>
-    </div>
-
-    <!-- LOGIN -->
-    <div id="login-form" class="auth-form">
-      <div class="fg" style="margin-bottom:14px"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com"/></div>
-      <div class="fg" style="margin-bottom:14px"><label>Password</label><input type="password" id="login-pass" placeholder="Your password"/></div>
+  <!-- ══ LOGIN PANEL (separate, clean) ══ -->
+  <div class="login-panel hidden" id="loginPanel">
+    <div class="journey-logo">✦ VOXLO</div>
+    <div class="journey-title">Welcome back 👋</div>
+    <div class="journey-sub">Sign in to continue your journey</div>
+    <div class="journey-fields">
+      <div class="fg"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com"/></div>
+      <div class="fg"><label>Password</label><input type="password" id="login-pass" placeholder="Your password"/></div>
       <button class="btn-full" id="loginBtn">Sign In to VOXLO ✦</button>
-      <p style="text-align:center;font-size:12px;color:var(--t3);margin-top:12px">
-        No account? <a href="#" style="color:#b89ffc;text-decoration:none" onclick="switchToReg()">Join for free</a>
+      <p style="text-align:center;font-size:13px;color:var(--t3);margin-top:16px">
+        New here? <a href="#" style="color:#b89ffc;text-decoration:none;font-weight:600" onclick="switchToReg()">Join VOXLO free ✦</a>
       </p>
     </div>
+    <!-- hidden alias for old code -->
+    <div id="reg-form" class="hidden"></div>
+    <div id="login-form" class="hidden"></div>
   </div>
+
+  <!-- ══ REGISTRATION JOURNEY ══ -->
+  <div class="journey-wrap" id="journeyWrap">
+
+    <!-- Progress dots -->
+    <div class="journey-progress">
+      <div class="jp-dot active" id="jp1"></div>
+      <div class="jp-line" id="jl1"></div>
+      <div class="jp-dot" id="jp2"></div>
+      <div class="jp-line" id="jl2"></div>
+      <div class="jp-dot" id="jp3"></div>
+      <div class="jp-line" id="jl3"></div>
+      <div class="jp-dot" id="jp4"></div>
+      <div class="jp-line" id="jl4"></div>
+      <div class="jp-dot" id="jp5"></div>
+    </div>
+
+    <!-- Slides container -->
+    <div class="journey-slides" id="journeySlides">
+
+      <!-- SLIDE 1: Name -->
+      <div class="journey-slide active" id="jslide1">
+        <div class="slide-emoji">👋</div>
+        <div class="journey-title">Let's start with your name</div>
+        <div class="journey-sub">This is how people will know you on VOXLO</div>
+        <div class="journey-fields">
+          <input class="journey-input" type="text" id="reg-name" placeholder="What do people call you?" maxlength="32" autocomplete="given-name"/>
+          <button class="journey-btn" id="jbtn1">Continue →</button>
+          <p class="journey-signin">Already have an account? <a href="#" onclick="switchToLogin()">Sign In</a></p>
+        </div>
+      </div>
+
+      <!-- SLIDE 2: Email + Password -->
+      <div class="journey-slide" id="jslide2">
+        <div class="slide-emoji">🔐</div>
+        <div class="journey-title" id="slide2Title">Hey, let's verify you</div>
+        <div class="journey-sub">Enter your email and create a password</div>
+        <div class="journey-fields">
+          <input class="journey-input" type="email" id="reg-email" placeholder="your@email.com" autocomplete="email"/>
+          <input class="journey-input" type="password" id="reg-pass" placeholder="Create a password (min 6 chars)" autocomplete="new-password"/>
+          <input class="journey-input" type="password" id="reg-pass2" placeholder="Confirm your password" autocomplete="new-password"/>
+          <button class="journey-btn" id="regBtn">Send Verification Code 📧</button>
+          <button class="journey-back" id="jback2">← Back</button>
+        </div>
+      </div>
+
+      <!-- SLIDE 3: Location -->
+      <div class="journey-slide" id="jslide3">
+        <div class="slide-emoji">📍</div>
+        <div class="journey-title">Where are you from?</div>
+        <div class="journey-sub">Helps you connect with people nearby too</div>
+        <div class="journey-fields">
+          <select class="journey-input journey-select" id="reg-country">
+            <option value="">Select your country...</option>
+            <option>India</option><option>United States</option><option>United Kingdom</option>
+            <option>Canada</option><option>Australia</option><option>Germany</option>
+            <option>France</option><option>Japan</option><option>Brazil</option>
+            <option>South Korea</option><option>Netherlands</option><option>Singapore</option>
+            <option>UAE</option><option>Pakistan</option><option>Bangladesh</option>
+            <option>Sri Lanka</option><option>Nepal</option><option>Mexico</option>
+            <option>Italy</option><option>Spain</option><option>Sweden</option>
+            <option>Nigeria</option><option>South Africa</option><option>Philippines</option>
+            <option>Indonesia</option><option>Malaysia</option><option>Thailand</option>
+            <option>New Zealand</option><option>Argentina</option><option>Other</option>
+          </select>
+          <button class="journey-btn" id="jbtn3">Continue →</button>
+          <button class="journey-back" id="jback3">← Back</button>
+        </div>
+      </div>
+
+      <!-- SLIDE 4: Bio -->
+      <div class="journey-slide" id="jslide4">
+        <div class="slide-emoji">✍️</div>
+        <div class="journey-title">Tell your story</div>
+        <div class="journey-sub">Your bio is your first impression — make it real</div>
+        <div class="journey-fields">
+          <textarea class="journey-input journey-textarea" id="reg-bio" placeholder="Who are you beyond your job title? What are you into? What's your vibe?" maxlength="200"></textarea>
+          <div class="bio-counter"><span id="bioCount">0</span>/200</div>
+          <button class="journey-btn" id="jbtn4">Continue →</button>
+          <button class="journey-back" id="jback4">← Back</button>
+        </div>
+      </div>
+
+      <!-- SLIDE 5: Interests -->
+      <div class="journey-slide" id="jslide5">
+        <div class="slide-emoji">⚡</div>
+        <div class="journey-title">What are you into?</div>
+        <div class="journey-sub">Pick your interests — this is how we match you</div>
+        <div class="journey-fields">
+          <div class="itags journey-itags">
+            <button class="itag">Tech</button><button class="itag">Music</button>
+            <button class="itag">Design</button><button class="itag">Coding</button>
+            <button class="itag">Travel</button><button class="itag">Gaming</button>
+            <button class="itag">Books</button><button class="itag">Art</button>
+            <button class="itag">Film</button><button class="itag">Sports</button>
+            <button class="itag">Food</button><button class="itag">Anime</button>
+            <button class="itag">Fitness</button><button class="itag">Photography</button>
+            <button class="itag">Fashion</button><button class="itag">Memes</button>
+          </div>
+          <button class="journey-btn" id="completeProfileBtn">Create My Profile ✦</button>
+          <button class="journey-back" id="jback5">← Back</button>
+        </div>
+      </div>
+
+    </div><!-- /journey-slides -->
+  </div><!-- /journey-wrap -->
 </div>
 
 <!-- ══════════ APP ══════════ -->
