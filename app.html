@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<title>VOXLO — Discover People</title>
+<meta name="robots" content="noindex"/>
+<meta name="theme-color" content="#08080e"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2308080e'/%3E%3Ctext x='50' y='68' font-family='Arial Black,sans-serif' font-size='52' font-weight='900' text-anchor='middle' fill='url(%23g)' %3EV%3C/text%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%237c3aed'/%3E%3Cstop offset='100%25' stop-color='%2322d3ee'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css"/>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8978138449354329" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<!-- LOADER -->
+<div class="loader-ov" id="loader">
+  <div class="loader-orb1"></div><div class="loader-orb2"></div>
+  <div class="loader-scene">
+    <div class="loader-ball" id="loaderBall"></div>
+    <div class="loader-letters">
+      <span class="ll" data-i="0">V</span><span class="ll" data-i="1">O</span>
+      <span class="ll" data-i="2">X</span><span class="ll" data-i="3">L</span>
+      <span class="ll" data-i="4">O</span>
+    </div>
+    <div class="loader-shadows">
+      <span class="ls"></span><span class="ls"></span><span class="ls"></span>
+      <span class="ls"></span><span class="ls"></span>
+    </div>
+  </div>
+  <div class="loader-sub" id="loaderSub">Loading...</div>
+</div>
+
+<!-- APP PAGE -->
+<div id="pg-app" class="page active">
+
+  <!-- HAMBURGER -->
+  <button class="ham-btn" id="hamBtn" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sb-overlay" id="sbOverlay"></div>
+    <div class="sb-drawer" id="sbDrawer">
+      <div class="sb-head">
+        <div class="sb-logo"><span class="vx-word">✦ VOXLO</span></div>
+        <div class="sb-acts">
+          <button class="ico-btn" id="btnDiscover" title="Discover">🧭</button>
+          <button class="ico-btn" id="btnSettings" title="Settings">⚙️</button>
+        </div>
+      </div>
+      <div class="sb-menu-scroll">
+        <div class="sb-menu-item sb-nav-item" data-view="discover">
+          <span class="sb-menu-ico">✦</span>
+          <span class="sb-menu-label">Discover</span>
+        </div>
+        <div class="sb-menu-item sb-nav-item" data-view="requests" id="navRequests">
+          <span class="sb-menu-ico">🤝</span>
+          <span class="sb-menu-label">Requests</span>
+          <span class="req-badge hidden" id="reqBadge">0</span>
+        </div>
+        <div class="sb-section-label">Chats</div>
+        <div id="chatList"></div>
+      </div>
+      <div class="sb-prof">
+        <div class="av av-sm av1" id="sbAvatar">SJ</div>
+        <div class="pi">
+          <div class="pn" id="sbName">Loading...</div>
+          <div class="ph" id="sbHandle">@voxlo</div>
+        </div>
+        <button class="ico-btn" id="btnLogout" title="Logout">🚪</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="main-area">
+
+    <!-- DISCOVER -->
+    <div class="disc-panel" id="discPanel" style="padding-top:0">
+      <div class="disc-head">
+        <div class="disc-head-top">
+          <div>
+            <div class="disc-title">Discover People ✦</div>
+            <div class="online-ctr"><div class="onpulse"></div><span id="onlineCount">0 people online</span></div>
+          </div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-group-label">Interests</div>
+          <div class="filter-bar" id="filterBar">
+            <button class="fchip active" data-filter="all" data-type="interest">All</button>
+            <button class="fchip" data-filter="tech" data-type="interest">💻 Tech</button>
+            <button class="fchip" data-filter="music" data-type="interest">🎵 Music</button>
+            <button class="fchip" data-filter="gaming" data-type="interest">🎮 Gaming</button>
+            <button class="fchip" data-filter="art" data-type="interest">🎨 Art</button>
+            <button class="fchip" data-filter="fitness" data-type="interest">💪 Fitness</button>
+            <button class="fchip" data-filter="anime" data-type="interest">⛩️ Anime</button>
+            <button class="fchip" data-filter="travel" data-type="interest">✈️ Travel</button>
+            <button class="fchip" data-filter="food" data-type="interest">🍜 Food</button>
+          </div>
+        </div>
+      </div>
+      <div class="swipe-arena" id="swipeArena">
+        <div class="swipe-empty" id="swipeEmpty">
+          <div class="swipe-empty-ico">🌌</div>
+          <div class="swipe-empty-title">That's all for now!</div>
+          <div class="swipe-empty-sub">You've seen everyone. Check back later or try a different filter.</div>
+          <button class="swipe-reset-btn" id="swipeResetBtn">Start Over ↺</button>
+        </div>
+        <div class="swipe-stack" id="swipeStack"></div>
+        <div class="swipe-label swipe-label-like" id="swipeLabelLike">SKIP ✕</div>
+        <div class="swipe-label swipe-label-nope" id="swipeLabelNope">SKIP ✕</div>
+      </div>
+    </div>
+
+    <!-- REQUESTS -->
+    <div class="requests-panel hidden" id="requestsPanel">
+      <div class="req-panel-head">
+        <div class="req-panel-title">Friend Requests</div>
+        <div class="req-panel-sub" id="reqPanelSub">People who want to connect with you</div>
+      </div>
+      <div class="req-tabs">
+        <button class="req-tab active" id="reqTabIncoming" onclick="showReqTab('incoming')">Incoming</button>
+        <button class="req-tab" id="reqTabSent" onclick="showReqTab('sent')">Sent</button>
+      </div>
+      <div id="reqList" class="req-list"></div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="chat-panel" id="chatPanel">
+      <div class="chat-head">
+        <button class="mob-back-btn" id="btnChatBack" title="Back">←</button>
+        <div class="av av1" id="chAv">?</div>
+        <div class="ch-info">
+          <div class="ch-name" id="chName">Select a chat</div>
+          <div class="ch-status" id="chStatus"></div>
+        </div>
+        <div class="ch-acts">
+          <button class="ico-btn" id="btnViewProf" title="View Profile">👤</button>
+        </div>
+      </div>
+      <div class="msgs" id="msgsContainer"></div>
+      <div class="chat-inp-area">
+        <div class="img-prev-strip" id="imgPrevStrip"></div>
+        <div class="upload-prog" id="uploadProg">
+          <div class="upload-prog-bar"><div class="upload-fill" id="uploadFill"></div></div>
+          <div class="upload-label">
+            <div class="upload-spinner"></div>
+            <span id="uploadLabel">Uploading photo...</span>
+            <div class="upload-pct" id="uploadPct">0%</div>
+          </div>
+        </div>
+        <div class="inp-wrap">
+          <button class="inp-ico" id="attachBtn" title="Share Photo">📷</button>
+          <textarea id="chatInput" placeholder="Type a message... (Enter to send)" rows="1"></textarea>
+          <button class="send-btn" id="sendBtn">➤</button>
+        </div>
+        <input type="file" id="imgInput" accept="image/*" multiple style="display:none"/>
+      </div>
+    </div>
+
+  </div><!-- /main-area -->
+
+  <!-- PROFILE PANEL -->
+  <div class="prof-panel" id="profPanel">
+    <div class="pp-head">
+      <h3>Profile</h3>
+      <button class="modal-close" id="btnCloseProf">✕</button>
+    </div>
+    <div class="pp-body">
+      <div class="pp-av-sec">
+        <div class="av av-lg av2" id="ppAv">A</div>
+        <div class="pp-name" id="ppName">-</div>
+        <div class="pp-handle" id="ppHandle">-</div>
+        <div class="pp-bio" id="ppBio"></div>
+      </div>
+      <div><div class="sec-lbl">Location</div><div style="font-size:13px;color:var(--t2)" id="ppLoc"></div></div>
+      <div><div class="sec-lbl">Interests</div><div class="tags" id="ppTags"></div></div>
+      <div class="match-pill" id="ppMatch"></div>
+    </div>
+  </div>
+
+</div><!-- /pg-app -->
+
+<!-- SETTINGS MODAL -->
+<div class="modal-ov" id="settingsModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">Edit Profile</div>
+      <button class="modal-close" id="closeSettings">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="fg"><label>Display Name</label><input type="text" id="set-name" placeholder="Your name"/></div>
+      <div class="fg">
+        <label>Bio</label>
+        <textarea id="set-bio" style="background:var(--bg2);border:1px solid var(--br);border-radius:var(--rsm);padding:13px 15px;color:var(--t1);font-family:var(--font-b);font-size:14px;outline:none;resize:none;width:100%;min-height:90px" placeholder="Tell your story..."></textarea>
+      </div>
+      <div class="privacy-row">
+        <div class="privacy-info">
+          <div class="privacy-label">🔒 Private Account</div>
+          <div class="privacy-desc">When on, others must send a friend request to chat with you</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="set-private"/>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <button class="btn-full" id="saveSettings">Save Changes ✦</button>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('active')">
+  <button class="lb-close" onclick="document.getElementById('lightbox').classList.remove('active')">✕</button>
+  <img id="lbImg" src="" alt=""/>
+</div>
+
+<!-- AD MODAL -->
+<div class="ad-overlay" id="adOverlay">
+  <div class="ad-card">
+    <div class="ad-heart-row"><div class="ad-heart">💜</div></div>
+    <div class="ad-title">Keeping VOXLO Free</div>
+    <div class="ad-sub">We don't sell your data. A short ad helps us keep the lights on for everyone — thank you for supporting us 🙏</div>
+    <div class="ad-banner" id="adBanner">
+      <div class="ad-banner-inner">
+        <div class="ad-brand">📢 Advertisement</div>
+        <ins class="adsbygoogle"
+          style="display:block;width:100%;min-height:100px;"
+          data-ad-client="ca-pub-8978138449354329"
+          data-ad-slot="auto"
+          data-ad-format="auto"
+          data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      </div>
+    </div>
+    <div class="ad-timer-row">
+      <div class="ad-timer-track"><div class="ad-timer-bar" id="adTimerBar"></div></div>
+      <div class="ad-timer-label" id="adTimerLabel">10</div>
+    </div>
+    <button class="ad-skip-btn" id="adSkipBtn" disabled>
+      <span id="adSkipTxt">Please wait… <strong id="adCountdown">10</strong>s</span>
+    </button>
+    <div class="ad-note">Ads keep VOXLO 100% free — no subscriptions, ever.</div>
+  </div>
+</div>
+
+<div class="toast-c" id="toastC"></div>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

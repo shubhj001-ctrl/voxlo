@@ -1280,3 +1280,112 @@ input, button, textarea, select { touch-action: manipulation; }
   .ad-mock-logo{font-size:30px;}
   .ad-mock-headline{font-size:14px;}
 }
+
+/* ══════════════════════════════════════════════
+   LANDING PAGE — index.html
+   ══════════════════════════════════════════════ */
+
+.land-body { overflow-x: hidden; }
+
+/* ── Nav ── */
+.land-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 32px;
+  background: rgba(8,8,14,.8); backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.land-nav-logo .vx-word { font-size: 20px; }
+.land-nav-links { display: flex; align-items: center; gap: 28px; }
+.land-nav-links a { color: var(--t2); text-decoration: none; font-size: 14px; font-weight: 500; transition: color .2s; }
+.land-nav-links a:hover { color: var(--t1); }
+.nav-signin-btn {
+  background: var(--p); color: #fff !important;
+  padding: 8px 20px; border-radius: 20px; font-weight: 600 !important;
+  transition: opacity .2s !important;
+}
+.nav-signin-btn:hover { opacity: .85; }
+
+/* ── Hero ── */
+.land-hero {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  padding: 120px 24px 80px; text-align: center; position: relative;
+}
+.land-c { max-width: 680px; margin: 0 auto; }
+
+/* ── Ad slots ── */
+.land-ad-slot {
+  max-width: 900px; margin: 0 auto; padding: 12px 24px;
+  background: rgba(255,255,255,.02); border-top: 1px solid rgba(255,255,255,.04); border-bottom: 1px solid rgba(255,255,255,.04);
+  min-height: 110px; display: flex; align-items: center; justify-content: center;
+}
+.land-ad-footer { margin-top: 0; }
+
+/* ── Section layout ── */
+.land-section-c { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+.land-section-label { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--p); margin-bottom: 12px; }
+.land-section-title { font-family: var(--font-h); font-size: clamp(26px,4vw,40px); font-weight: 800; color: var(--t1); line-height: 1.15; margin-bottom: 40px; }
+
+/* ── Features ── */
+.land-features { padding: 80px 0; }
+.features-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 20px; }
+.feat-card {
+  background: var(--bg2); border: 1px solid var(--br); border-radius: 16px;
+  padding: 28px; transition: border-color .2s, transform .2s;
+}
+.feat-card:hover { border-color: rgba(124,58,237,.4); transform: translateY(-3px); }
+.feat-ico { font-size: 32px; margin-bottom: 14px; }
+.feat-title { font-size: 16px; font-weight: 700; color: var(--t1); margin-bottom: 8px; }
+.feat-desc { font-size: 13px; color: var(--t2); line-height: 1.7; }
+
+/* ── About ── */
+.land-about { padding: 80px 0; }
+.land-about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+.about-text { display: flex; flex-direction: column; }
+.about-p { font-size: 15px; color: var(--t2); line-height: 1.8; margin-bottom: 16px; }
+.about-cta { align-self: flex-start; margin-top: 12px; }
+.about-stats-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.about-stat-card { background: var(--bg2); border: 1px solid var(--br); border-radius: 16px; padding: 24px; text-align: center; }
+.about-stat-num { font-family: var(--font-h); font-size: 32px; font-weight: 800; background: linear-gradient(135deg,#7c3aed,#22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.about-stat-label { font-size: 12px; color: var(--t3); margin-top: 6px; }
+
+/* ── CTA Banner ── */
+.land-cta-banner { padding: 80px 0; position: relative; overflow: hidden; }
+.land-cta-inner { text-align: center; position: relative; z-index: 1; }
+.cta-banner-orb { position: absolute; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle,rgba(124,58,237,.2),transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none; }
+.cta-banner-title { font-family: var(--font-h); font-size: clamp(24px,4vw,40px); font-weight: 800; color: var(--t1); margin-bottom: 16px; }
+.cta-banner-sub { font-size: 15px; color: var(--t2); margin-bottom: 32px; }
+.cta-banner-btn { display: inline-block; text-decoration: none; padding: 16px 40px; border-radius: 100px; font-size: 16px; font-weight: 700; }
+
+/* ── Footer ── */
+.land-footer { padding: 60px 0 0; border-top: 1px solid var(--br); }
+.land-footer-inner { display: flex; gap: 60px; align-items: flex-start; flex-wrap: wrap; padding-bottom: 48px; }
+.footer-brand { flex: 1; min-width: 180px; }
+.footer-tagline { font-size: 13px; color: var(--t3); margin-top: 8px; }
+.footer-links { display: flex; gap: 48px; flex-wrap: wrap; }
+.footer-col { display: flex; flex-direction: column; gap: 12px; }
+.footer-col-title { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--t3); }
+.footer-col a { font-size: 13px; color: var(--t2); text-decoration: none; transition: color .2s; }
+.footer-col a:hover { color: var(--t1); }
+.footer-bottom { border-top: 1px solid var(--br); padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--t3); flex-wrap: wrap; gap: 8px; max-width: 960px; margin: 0 auto; }
+
+/* ── btn-p / btn-s as anchor tags ── */
+a.btn-p, a.btn-s {
+  display: inline-block; text-decoration: none;
+  font-family: var(--font-b); font-weight: 700;
+}
+a.btn-p { background: var(--p); color: #fff; padding: 14px 28px; border-radius: 100px; font-size: 15px; transition: opacity .2s; }
+a.btn-p:hover { opacity: .85; }
+a.btn-s { background: var(--bg2); color: var(--t1); padding: 13px 28px; border-radius: 100px; font-size: 15px; border: 1px solid var(--br); transition: border-color .2s; }
+a.btn-s:hover { border-color: var(--p); }
+
+/* ── Responsive ── */
+@media (max-width: 700px) {
+  .land-nav { padding: 14px 18px; }
+  .land-nav-links a:not(.nav-signin-btn) { display: none; }
+  .land-about-grid { grid-template-columns: 1fr; gap: 40px; }
+  .about-stats-col { grid-template-columns: 1fr 1fr; }
+  .land-footer-inner { flex-direction: column; gap: 32px; }
+  .footer-bottom { flex-direction: column; text-align: center; }
+  .land-ad-slot { padding: 8px 12px; }
+}

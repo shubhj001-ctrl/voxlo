@@ -1,5 +1,8 @@
 {
   "rewrites": [
+    { "source": "/app",   "destination": "/app.html"   },
+    { "source": "/login", "destination": "/auth.html?mode=login" },
+    { "source": "/register", "destination": "/auth.html?mode=register" },
     { "source": "/admin", "destination": "/admin.html" }
   ]
 }

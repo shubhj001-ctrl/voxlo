@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<title>Sign In — VOXLO</title>
+<meta name="robots" content="noindex"/>
+<meta name="theme-color" content="#08080e"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2308080e'/%3E%3Ctext x='50' y='68' font-family='Arial Black,sans-serif' font-size='52' font-weight='900' text-anchor='middle' fill='url(%23g)' %3EV%3C/text%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%237c3aed'/%3E%3Cstop offset='100%25' stop-color='%2322d3ee'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css"/>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8978138449354329" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<!-- LOADER -->
+<div class="loader-ov" id="loader">
+  <div class="loader-orb1"></div><div class="loader-orb2"></div>
+  <div class="loader-scene">
+    <div class="loader-ball" id="loaderBall"></div>
+    <div class="loader-letters">
+      <span class="ll" data-i="0">V</span><span class="ll" data-i="1">O</span>
+      <span class="ll" data-i="2">X</span><span class="ll" data-i="3">L</span>
+      <span class="ll" data-i="4">O</span>
+    </div>
+    <div class="loader-shadows">
+      <span class="ls"></span><span class="ls"></span><span class="ls"></span>
+      <span class="ls"></span><span class="ls"></span>
+    </div>
+  </div>
+  <div class="loader-sub" id="loaderSub">Loading...</div>
+</div>
+
+<!-- Firebase banner -->
+<div class="fb-banner" id="fbBanner" style="position:fixed;top:0;left:0;right:0;z-index:100;border-radius:0">
+  ⚠️ Firebase not configured. <a href="#" onclick="showFbHelp()">Setup guide</a> — Running in demo mode.
+</div>
+
+<!-- ══ AUTH PAGE ══ -->
+<div id="pg-auth" class="page journey-page active">
+  <div class="orbs"><div class="orb o1" style="position:fixed"></div><div class="orb o2" style="position:fixed"></div></div>
+
+  <!-- LOGIN PANEL -->
+  <div class="login-panel hidden" id="loginPanel">
+    <div class="journey-logo"><span class="vx-word">✦ VOXLO</span></div>
+    <div class="journey-title">Welcome back 👋</div>
+    <div class="journey-sub">Sign in to continue your journey</div>
+    <div class="journey-fields">
+      <div class="fg"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com"/></div>
+      <div class="fg"><label>Password</label><input type="password" id="login-pass" placeholder="Your password"/></div>
+      <button class="btn-full" id="loginBtn">Sign In to VOXLO ✦</button>
+      <p style="text-align:center;font-size:13px;color:var(--t3);margin-top:16px">
+        New here? <a href="#" style="color:#b89ffc;text-decoration:none;font-weight:600" onclick="switchToReg()">Join VOXLO free ✦</a>
+      </p>
+    </div>
+    <div id="reg-form" class="hidden"></div>
+    <div id="login-form" class="hidden"></div>
+  </div>
+
+  <!-- REGISTRATION JOURNEY -->
+  <div class="journey-wrap" id="journeyWrap">
+    <div class="journey-progress">
+      <div class="jp-dot active" id="jp1"></div><div class="jp-line" id="jl1"></div>
+      <div class="jp-dot" id="jp2"></div><div class="jp-line" id="jl2"></div>
+      <div class="jp-dot" id="jp3"></div><div class="jp-line" id="jl3"></div>
+      <div class="jp-dot" id="jp4"></div><div class="jp-line" id="jl4"></div>
+      <div class="jp-dot" id="jp5"></div>
+    </div>
+    <div class="journey-slides" id="journeySlides">
+      <!-- SLIDE 1: Name -->
+      <div class="journey-slide active" id="jslide1">
+        <div class="slide-emoji">👋</div>
+        <div class="journey-title">Let's start with your name</div>
+        <div class="journey-sub">This is how people will know you on VOXLO</div>
+        <div class="journey-fields">
+          <input class="journey-input" type="text" id="reg-name" placeholder="What do people call you?" maxlength="32" autocomplete="given-name"/>
+          <button class="journey-btn" id="jbtn1">Continue →</button>
+          <p class="journey-signin">Already have an account? <a href="#" onclick="switchToLogin()">Sign In</a></p>
+        </div>
+      </div>
+      <!-- SLIDE 2: Email + Password -->
+      <div class="journey-slide" id="jslide2">
+        <div class="slide-emoji">🔐</div>
+        <div class="journey-title" id="slide2Title">Hey, let's verify you</div>
+        <div class="journey-sub">Enter your email and create a password</div>
+        <div class="journey-fields">
+          <input class="journey-input" type="email" id="reg-email" placeholder="your@email.com" autocomplete="email"/>
+          <input class="journey-input" type="password" id="reg-pass" placeholder="Create a password (min 6 chars)" autocomplete="new-password"/>
+          <input class="journey-input" type="password" id="reg-pass2" placeholder="Confirm your password" autocomplete="new-password"/>
+          <button class="journey-btn" id="regBtn">Send Verification Code 📧</button>
+          <button class="journey-back" id="jback2">← Back</button>
+        </div>
+      </div>
+      <!-- SLIDE 3: Location -->
+      <div class="journey-slide" id="jslide3">
+        <div class="slide-emoji">📍</div>
+        <div class="journey-title">Where are you from?</div>
+        <div class="journey-sub">Helps you connect with people nearby too</div>
+        <div class="journey-fields">
+          <select class="journey-input journey-select" id="reg-country">
+            <option value="">Select your country...</option>
+            <option>India</option><option>United States</option><option>United Kingdom</option>
+            <option>Canada</option><option>Australia</option><option>Germany</option>
+            <option>France</option><option>Japan</option><option>Brazil</option>
+            <option>South Korea</option><option>Netherlands</option><option>Singapore</option>
+            <option>UAE</option><option>Pakistan</option><option>Bangladesh</option>
+            <option>Sri Lanka</option><option>Nepal</option><option>Mexico</option>
+            <option>Italy</option><option>Spain</option><option>Sweden</option>
+            <option>Nigeria</option><option>South Africa</option><option>Philippines</option>
+            <option>Indonesia</option><option>Malaysia</option><option>Thailand</option>
+            <option>New Zealand</option><option>Argentina</option><option>Other</option>
+          </select>
+          <button class="journey-btn" id="jbtn3">Continue →</button>
+          <button class="journey-back" id="jback3">← Back</button>
+        </div>
+      </div>
+      <!-- SLIDE 4: Bio -->
+      <div class="journey-slide" id="jslide4">
+        <div class="slide-emoji">✍️</div>
+        <div class="journey-title">Tell your story</div>
+        <div class="journey-sub">Your bio is your first impression — make it real</div>
+        <div class="journey-fields">
+          <textarea class="journey-input journey-textarea" id="reg-bio" placeholder="Who are you beyond your job title? What are you into? What's your vibe?" maxlength="200"></textarea>
+          <div class="bio-counter"><span id="bioCount">0</span>/200</div>
+          <button class="journey-btn" id="jbtn4">Continue →</button>
+          <button class="journey-back" id="jback4">← Back</button>
+        </div>
+      </div>
+      <!-- SLIDE 5: Interests -->
+      <div class="journey-slide" id="jslide5">
+        <div class="slide-emoji">⚡</div>
+        <div class="journey-title">What are you into?</div>
+        <div class="journey-sub">Pick your interests — this is how we match you</div>
+        <div class="journey-fields">
+          <div class="itags journey-itags">
+            <button class="itag">Tech</button><button class="itag">Music</button>
+            <button class="itag">Design</button><button class="itag">Coding</button>
+            <button class="itag">Travel</button><button class="itag">Gaming</button>
+            <button class="itag">Books</button><button class="itag">Art</button>
+            <button class="itag">Film</button><button class="itag">Sports</button>
+            <button class="itag">Food</button><button class="itag">Anime</button>
+            <button class="itag">Fitness</button><button class="itag">Photography</button>
+            <button class="itag">Fashion</button><button class="itag">Memes</button>
+          </div>
+          <button class="journey-btn" id="completeProfileBtn">Create My Profile ✦</button>
+          <button class="journey-back" id="jback5">← Back</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OTP MODAL -->
+<div class="modal-ov" id="otpModal">
+  <div class="modal otp-modal">
+    <div style="text-align:center;margin-bottom:24px">
+      <div class="otp-icon">🔐</div>
+      <div class="modal-title" style="margin-top:12px">Verify it's you</div>
+      <p style="font-size:13px;color:var(--t2);margin-top:8px;line-height:1.6">
+        We sent a 6-character code to<br>
+        <strong style="color:var(--t1)" id="otpEmail">your email</strong>
+      </p>
+    </div>
+    <div style="margin-bottom:16px">
+      <input type="text" id="otpInput" class="otp-input" maxlength="6" placeholder="A1B2C3" autocomplete="one-time-code" spellcheck="false"/>
+      <div id="otpError" class="otp-error"></div>
+    </div>
+    <div class="otp-timer-row">
+      <span style="color:var(--t3);font-size:12px">Code expires in</span>
+      <span class="otp-timer-badge" id="otpTimer">10:00</span>
+    </div>
+    <button class="btn-full" id="otpVerifyBtn" style="margin-top:16px">Verify Code ✦</button>
+    <div style="text-align:center;margin-top:14px">
+      <span style="font-size:12px;color:var(--t3)">Didn't get it? </span>
+      <button id="otpResendBtn" style="background:none;border:none;color:#b89ffc;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-b)">Resend Code</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE SETUP MODAL -->
+<div class="modal-ov" id="fbSetupModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">🔥 Connect Firebase</div>
+      <button class="modal-close" id="closeFbSetup">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px;font-size:13px;color:var(--t2);line-height:1.8">
+      <p>To make VOXLO work with real users, paste your Firebase config below:</p>
+      <div class="fg">
+        <label>Firebase Config (JSON)</label>
+        <textarea id="fbConfigInput" style="background:var(--bg2);border:1px solid var(--br);border-radius:var(--rsm);padding:13px 15px;color:var(--t1);font-family:monospace;font-size:12px;outline:none;resize:none;width:100%;min-height:140px" placeholder='{"apiKey":"AIza...","authDomain":"...","projectId":"..."}'></textarea>
+      </div>
+      <button class="btn-full" id="saveFbConfig">Connect Firebase ✦</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-c" id="toastC"></div>
+<script type="module" src="js/auth.js"></script>
+</body>
+</html>
