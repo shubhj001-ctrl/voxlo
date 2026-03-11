@@ -14,6 +14,139 @@ const EMAILJS_PUBLIC_KEY  = 'fZ7BAKMM1BlBU07S3';
 const EMAILJS_SERVICE_ID  = 'service_ay6r58h';
 const EMAILJS_TEMPLATE_ID = 'template_rsxuxol';
 
+// ── LOADER BALL ANIMATION ──
+(function initLoaderBall(){
+  const ball    = document.getElementById('loaderBall');
+  const letters = document.querySelectorAll('.ll');
+  const shadows = document.querySelectorAll('.ls');
+  if(!ball || !letters.length) return;
+
+  const LETTER_COUNT = letters.length;
+  const BOUNCE_DURATION = 420;   // ms per letter hop
+  const HANG_AT_TOP = 80;        // ms ball hangs at apex
+  const STAY_LIT = 260;          // ms letter stays glowing
+
+  let currentIdx = 0;
+  let animFrame;
+  let startTime;
+  let letterPositions = []; // {cx, bottom} for each letter
+
+  // Measure letter center positions after layout
+  function measureLetters(){
+    const sceneRect = document.querySelector('.loader-scene').getBoundingClientRect();
+    letterPositions = Array.from(letters).map(el=>{
+      const r = el.getBoundingClientRect();
+      return {
+        cx: r.left - sceneRect.left + r.width / 2,
+        top: r.top - sceneRect.top,
+        bottom: r.top - sceneRect.top + r.height,
+        width: r.width,
+      };
+    });
+  }
+
+  function placeBallAt(x, y){
+    const r = ball.getBoundingClientRect();
+    ball.style.left = (x - 8) + 'px';
+    ball.style.top  = y + 'px';
+  }
+
+  // Easing
+  function easeInQuad(t){ return t*t; }
+  function easeOutQuad(t){ return t*(2-t); }
+  function easeInOutQuad(t){ return t<.5 ? 2*t*t : -1+(4-2*t)*t; }
+
+  function animateBounce(fromIdx, toIdx, onComplete){
+    const from = letterPositions[fromIdx];
+    const to   = letterPositions[toIdx];
+
+    const apexY = Math.min(from.top, to.top) - 48; // height of bounce
+    const groundY = Math.max(from.bottom, to.bottom) - 20;
+
+    const startX = from.cx;
+    const endX   = to.cx;
+
+    startTime = null;
+
+    function step(ts){
+      if(!startTime) startTime = ts;
+      let t = Math.min((ts - startTime) / BOUNCE_DURATION, 1);
+
+      // Parabolic Y: goes up then comes down
+      const yt = t < 0.5 ? easeInQuad(t*2) : easeOutQuad((t-0.5)*2);
+      const y  = t < 0.5
+        ? groundY + (apexY - groundY) * easeOutQuad(t*2)
+        : apexY   + (groundY - apexY)  * easeInQuad((t-0.5)*2);
+
+      // Linear X
+      const x = startX + (endX - startX) * t;
+
+      placeBallAt(x, y - 16);
+
+      // Ball squish scale on landing
+      const squish = t > 0.85 ? 1 + (1-t)*3 : 1;
+      ball.style.transform = `scaleX(${squish > 1 ? squish : 1}) scaleY(${squish > 1 ? 1/squish : 1})`;
+
+      if(t < 1){
+        animFrame = requestAnimationFrame(step);
+      } else {
+        ball.style.transform = '';
+        onComplete();
+      }
+    }
+    animFrame = requestAnimationFrame(step);
+  }
+
+  function hitLetter(idx){
+    // Light it up
+    letters[idx].classList.add('lit');
+    shadows[idx].classList.add('squish');
+
+    // Ball squish impact
+    ball.style.transform = 'scaleX(1.5) scaleY(0.6)';
+    setTimeout(()=>{ ball.style.transform = ''; }, 120);
+
+    // Dim after STAY_LIT
+    setTimeout(()=>{
+      letters[idx].classList.remove('lit');
+      shadows[idx].classList.remove('squish');
+    }, STAY_LIT);
+  }
+
+  function runLoop(){
+    if(!document.getElementById('loader') ||
+       document.getElementById('loader').classList.contains('fade-out')) return;
+
+    measureLetters();
+    if(!letterPositions.length){ setTimeout(runLoop, 100); return; }
+
+    // Place ball on first letter initially
+    const first = letterPositions[0];
+    placeBallAt(first.cx, first.bottom - 20);
+
+    let idx = 0;
+
+    function next(){
+      if(document.getElementById('loader')?.classList.contains('fade-out')) return;
+
+      hitLetter(idx);
+      const nextIdx = (idx + 1) % LETTER_COUNT;
+
+      setTimeout(()=>{
+        animateBounce(idx, nextIdx, ()=>{
+          idx = nextIdx;
+          next();
+        });
+      }, 60); // tiny pause on land before next jump
+    }
+
+    next();
+  }
+
+  // Start after a short delay for layout to settle
+  setTimeout(runLoop, 120);
+})();
+
 // ── STATE ──
 const S = {
   app: null, auth: null, db: null, storage: null,

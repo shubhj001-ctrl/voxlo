@@ -20,40 +20,27 @@
 <div class="loader-ov" id="loader">
   <div class="loader-orb1"></div>
   <div class="loader-orb2"></div>
-  <div class="loader-logo"><svg class="voxlo-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 44" aria-label="VOXLO">
-  <defs>
-    <linearGradient id="vl1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#22d3ee"/>
-    </linearGradient>
-    <linearGradient id="vl2" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#f472b6"/><stop offset="100%" stop-color="#fbbf24"/>
-    </linearGradient>
-    <linearGradient id="vl3" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#7c3aed"/>
-      <stop offset="55%" stop-color="#a855f7"/>
-      <stop offset="100%" stop-color="#22d3ee"/>
-    </linearGradient>
-    <mask id="vlm"><text x="52" y="31" font-family="Arial Black,Impact,sans-serif" font-size="26" font-weight="900" letter-spacing="2" fill="white">VOXLO</text></mask>
-  </defs>
-  <!-- Icon mark -->
-  <rect x="2" y="18" width="4" height="14" rx="2" fill="url(#vl1)" opacity="0.6"/>
-  <rect x="8" y="12" width="4" height="20" rx="2" fill="url(#vl1)" opacity="0.9"/>
-  <path d="M14,10 L21,30 L28,10" fill="none" stroke="url(#vl1)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="30" y="12" width="4" height="20" rx="2" fill="url(#vl2)" opacity="0.9"/>
-  <rect x="36" y="18" width="4" height="14" rx="2" fill="url(#vl2)" opacity="0.6"/>
-  <path d="M38,7 L39,10 L42,11 L39,12 L38,15 L37,12 L34,11 L37,10 Z" fill="#f472b6" opacity="0.9"/>
-  <circle cx="21" cy="35" r="2" fill="#22d3ee" opacity="0.7"/>
-  <!-- Divider -->
-  <line x1="48" y1="8" x2="48" y2="38" stroke="#252535" stroke-width="1"/>
-  <!-- Wordmark -->
-  <rect x="50" y="8" width="148" height="28" fill="url(#vl3)" mask="url(#vlm)"/>
-</svg></div>
-  <div class="loader-sub" id="loaderSub">Connecting...</div>
-  <div class="loader-dots">
-    <div class="loader-dot"></div>
-    <div class="loader-dot"></div>
-    <div class="loader-dot"></div>
+  <div class="loader-scene">
+    <!-- Bouncing ball -->
+    <div class="loader-ball" id="loaderBall"></div>
+    <!-- Letters -->
+    <div class="loader-letters">
+      <span class="ll" data-i="0">V</span>
+      <span class="ll" data-i="1">O</span>
+      <span class="ll" data-i="2">X</span>
+      <span class="ll" data-i="3">L</span>
+      <span class="ll" data-i="4">O</span>
+    </div>
+    <!-- Shadow under each letter -->
+    <div class="loader-shadows">
+      <span class="ls"></span>
+      <span class="ls"></span>
+      <span class="ls"></span>
+      <span class="ls"></span>
+      <span class="ls"></span>
+    </div>
   </div>
+  <div class="loader-sub" id="loaderSub">Connecting...</div>
 </div>
 
 <!-- ══════════ LANDING ══════════ -->

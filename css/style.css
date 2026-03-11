@@ -276,19 +276,97 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:1
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
 
 /* ─── LOADER ─── */
-.loader-ov{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;transition:opacity .4s ease}
+/* ── LOADER ── */
+.loader-ov{
+  position:fixed;inset:0;background:var(--bg);z-index:9999;
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:36px;
+  transition:opacity .5s ease;
+}
 .loader-ov.fade-out{opacity:0;pointer-events:none}
-.loader-logo{font-family:var(--font-d);font-size:42px;font-weight:800;background:var(--grd1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:logoPulse 2s ease-in-out infinite}
+.loader-orb1{position:absolute;width:360px;height:360px;background:radial-gradient(circle,rgba(124,58,237,.12),transparent);border-radius:50%;top:-120px;left:-120px;animation:of 7s ease-in-out infinite}
+.loader-orb2{position:absolute;width:280px;height:280px;background:radial-gradient(circle,rgba(34,211,238,.08),transparent);border-radius:50%;bottom:-80px;right:-80px;animation:of 7s ease-in-out infinite;animation-delay:-3.5s}
+
+/* Scene wrapper */
+.loader-scene{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:0;
+  user-select:none;
+}
+
+/* The bouncing ball */
+.loader-ball{
+  width:16px;height:16px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%, #c084fc, #7c3aed);
+  box-shadow:0 0 18px rgba(124,58,237,.9), 0 0 40px rgba(124,58,237,.4);
+  position:absolute;
+  top:0;left:0; /* positioned by JS */
+  z-index:10;
+  pointer-events:none;
+  transition:none;
+}
+
+/* Letters row */
+.loader-letters{
+  display:flex;
+  gap:4px;
+  align-items:flex-end;
+  padding-top:56px; /* room for ball above */
+}
+.ll{
+  font-family:var(--font-d);
+  font-size:clamp(52px,10vw,80px);
+  font-weight:900;
+  letter-spacing:-2px;
+  color:var(--br2);
+  display:inline-block;
+  transition:color .18s ease, text-shadow .18s ease, transform .18s ease;
+  line-height:1;
+}
+.ll.lit{
+  color:#fff;
+  text-shadow:
+    0 0 20px rgba(124,58,237,1),
+    0 0 40px rgba(124,58,237,.7),
+    0 0 80px rgba(167,85,247,.5);
+  transform:scaleY(1.04);
+}
+/* Each letter gets a unique glow color on hit */
+.ll[data-i="0"].lit{ color:#c084fc; text-shadow:0 0 24px #7c3aed,0 0 60px #7c3aed88; }
+.ll[data-i="1"].lit{ color:#67e8f9; text-shadow:0 0 24px #22d3ee,0 0 60px #22d3ee88; }
+.ll[data-i="2"].lit{ color:#f9a8d4; text-shadow:0 0 24px #f472b6,0 0 60px #f472b688; }
+.ll[data-i="3"].lit{ color:#fde68a; text-shadow:0 0 24px #fbbf24,0 0 60px #fbbf2488; }
+.ll[data-i="4"].lit{ color:#6ee7b7; text-shadow:0 0 24px #34d399,0 0 60px #34d39988; }
+
+/* Shadow squish under letters */
+.loader-shadows{
+  display:flex;
+  gap:4px;
+  margin-top:6px;
+}
+.ls{
+  width:clamp(32px,6vw,52px);
+  height:6px;border-radius:50%;
+  background:rgba(124,58,237,.15);
+  transition:transform .18s ease, opacity .18s ease;
+  transform:scaleX(.4);
+  opacity:.3;
+}
+.ls.squish{
+  transform:scaleX(1.1);
+  opacity:.5;
+}
+
+.loader-sub{
+  font-size:13px;color:var(--t3);
+  font-weight:500;letter-spacing:.12em;
+  text-transform:uppercase;
+  animation:fiu .6s ease forwards;
+}
 @keyframes logoPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(1.04)}}
-.loader-sub{font-size:13px;color:var(--t3);font-weight:500;letter-spacing:.04em;animation:fiu .6s ease forwards}
-.loader-dots{display:flex;gap:7px;align-items:center}
-.loader-dot{width:8px;height:8px;border-radius:50%;background:var(--p);animation:dotBounce 1.2s ease-in-out infinite}
-.loader-dot:nth-child(1){animation-delay:0s;background:var(--p)}
-.loader-dot:nth-child(2){animation-delay:.2s;background:var(--c)}
-.loader-dot:nth-child(3){animation-delay:.4s;background:var(--pk)}
-@keyframes dotBounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-10px);opacity:1}}
-.loader-orb1{position:absolute;width:300px;height:300px;background:radial-gradient(circle,rgba(124,58,237,.15),transparent);border-radius:50%;top:-100px;left:-100px;animation:of 6s ease-in-out infinite}
-.loader-orb2{position:absolute;width:250px;height:250px;background:radial-gradient(circle,rgba(34,211,238,.1),transparent);border-radius:50%;bottom:-80px;right:-80px;animation:of 6s ease-in-out infinite;animation-delay:-3s}
 .spinner{width:28px;height:28px;border:3px solid var(--br2);border-top-color:var(--p);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
@@ -403,12 +481,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:1
   height:36px;
   width:auto;
 }
-/* Loader logo — bigger */
-.loader-logo .voxlo-logo-svg{
-  height:48px;
-  filter:drop-shadow(0 0 18px rgba(124,58,237,0.5));
-  animation:logoPulse 2s ease-in-out infinite;
-}
+
 /* Auth card logo */
 .auth-logo .voxlo-logo-svg{
   height:38px;
