@@ -270,7 +270,7 @@
   <!-- MAIN -->
   <div class="main-area">
 
-    <!-- DISCOVER -->
+    <!-- DISCOVER — Card Swipe -->
     <div class="disc-panel" id="discPanel">
       <div class="disc-head">
         <div>
@@ -285,7 +285,24 @@
           <button class="fchip" data-filter="gaming">Gaming</button>
         </div>
       </div>
-      <div class="disc-grid" id="discGrid"></div>
+      <!-- Swipe Card Stack -->
+      <div class="swipe-arena" id="swipeArena">
+        <div class="swipe-stack" id="swipeStack"></div>
+        <div class="swipe-empty hidden" id="swipeEmpty">
+          <div class="swipe-empty-ico">🌌</div>
+          <div class="swipe-empty-title">That's all for now!</div>
+          <div class="swipe-empty-sub">You've seen everyone. Check back later or change filters.</div>
+          <button class="swipe-reset-btn" id="swipeResetBtn">Start Over ↺</button>
+        </div>
+        <!-- Swipe hint labels -->
+        <div class="swipe-label swipe-label-like" id="swipeLabelLike">CONNECT 💬</div>
+        <div class="swipe-label swipe-label-nope" id="swipeLabelNope">SKIP ✕</div>
+      </div>
+      <!-- Action buttons -->
+      <div class="swipe-actions" id="swipeActions">
+        <button class="swipe-btn swipe-btn-skip" id="btnSkip" title="Skip">✕</button>
+        <button class="swipe-btn swipe-btn-chat" id="btnConnect" title="Connect">💬</button>
+      </div>
     </div>
 
     <!-- REQUESTS PANEL -->

@@ -631,10 +631,31 @@ function initNav(){
       document.querySelectorAll('.nav-pill').forEach(x=>x.classList.remove('active'));
       p.classList.add('active');
       const view = p.dataset.view;
-      if(view === 'discover') showDiscover();
-      else if(view === 'requests') showRequestsPanel();
-      else showChatListView();
+      if(view === 'discover'){ setDiscoverMode(true); showDiscover(); }
+      else if(view === 'requests'){ setDiscoverMode(true); showRequestsPanel(); }
+      else { setDiscoverMode(false); showChatListView(); }
     };
+  });
+
+  // Swipe action buttons
+  document.getElementById('btnSkip')?.addEventListener('click',()=>{
+    const stack = document.getElementById('swipeStack');
+    const top = stack?.lastElementChild;
+    if(!top||!swipeQueue.length) return;
+    swipeSkipped.add(swipeQueue[0].uid);
+    top.style.transition='transform .35s ease';
+    top.style.transform='translateX(-120vw) rotate(-25deg)';
+    setTimeout(()=>{ swipeQueue.shift(); buildSwipeStack(); },350);
+  });
+  document.getElementById('btnConnect')?.addEventListener('click',()=>{
+    const stack = document.getElementById('swipeStack');
+    const top = stack?.lastElementChild;
+    if(!top) return;
+    top.classList.add('flipped');
+  });
+  document.getElementById('swipeResetBtn')?.addEventListener('click',()=>{
+    swipeSkipped.clear();
+    renderDiscover();
   });
   document.getElementById('btnDiscover').onclick=()=>{
     document.querySelectorAll('.nav-pill').forEach(x=>x.classList.remove('active'));
@@ -645,6 +666,7 @@ function initNav(){
     c.onclick=()=>{
       document.querySelectorAll('.fchip').forEach(x=>x.classList.remove('active'));
       c.classList.add('active');
+      swipeSkipped.clear();
       renderDiscover(c.dataset.filter);
     };
   });
@@ -664,6 +686,18 @@ function initNav(){
   });
 }
 
+function setDiscoverMode(isDiscover){
+  const chatList = document.getElementById('chatList');
+  const searchWrap = document.querySelector('.sb-search');
+  if(isDiscover){
+    if(chatList) chatList.style.cssText='opacity:.3;pointer-events:none';
+    if(searchWrap) searchWrap.style.cssText='opacity:.3;pointer-events:none';
+  } else {
+    if(chatList) chatList.style.cssText='';
+    if(searchWrap) searchWrap.style.cssText='';
+  }
+}
+
 function showDiscover(){
   document.getElementById('discPanel').classList.remove('hidden');
   document.getElementById('chatPanel').classList.remove('active');
@@ -671,6 +705,7 @@ function showDiscover(){
   document.querySelectorAll('.chat-item').forEach(i=>i.classList.remove('active'));
   S.chatId=null;
   if(S.unsubMsgs){ S.unsubMsgs(); S.unsubMsgs=null; }
+  renderDiscover();
 }
 
 function showChatListView(){
@@ -724,52 +759,190 @@ async function loadUsers(){
 }
 
 // ══════════════════════════════
-//  DISCOVER
+//  DISCOVER — SWIPE CARDS
 // ══════════════════════════════
-function renderDiscover(filter='all'){
-  const grid = document.getElementById('discGrid');
-  grid.innerHTML='';
-  let users = filter==='all' ? [...allUsers] : allUsers.filter(u=>u.interests?.some(i=>i.toLowerCase().includes(filter)));
-  if(!users.length){
-    grid.innerHTML='<div class="empty"><div class="empty-ico">👥</div><h3>No users found</h3><p>Be the first in this category!</p></div>';
+let swipeQueue = [];
+let swipeSkipped = new Set();
+let swipeFilter = 'all';
+
+function renderDiscover(filter){
+  if(filter !== undefined) swipeFilter = filter;
+  let users = allUsers.filter(u=> u.uid !== S.user?.uid);
+  if(swipeFilter !== 'all') users = users.filter(u=>u.interests?.some(i=>i.toLowerCase().includes(swipeFilter)));
+  users = users.filter(u=> !swipeSkipped.has(u.uid));
+  swipeQueue = users;
+  buildSwipeStack();
+}
+
+function buildSwipeStack(){
+  const stack = document.getElementById('swipeStack');
+  const empty = document.getElementById('swipeEmpty');
+  const actions = document.getElementById('swipeActions');
+  if(!stack) return;
+  stack.innerHTML = '';
+
+  if(!swipeQueue.length){
+    stack.classList.add('hidden');
+    if(empty) empty.classList.remove('hidden');
+    if(actions) actions.style.display = 'none';
     return;
   }
-  users.forEach((u,idx)=>{
-    const av = avColor(u.uid);
-    const card=document.createElement('div');
-    card.className='pcard';
-    card.style.cssText=`animation:fiu .4s ease forwards;animation-delay:${idx*.05}s;opacity:0`;
-    const matchScore = calcMatch(u);
-    const status = S.fbReady ? getFriendStatus(u.uid) : 'none';
-    const isPrivate = u.isPrivate;
-    const privBadge = isPrivate ? '<span style="font-size:10px;color:var(--t3);margin-left:6px">🔒</span>' : '';
+  stack.classList.remove('hidden');
+  if(empty) empty.classList.add('hidden');
+  if(actions) actions.style.display = 'flex';
 
-    let btnHtml = '';
-    if(status==='friends')
-      btnHtml=`<button class="btn-conn friends" onclick="startChat('${u.uid}',event)">💬 Chat</button>`;
-    else if(status==='requested')
-      btnHtml=`<button class="btn-conn requested" disabled>✓ Requested</button>`;
-    else if(status==='incoming')
-      btnHtml=`<button class="btn-conn friends" onclick="startChat('${u.uid}',event)">Accept & Chat</button>`;
-    else if(isPrivate)
-      btnHtml=`<button class="btn-conn private-lock" onclick="sendFriendRequest('${u.uid}',event)">🔒 Add Friend</button>`;
-    else
-      btnHtml=`<button class="btn-conn" onclick="startChat('${u.uid}',event)">Connect</button>`;
+  [...swipeQueue.slice(0,3)].reverse().forEach(u=> stack.appendChild(buildCard(u)));
+  attachDrag(stack.lastElementChild, swipeQueue[0]);
+}
 
-    card.innerHTML=`
-      <div class="card-hd">
-        <div class="av ${av}" style="position:relative">${initials(u.name)}${u.online?'<div class="ondot"></div>':''}</div>
-        <div><div class="card-nm">${esc(u.name)}${privBadge}</div><div class="card-loc">📍 ${esc(u.location||'Earth')}</div></div>
+function buildCard(u){
+  const av = avColor(u.uid);
+  const ini = initials(u.name);
+  const matchScore = calcMatch(u);
+  const status = S.fbReady ? getFriendStatus(u.uid) : 'none';
+  const isPrivate = u.isPrivate;
+
+  let backBtns = '';
+  if(status === 'friends'){
+    backBtns = `<button class="cb-btn cb-btn-chat" data-uid="${u.uid}" data-action="chat">💬 Open Chat</button>`;
+  } else if(status === 'requested'){
+    backBtns = `<button class="cb-btn cb-btn-req" disabled>✓ Request Sent</button>`;
+  } else if(isPrivate){
+    backBtns = `
+      <button class="cb-btn cb-btn-chat" data-uid="${u.uid}" data-action="msgReq">💬 Send Message + Request</button>
+      <button class="cb-btn cb-btn-req" data-uid="${u.uid}" data-action="req">🤝 Friend Request Only</button>`;
+  } else {
+    backBtns = `<button class="cb-btn cb-btn-chat" data-uid="${u.uid}" data-action="chat">💬 Start Chatting</button>`;
+  }
+
+  const privNote = isPrivate
+    ? `<div class="cb-note">🔒 Private account — your message will go as a friend request. Chat unlocks once accepted.</div>`
+    : '';
+
+  const card = document.createElement('div');
+  card.className = 'swipe-card';
+  card.dataset.uid = u.uid;
+  card.innerHTML = `
+    <div class="card-inner">
+      <div class="card-face card-front">
+        <div class="cf-top">
+          <div class="cf-av-row">
+            <div class="av ${av} cf-av">${ini}${u.online?'<div class="cf-ondot"></div>':''}</div>
+            <div>
+              <div class="cf-name">${esc(u.name)}</div>
+              <div class="cf-handle">${esc(u.handle||'')}</div>
+            </div>
+            <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+              <div class="cf-match">⚡ ${matchScore}%</div>
+              ${isPrivate?'<div class="cf-priv-badge">🔒 Private</div>':''}
+            </div>
+          </div>
+          <div class="cf-loc">📍 ${esc(u.location||'Earth')}</div>
+          <div class="cf-bio">${esc(u.bio||'')}</div>
+          <div class="cf-tags">${(u.interests||[]).map((t,i)=>`<span class="tag ${tagColor(i)}">${esc(t)}</span>`).join('')}</div>
+        </div>
+        <div class="cf-bottom">
+          <div class="cf-tap-hint">👆 Tap to connect · swipe to skip</div>
+        </div>
       </div>
-      <div class="card-bio">${esc(u.bio||'')}</div>
-      <div class="tags">${(u.interests||[]).map((t,i)=>`<span class="tag ${tagColor(i)}">${esc(t)}</span>`).join('')}</div>
-      <div class="card-ft">
-        <div class="match">⚡ ${matchScore}% match</div>
-        ${btnHtml}
-      </div>`;
-    card.onclick=()=>{ if(status==='friends'||!isPrivate) openChat(u.uid); };
-    grid.appendChild(card);
+      <div class="card-face card-back">
+        <div class="cb-av ${av}">${ini}</div>
+        <div class="cb-name">${esc(u.name)}</div>
+        <div class="cb-bio">${esc(u.bio||'')}</div>
+        <div class="cb-divider"></div>
+        <div class="cb-btns">
+          ${backBtns}
+          <button class="cb-btn cb-btn-back" data-action="flip">← Back</button>
+        </div>
+        ${privNote}
+      </div>
+    </div>`;
+
+  card.querySelector('.card-front').addEventListener('click', ()=> card.classList.add('flipped'));
+  card.querySelector('[data-action="flip"]').addEventListener('click', e=>{ e.stopPropagation(); card.classList.remove('flipped'); });
+  card.querySelectorAll('[data-action]:not([data-action="flip"])').forEach(btn=>{
+    btn.addEventListener('click', e=>{ e.stopPropagation(); handleCardAction(btn.dataset.action, btn.dataset.uid); });
   });
+  return card;
+}
+
+async function handleCardAction(action, uid){
+  if(action === 'chat' || action === 'msgReq'){
+    openChat(uid);
+    skipTopCard();
+  } else if(action === 'req'){
+    await sendFriendRequest(uid, null);
+    skipTopCard();
+  }
+}
+
+function skipTopCard(animate=false){
+  const stack = document.getElementById('swipeStack');
+  const top = stack?.lastElementChild;
+  if(top && animate){
+    top.style.transition = 'transform .35s ease';
+    top.style.transform = 'translateX(-120vw) rotate(-25deg)';
+    setTimeout(()=>{ swipeQueue.shift(); buildSwipeStack(); }, 350);
+  } else {
+    swipeQueue.shift();
+    buildSwipeStack();
+  }
+}
+
+function attachDrag(card, user){
+  if(!card||!user) return;
+  let startX=0, startY=0, currX=0, isDragging=false;
+
+  const onStart=(e)=>{
+    if(card.classList.contains('flipped')) return;
+    isDragging=true;
+    startX = e.type==='touchstart'?e.touches[0].clientX:e.clientX;
+    startY = e.type==='touchstart'?e.touches[0].clientY:e.clientY;
+    card.style.transition='none';
+  };
+  const onMove=(e)=>{
+    if(!isDragging) return;
+    currX=(e.type==='touchmove'?e.touches[0].clientX:e.clientX)-startX;
+    const currY=(e.type==='touchmove'?e.touches[0].clientY:e.clientY)-startY;
+    card.style.transform=`translateX(${currX}px) translateY(${currY*.25}px) rotate(${currX*.07}deg)`;
+    const like=document.getElementById('swipeLabelLike');
+    const nope=document.getElementById('swipeLabelNope');
+    if(like&&nope){
+      if(currX>40){like.style.opacity=Math.min((currX-40)/60,1);nope.style.opacity=0;}
+      else if(currX<-40){nope.style.opacity=Math.min((-currX-40)/60,1);like.style.opacity=0;}
+      else{like.style.opacity=0;nope.style.opacity=0;}
+    }
+  };
+  const onEnd=()=>{
+    if(!isDragging) return;
+    isDragging=false;
+    const like=document.getElementById('swipeLabelLike');
+    const nope=document.getElementById('swipeLabelNope');
+    if(like) like.style.opacity=0;
+    if(nope) nope.style.opacity=0;
+    card.style.transition='';
+
+    if(currX > 100){
+      // Right swipe — flip to show options
+      card.style.transform='';
+      card.classList.add('flipped');
+    } else if(currX < -100){
+      // Left swipe — skip
+      card.style.transform='translateX(-120vw) rotate(-25deg)';
+      swipeSkipped.add(user.uid);
+      setTimeout(()=>{ swipeQueue.shift(); buildSwipeStack(); },350);
+    } else {
+      card.style.transform='';
+    }
+    currX=0;
+  };
+
+  card.addEventListener('mousedown',onStart);
+  card.addEventListener('touchstart',onStart,{passive:true});
+  window.addEventListener('mousemove',onMove);
+  window.addEventListener('touchmove',onMove,{passive:true});
+  window.addEventListener('mouseup',onEnd);
+  window.addEventListener('touchend',onEnd);
 }
 
 function calcMatch(user){
