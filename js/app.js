@@ -4,7 +4,7 @@
 // ══════════════════════════════════════════════
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, fetchSignInMethodsForEmail } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, deleteDoc, query, orderBy, onSnapshot, serverTimestamp, updateDoc, where, limit } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 import firebaseConfig from '../firebase-config.js';
@@ -192,21 +192,10 @@ document.getElementById('btnSignIn').onclick = ()=>{ showPage('pg-auth'); switch
 // ══════════════════════════════
 //  AUTH
 // ══════════════════════════════
-window.switchToLogin = ()=>{
-  document.getElementById('loginPanel').classList.remove('hidden');
-  document.getElementById('journeyWrap').classList.add('hidden');
-};
-
-window.switchToReg = ()=>{
-  document.getElementById('loginPanel').classList.add('hidden');
-  document.getElementById('journeyWrap').classList.remove('hidden');
-  goToSlide(1);
-};
-
 // ── JOURNEY SLIDE SYSTEM ──
 let currentSlide = 1;
 
-function goToSlide(n, goingBack=false){
+window.goToSlide = function goToSlide(n, goingBack=false){
   const prev = document.getElementById('jslide'+currentSlide);
   if(prev){ prev.classList.remove('active','back-anim'); }
   currentSlide = n;
@@ -231,13 +220,24 @@ function goToSlide(n, goingBack=false){
   }
 }
 
-// Remove old tab listeners (tabs no longer exist in new UI)
-document.querySelectorAll('.itag').forEach(t=>t.onclick=()=>t.classList.toggle('sel'));
+window.switchToLogin = ()=>{
+  document.getElementById('loginPanel').classList.remove('hidden');
+  document.getElementById('journeyWrap').classList.add('hidden');
+};
+
+window.switchToReg = ()=>{
+  document.getElementById('loginPanel').classList.add('hidden');
+  document.getElementById('journeyWrap').classList.remove('hidden');
+  goToSlide(1);
+};
 
 // ══ JOURNEY REGISTRATION FLOW ══
+// All button listeners moved inside DOMContentLoaded to ensure elements exist
+function initJourneyListeners(){
+  document.querySelectorAll('.itag').forEach(t=>t.onclick=()=>t.classList.toggle('sel'));
 
-// Slide 1 → 2: Name
-document.getElementById('jbtn1').onclick = ()=>{
+  // Slide 1 → 2: Name
+  document.getElementById('jbtn1').onclick = ()=>{
   const name = document.getElementById('reg-name').value.trim();
   if(!name){ toast('Enter your name to continue','err'); return; }
   // Personalise slide 2 title
@@ -256,7 +256,7 @@ document.getElementById('regBtn').onclick = async ()=>{
   if(pass !== pass2){ toast('Passwords do not match','err'); return; }
 
   const btn = document.getElementById('regBtn');
-  btn.disabled=true; btn.textContent='Sending code... 📧';
+  btn.disabled=true; btn.textContent='Checking... ⏳';
 
   if(!S.fbReady){
     S.twoFA = { pendingEmail:email, pendingPass:pass, isLogin:false, otp:'DEMO01', otpExpiry:Date.now()+600000 };
@@ -264,17 +264,59 @@ document.getElementById('regBtn').onclick = async ()=>{
     btn.disabled=false; btn.textContent='Send Verification Code 📧';
     return;
   }
+
   try{
+    // ── Check if email already exists BEFORE sending OTP ──
+    const methods = await fetchSignInMethodsForEmail(S.auth, email);
+    if(methods && methods.length > 0){
+      // Email already registered — show error with login link
+      btn.disabled=false; btn.textContent='Send Verification Code 📧';
+      showEmailExistsError(email);
+      return;
+    }
+
+    // Email is free — send OTP
+    btn.textContent='Sending code... 📧';
     const otp = generateOTP();
     S.twoFA = { pendingEmail:email, pendingPass:pass, otp, otpExpiry:Date.now()+10*60*1000, isLogin:false };
     await sendOTPEmail(email, document.getElementById('reg-name').value.trim(), otp);
     toast('Code sent! Check your email 📧');
     showOTPScreen(email);
   } catch(e){
-    toast('Failed to send code: '+e.message,'err');
+    console.error('Registration check error:', e);
+    toast('Something went wrong: '+e.message,'err');
   }
   btn.disabled=false; btn.textContent='Send Verification Code 📧';
 };
+
+function showEmailExistsError(email){
+  // Show inline error on slide 2 with a login button
+  const existing = document.getElementById('emailExistsError');
+  if(existing) existing.remove();
+
+  const err = document.createElement('div');
+  err.id = 'emailExistsError';
+  err.className = 'email-exists-err';
+  err.innerHTML = `
+    <div class="eee-icon">⚠️</div>
+    <div class="eee-text">
+      <strong>${email}</strong> is already registered.
+    </div>
+    <button class="eee-btn" id="eeeLoginBtn">Sign In instead →</button>
+  `;
+  // Insert after the email input
+  const emailInput = document.getElementById('reg-email');
+  emailInput.after(err);
+  emailInput.style.borderColor = 'var(--pk)';
+
+  document.getElementById('eeeLoginBtn').onclick = ()=>{
+    err.remove();
+    emailInput.style.borderColor = '';
+    switchToLogin();
+    // Pre-fill email in login form
+    setTimeout(()=>{ document.getElementById('login-email').value = email; }, 100);
+  };
+}
 
 // After OTP verified → go to slide 3 (location)
 window.initProfileStep = ()=>{
@@ -337,9 +379,10 @@ document.getElementById('completeProfileBtn').onclick = async ()=>{
     btn.disabled=false; btn.textContent='Create My Profile ✦';
   }
 };
+} // end initJourneyListeners
 
-// LOGIN
-document.getElementById('loginBtn').onclick = async ()=>{
+// LOGIN — handled in DOMContentLoaded below
+async function handleLogin(){
   const email = document.getElementById('login-email').value.trim();
   const pass = document.getElementById('login-pass').value;
   if(!email||!pass){ toast('Enter email and password','err'); return; }
@@ -348,7 +391,6 @@ document.getElementById('loginBtn').onclick = async ()=>{
   btn.disabled=true; btn.textContent='Signing in...';
 
   if(!S.fbReady){
-    // DEMO MODE
     S.profile = { uid:'demo_me', name:'Shubham Jaggi', email, bio:'CRM & PRM Integration specialist @ Mindmatrix. Building VOXLO 🚀', interests:['Tech','Coding','CRM'], handle:'@shubham.jaggi', online:true };
     S.user = { uid: S.profile.uid };
     toast('Welcome back! 👋 (Demo mode)');
@@ -358,16 +400,12 @@ document.getElementById('loginBtn').onclick = async ()=>{
   }
 
   try{
-    // First verify credentials are correct by signing in temporarily
     const cred = await signInWithEmailAndPassword(S.auth, email, pass);
-    // Immediately sign out — we still need OTP verification
     await signOut(S.auth);
-
-    // Send OTP
     const otp = generateOTP();
     const name = cred.user.displayName || email.split('@')[0];
     S.twoFA = { pendingEmail:email, pendingPass:pass, pendingName:name,
-      otp, otpExpiry: Date.now() + 10*60*1000, isLogin:true };
+      otp, otpExpiry: Date.now()+10*60*1000, isLogin:true };
     await sendOTPEmail(email, name, otp);
     toast('Verification code sent to '+email+' 📧');
     showOTPScreen(email);
@@ -376,7 +414,7 @@ document.getElementById('loginBtn').onclick = async ()=>{
     toast(e.message,'err');
   }
   btn.disabled=false; btn.textContent='Sign In to VOXLO ✦';
-};
+}
 
 // ══════════════════════════════
 //  OTP SCREEN
@@ -1181,15 +1219,15 @@ function simulateReply(uid){
 // ══════════════════════════════
 window.addEventListener('DOMContentLoaded',()=>{
 
-  // ── OTP button listeners (must be here, not inline, because this is an ES module) ──
+  // ── OTP button listeners ──
   document.getElementById('otpVerifyBtn').textContent = 'Verify Code ✦';
   document.getElementById('otpVerifyBtn').addEventListener('click', ()=> window.verifyOTP());
   document.getElementById('otpResendBtn').addEventListener('click', ()=> window.resendOTP());
+  document.getElementById('otpInput').addEventListener('keydown', e=>{ if(e.key==='Enter') window.verifyOTP(); });
 
-  // ── Also allow Enter key in OTP input ──
-  document.getElementById('otpInput').addEventListener('keydown', e=>{
-    if(e.key === 'Enter') window.verifyOTP();
-  });
+  // ── Journey + Login listeners ──
+  initJourneyListeners();
+  document.getElementById('loginBtn').onclick = ()=> handleLogin();
 
   if(S.fbReady){
     setLoaderMsg('Connecting...');
