@@ -545,6 +545,7 @@
 // ── Firebase (same config as main app) ──
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getAuth, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const firebaseConfig = {
   apiKey:"AIzaSyAjhv4beripAresAhpMhzxO8N1DRxB2qcA",
@@ -558,7 +559,7 @@ const firebaseConfig = {
 // ── Admin password (change this!) ──
 const ADMIN_PASSWORD = 'voxlo@admin2025';
 
-let db, allUsers = [], activityLog = [];
+let db, auth, allUsers = [], activityLog = [];
 let pendingAction = null;
 let activeFilter = 'all';
 
@@ -566,6 +567,7 @@ let activeFilter = 'all';
 try{
   const app = initializeApp(firebaseConfig, 'admin');
   db = getFirestore(app);
+  auth = getAuth(app);
   document.getElementById('footerInfo').textContent = 'Firebase: Connected';
 } catch(e){
   document.getElementById('footerInfo').textContent = 'Firebase: Error';
@@ -788,13 +790,37 @@ window.unlockUser = (uid, name)=>{
 // ── DELETE ──
 window.deleteUser = (uid, name)=>{
   pendingAction = async ()=>{
+    // 1. Delete Firestore profile document
     await deleteDoc(doc(db,'users',uid));
+
+    // 2. Try REST API delete (works if Firebase project allows it)
+    try{
+      const res = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:delete?key=${firebaseConfig.apiKey}`,
+        { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ localId: uid }) }
+      );
+      const data = await res.json();
+      if(data.error){
+        // REST API failed — show Firebase Console link to finish
+        showToast(`Profile removed. Delete Auth manually for: ${name}`, 'err');
+        setTimeout(()=>{
+          window.open(`https://console.firebase.google.com/project/${firebaseConfig.projectId}/authentication/users`, '_blank');
+        }, 1500);
+      } else {
+        showToast(`🗑 ${name} fully removed`, 'ok');
+      }
+    } catch(e){
+      showToast(`Profile removed. Finish in Firebase Console.`, 'err');
+    }
+
     logActivity('delete', `Removed user: ${name} (${uid})`);
     allUsers = allUsers.filter(u=> u.id !== uid);
     updateStats(); renderTable(applyFilters()); renderLockedTable();
-    showToast(`🗑 ${name} removed`, 'ok');
   };
-  showConfirm('🗑','Remove User',`Permanently remove <strong>${name}</strong> from VOXLO? This cannot be undone.`,'danger','Remove');
+  showConfirm('🗑','Remove User',
+    `Permanently remove <strong>${name}</strong>?<br><br>Deletes their profile and attempts to remove their login account. Cannot be undone.`,
+    'danger','Remove'
+  );
 };
 
 function applyFilters(){
