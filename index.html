@@ -477,5 +477,48 @@
 <!-- ══════════ SCRIPTS ══════════ -->
 <script type="module" src="js/app.js"></script>
 
+
+<!-- ══════════ AD MODAL ══════════ -->
+<div class="ad-overlay" id="adOverlay">
+  <div class="ad-card">
+    <div class="ad-heart-row">
+      <div class="ad-heart">💜</div>
+    </div>
+    <div class="ad-title">Keeping VOXLO Free</div>
+    <div class="ad-sub">We don't sell your data. A short ad helps us keep the lights on for everyone — thank you for supporting us 🙏</div>
+
+    <!-- Ad iframe / banner placeholder -->
+    <div class="ad-banner" id="adBanner">
+      <div class="ad-banner-inner">
+        <div class="ad-brand">📢 Advertisement</div>
+        <div class="ad-mock-content">
+          <!-- Google AdSense or any ad network goes here -->
+          <!-- <ins class="adsbygoogle" ...></ins> -->
+          <div class="ad-mock-visual">
+            <div class="ad-mock-logo">🚀</div>
+            <div class="ad-mock-text">
+              <div class="ad-mock-headline">Your Ad Here</div>
+              <div class="ad-mock-desc">Reach thousands of Gen Z users on VOXLO</div>
+            </div>
+          </div>
+          <a class="ad-mock-cta" href="mailto:ads@voxlo.app">Advertise with us →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timer + skip row -->
+    <div class="ad-timer-row">
+      <div class="ad-timer-track">
+        <div class="ad-timer-bar" id="adTimerBar"></div>
+      </div>
+      <div class="ad-timer-label" id="adTimerLabel">10</div>
+    </div>
+    <button class="ad-skip-btn" id="adSkipBtn" disabled>
+      <span id="adSkipTxt">Please wait… <strong id="adCountdown">10</strong>s</span>
+    </button>
+    <div class="ad-note">Ads keep VOXLO 100% free — no subscriptions, ever.</div>
+  </div>
+</div>
+
 </body>
 </html>

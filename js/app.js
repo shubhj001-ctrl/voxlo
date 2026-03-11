@@ -947,6 +947,63 @@ let swipeSkipped = new Set();
 let swipeFilter = 'all';
 let swipeHadUsers = false;
 
+// ── AD SYSTEM ──
+let swipeCount = 0;           // increments on every skip/connect
+const AD_EVERY = 4;           // show ad after every 4 swipes
+const AD_DURATION = 10;       // seconds
+let adTimer = null;
+let adResolve = null;         // promise resolver — resumes swipe flow
+
+function showAd(){
+  return new Promise(resolve => {
+    adResolve = resolve;
+    const overlay = document.getElementById('adOverlay');
+    const bar     = document.getElementById('adTimerBar');
+    const label   = document.getElementById('adTimerLabel');
+    const skipBtn = document.getElementById('adSkipBtn');
+    const cdTxt   = document.getElementById('adCountdown');
+    if(!overlay) { resolve(); return; }
+
+    // Reset state
+    skipBtn.disabled = true;
+    cdTxt.textContent = AD_DURATION;
+    label.textContent = AD_DURATION;
+    bar.style.transition = 'none';
+    bar.style.transform = 'scaleX(1)';
+
+    overlay.classList.add('active');
+
+    // Force reflow so transition fires
+    void bar.offsetWidth;
+    bar.style.transition = `transform ${AD_DURATION}s linear`;
+    bar.style.transform = 'scaleX(0)';
+
+    let remaining = AD_DURATION;
+    adTimer = setInterval(()=>{
+      remaining--;
+      cdTxt.textContent = remaining;
+      label.textContent = remaining;
+      if(remaining <= 0){
+        clearInterval(adTimer);
+        skipBtn.disabled = false;
+        skipBtn.innerHTML = 'Continue Discovering ✦';
+      }
+    }, 1000);
+
+    skipBtn.onclick = ()=>{
+      if(skipBtn.disabled) return;
+      closeAd();
+    };
+  });
+}
+
+function closeAd(){
+  clearInterval(adTimer);
+  const overlay = document.getElementById('adOverlay');
+  overlay?.classList.remove('active');
+  if(adResolve){ adResolve(); adResolve = null; }
+}
+
 function renderDiscover(filter){
   if(filter !== undefined) swipeFilter = filter;
   let users = allUsers.filter(u=> u.uid !== S.user?.uid);
@@ -1059,7 +1116,27 @@ async function handleCardAction(action, uid){
   }
 }
 
-function skipTopCard(animate=false){
+async function skipTopCard(animate=false){
+  swipeCount++;
+
+  // Check if it's time for an ad
+  if(swipeCount % AD_EVERY === 0){
+    // Animate card out first, then show ad
+    if(animate){
+      const stack = document.getElementById('swipeStack');
+      const top = stack?.lastElementChild;
+      if(top){
+        top.style.transition = 'transform .35s ease';
+        top.style.transform = 'translateX(-120vw) rotate(-25deg)';
+        await new Promise(r => setTimeout(r, 350));
+      }
+    }
+    swipeQueue.shift();
+    buildSwipeStack();
+    await showAd();
+    return;
+  }
+
   if(animate){
     const stack = document.getElementById('swipeStack');
     const top = stack?.lastElementChild;
