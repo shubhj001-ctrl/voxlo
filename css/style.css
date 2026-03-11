@@ -160,9 +160,9 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:1
 .main-area{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;width:100%}
 
 /* ─── DISCOVER ─── */
-.disc-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;height:100vh}
+.disc-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
 .disc-panel.hidden{display:none}
-.disc-head{padding:16px 24px 16px 74px;border-bottom:1px solid var(--br);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+/* disc-head defined below in swipe section */
 .disc-title{font-family:var(--font-d);font-size:20px;font-weight:700}
 .filter-bar{display:flex;gap:7px;flex-wrap:wrap}
 .fchip{padding:6px 14px;border-radius:var(--rfull);border:1px solid var(--br);background:transparent;color:var(--t2);font-family:var(--font-b);font-size:12px;cursor:pointer;transition:all .2s}
@@ -703,6 +703,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:1
 ══════════════════════════════ */
 .swipe-arena{
   flex:1;
+  min-height:0;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -744,7 +745,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:1
 .swipe-card{
   position:absolute;
   width:min(380px, calc(100vw - 40px));
-  height:min(480px, calc(100vh - 280px));
+  height:min(480px, calc(100% - 20px));
   border-radius:24px;
   cursor:grab;
   user-select:none;
@@ -925,9 +926,9 @@ input, button, textarea, select { touch-action: manipulation; }
   .swipe-arena { overflow: hidden; }
   .swipe-card {
     width: calc(100vw - 32px);
-    height: calc(100vh - 260px);
-    min-height: 360px;
-    max-height: 520px;
+    height: calc(100% - 16px);
+    min-height: 340px;
+    max-height: 500px;
   }
 
   /* Card front on mobile */
@@ -1058,7 +1059,7 @@ input, button, textarea, select { touch-action: manipulation; }
 
 /* ── Landscape mobile ── */
 @media (max-width: 768px) and (orientation: landscape) {
-  .swipe-card { height: calc(100vh - 180px); min-height: 240px; width: calc(100vw - 120px); }
+  .swipe-card { height: calc(100% - 12px); min-height: 220px; width: calc(100vw - 120px); }
   .swipe-actions { padding: 6px 0 10px; }
   .disc-head { padding-top: 8px; }
   .journey-slide { gap: 8px; }
