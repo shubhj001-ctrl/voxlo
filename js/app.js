@@ -686,6 +686,11 @@ function initNav(){
       renderDiscover(c.dataset.filter);
     };
   });
+  // Mobile back button in chat
+  document.getElementById('btnChatBack')?.addEventListener('click', ()=>{
+    document.getElementById('chatPanel').classList.remove('active');
+    showDiscover();
+  });
   document.getElementById('btnSettings').onclick=openSettings;
   document.getElementById('btnLogout').onclick=logout;
   document.getElementById('btnViewProf').onclick=toggleProfPanel;

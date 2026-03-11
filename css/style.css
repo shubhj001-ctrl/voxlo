@@ -843,3 +843,218 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:1
 
 /* Sidebar mode-aware */
 .chat-list-wrap{transition:opacity .2s}
+
+/* ══════════════════════════════════════════════
+   MOBILE RESPONSIVE — VOXLO
+   Target: 320px → 768px
+══════════════════════════════════════════════ */
+
+/* ── Prevent tap highlight & improve touch ── */
+* { -webkit-tap-highlight-color: transparent; }
+input, button, textarea, select { touch-action: manipulation; }
+
+@media (max-width: 768px) {
+
+  /* ── LANDING ── */
+  .land-c { padding: 32px 20px 40px; }
+  .h1 { font-size: clamp(36px, 10vw, 56px); margin-bottom: 16px; }
+  .sub { font-size: 15px; margin-bottom: 32px; }
+  .badge { font-size: 11px; padding: 6px 14px; margin-bottom: 22px; }
+  .cta { gap: 10px; margin-bottom: 40px; }
+  .btn-p, .btn-s { padding: 14px 26px; font-size: 14px; width: 100%; text-align: center; }
+  .stats { gap: 28px; }
+  .stat-n { font-size: 28px; }
+  .land-logo-svg { width: 60px; height: 60px; }
+
+  /* ── AUTH CARD ── */
+  #pg-auth { padding: 16px; align-items: flex-start; padding-top: 40px; }
+  .auth-card { padding: 30px 22px; border-radius: 18px; }
+  .auth-logo .voxlo-logo-svg { height: 32px; }
+  .fg input, .fg textarea, .fg select { padding: 12px 13px; font-size: 14px; }
+  .btn-full { padding: 15px; font-size: 14px; }
+
+  /* ── HAMBURGER ── */
+  .ham-btn { top: 12px; left: 12px; width: 40px; height: 40px; border-radius: 10px; }
+
+  /* ── SIDEBAR DRAWER ── */
+  .sb-drawer { width: 85vw; max-width: 300px; }
+  .sb-head { padding: 18px 16px 16px; padding-top: 64px; }
+  .sb-logo .voxlo-logo-svg { height: 24px; }
+  .sb-menu-item { padding: 14px 12px; font-size: 15px; border-radius: 10px; }
+  .sb-menu-ico { font-size: 20px; }
+  .sb-section-label { padding: 14px 12px 6px; font-size: 11px; }
+  .ico-btn { width: 36px; height: 36px; font-size: 16px; }
+
+  /* ── DISCOVER HEAD ── */
+  .disc-head {
+    padding: 14px 16px 12px 64px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .disc-title { font-size: 18px; }
+  .filter-bar { gap: 6px; }
+  .fchip { padding: 5px 11px; font-size: 11px; }
+  .online-ctr { font-size: 10px; padding: 4px 10px; margin-top: 4px; }
+
+  /* ── SWIPE ARENA ── */
+  .swipe-arena { padding: 12px 0 0; }
+  .swipe-stack { width: calc(100vw - 40px); max-width: 360px; height: 440px; }
+
+  /* Card sizing on mobile */
+  .cf-top { padding: 20px 18px 14px; gap: 12px; }
+  .cf-av { width: 48px; height: 48px; font-size: 17px; }
+  .cf-name { font-size: 19px; }
+  .cf-handle { font-size: 12px; }
+  .cf-loc { font-size: 12px; }
+  .cf-bio { font-size: 13px; -webkit-line-clamp: 2; }
+  .cf-match { font-size: 11px; padding: 3px 10px; }
+  .cf-priv-badge { font-size: 10px; padding: 2px 8px; }
+  .cf-bottom { padding: 12px 18px; }
+  .cf-tap-hint { font-size: 11px; }
+
+  /* Card back on mobile */
+  .card-back { padding: 24px 20px; gap: 12px; }
+  .cb-av { width: 56px; height: 56px; font-size: 20px; }
+  .cb-name { font-size: 17px; }
+  .cb-bio { font-size: 12px; }
+  .cb-btn { padding: 13px; font-size: 14px; border-radius: 12px; }
+
+  /* Swipe labels */
+  .swipe-label { font-size: 18px; padding: 4px 10px; top: 24px; }
+  .swipe-label-like { left: 16px; }
+  .swipe-label-nope { right: 16px; }
+
+  /* Action buttons */
+  .swipe-actions { padding: 14px 0 20px; gap: 20px; }
+  .swipe-btn { width: 52px; height: 52px; font-size: 20px; }
+
+  /* Empty state */
+  .swipe-empty-ico { font-size: 52px; }
+  .swipe-empty-title { font-size: 22px; }
+  .swipe-empty-sub { font-size: 13px; }
+
+  /* ── CHAT PANEL ── */
+  .chat-head { padding: 10px 14px 10px 60px; gap: 10px; }
+  .ch-name { font-size: 14px; }
+  .ch-status { font-size: 10px; }
+  .msgs { padding: 14px 12px; gap: 2px; }
+  .mb { max-width: 80%; padding: 10px 13px; font-size: 13px; border-radius: 16px; }
+  .chat-inp-area { padding: 10px 12px; }
+  .inp-wrap { padding: 8px 10px; border-radius: 16px; }
+  .inp-wrap textarea { font-size: 14px; }
+  .send-btn { width: 36px; height: 36px; font-size: 14px; }
+  .inp-ico { width: 32px; height: 32px; font-size: 16px; }
+  .msg-img { max-width: 200px; }
+  .msg-img img { max-height: 180px; }
+
+  /* ── REQUESTS PANEL ── */
+  .req-panel-head { padding: 60px 16px 0; }
+  .req-panel-title { font-size: 20px; }
+  .req-panel-sub { font-size: 12px; }
+  .req-tabs { padding: 0 16px; }
+  .req-tab { padding: 10px 16px; font-size: 13px; }
+  .req-list { padding: 12px; }
+  .req-card { padding: 14px; }
+  .req-card-name { font-size: 14px; }
+  .btn-accept, .btn-decline, .btn-cancel-req { padding: 7px 14px; font-size: 12px; }
+
+  /* ── PROFILE PANEL ── */
+  .prof-panel { 
+    position: fixed; inset: 0; width: 100%; min-width: unset; 
+    z-index: 800; border-left: none; 
+    transform: translateX(100%); transition: transform .3s ease;
+  }
+  .prof-panel.active { transform: translateX(0); display: flex; }
+  .pp-head { padding: 16px; }
+  .pp-body { padding: 16px; }
+
+  /* ── MODAL ── */
+  .modal-ov { padding: 12px; align-items: flex-end; }
+  .modal { 
+    border-radius: 22px 22px 16px 16px; 
+    padding: 24px 20px; 
+    max-height: 85vh;
+    animation: slideUp .3s ease forwards;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── TOAST ── */
+  .toast-c { bottom: 16px; right: 10px; left: 10px; }
+  .toast { font-size: 13px; min-width: unset; width: 100%; }
+
+  /* ── JOURNEY / REGISTRATION ── */
+  .journey-page { padding: 0; }
+  .login-panel { padding: 0 20px; max-width: 100%; }
+  .journey-wrap { padding: 0 20px; gap: 24px; max-width: 100%; }
+  .slide-emoji { font-size: 44px; margin-bottom: 12px; }
+  .journey-title { font-size: 24px; }
+  .journey-sub { font-size: 14px; margin-bottom: 24px; }
+  .journey-input { padding: 14px 16px; font-size: 15px; border-radius: 12px; }
+  .journey-textarea { min-height: 110px; }
+  .journey-btn { padding: 15px; font-size: 15px; border-radius: 12px; }
+  .journey-itags .itag { padding: 9px 15px; font-size: 13px; }
+  .jp-line { width: 24px; }
+
+  /* ── OTP MODAL ── */
+  .otp-input { font-size: 24px; padding: 14px; letter-spacing: .2em; }
+
+  /* ── LIGHTBOX ── */
+  .lightbox img { max-width: 96vw; max-height: 80vh; }
+  .lb-close { top: 12px; right: 12px; width: 34px; height: 34px; }
+
+  /* ── AVATAR ── */
+  .av { width: 40px; height: 40px; font-size: 14px; }
+  .av-lg { width: 52px; height: 52px; font-size: 18px; }
+  .av-sm { width: 32px; height: 32px; font-size: 11px; }
+  .ondot { width: 9px; height: 9px; }
+
+  /* ── SETTINGS / PRIVACY ── */
+  .privacy-row { padding: 12px 14px; }
+  .privacy-label { font-size: 13px; }
+  .privacy-desc { font-size: 11px; }
+
+}
+
+/* ── Extra small phones (320-380px) ── */
+@media (max-width: 380px) {
+  .swipe-stack { height: 400px; }
+  .cf-name { font-size: 17px; }
+  .journey-title { font-size: 21px; }
+  .h1 { font-size: 32px; }
+  .disc-head { padding-left: 58px; }
+  .fchip { padding: 4px 9px; font-size: 10px; }
+}
+
+/* ── Landscape mobile ── */
+@media (max-width: 768px) and (orientation: landscape) {
+  .swipe-stack { height: 300px; width: calc(100vw - 120px); }
+  .swipe-arena { padding: 6px 0 0; }
+  .swipe-actions { padding: 8px 0 12px; }
+  .disc-head { padding-top: 10px; }
+  .journey-slide { gap: 8px; }
+  .slide-emoji { font-size: 32px; margin-bottom: 6px; }
+  .journey-title { font-size: 20px; }
+  .journey-sub { margin-bottom: 14px; font-size: 13px; }
+}
+
+/* ── Mobile back button (hidden on desktop) ── */
+.mob-back-btn {
+  display: none;
+  width: 34px; height: 34px; border-radius: 9px;
+  border: 1px solid var(--br); background: transparent;
+  color: var(--t2); font-size: 18px; cursor: pointer;
+  align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all .2s;
+}
+.mob-back-btn:hover { background: var(--bg4); color: var(--t1); }
+
+@media (max-width: 768px) {
+  .mob-back-btn { display: flex; }
+  /* Chat head: show back btn, hide hamburger overlap area */
+  .chat-panel.active ~ * .ham-btn,
+  .chat-panel .ham-btn { display: none; }
+}
