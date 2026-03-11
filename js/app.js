@@ -242,11 +242,21 @@ function setLoaderMsg(msg){
   const el = document.getElementById('loaderSub');
   if(el) el.textContent = msg;
 }
+function showLoader(){
+  const loader = document.getElementById('loader');
+  if(!loader) return;
+  loader.style.display = 'flex';
+  // Small delay so display:flex takes effect before removing fade-out
+  requestAnimationFrame(()=>{
+    loader.classList.remove('fade-out');
+  });
+}
+
 function hideLoader(){
   const loader = document.getElementById('loader');
   if(!loader) return;
   loader.classList.add('fade-out');
-  setTimeout(()=>{ loader.style.display='none'; }, 420);
+  setTimeout(()=>{ loader.style.display='none'; }, 500);
 }
 
 // ── FIREBASE INIT ──
@@ -285,19 +295,34 @@ if(firebaseConfig && firebaseConfig.apiKey && firebaseConfig.apiKey !== 'YOUR_AP
 }
 
 // ── AUTH LISTENERS ──
+let _appInitialized = false; // guard against double-init
+
 function setupAuthListener(){
   if(!S.fbReady) return;
   onAuthStateChanged(S.auth, async (user) => {
     if(user){
+      // If app already initialized (e.g. after completeProfile), skip
+      if(_appInitialized) return;
+
       S.user = user;
+      showLoader();
       setLoaderMsg('Loading your profile...');
+
       try{
-        const snap = await getDoc(doc(S.db,'users',user.uid));
-        if(snap.exists()){
+        // Retry up to 5x to handle race condition after registration
+        let snap, retries = 5;
+        while(retries-- > 0){
+          snap = await getDoc(doc(S.db,'users',user.uid));
+          if(snap.exists()) break;
+          await new Promise(r => setTimeout(r, 600));
+        }
+
+        if(snap && snap.exists()){
           S.profile = snap.data();
           // ── Locked account check ──
           if(S.profile.locked){
             await signOut(S.auth);
+            _appInitialized = false;
             hideLoader();
             showPage('pg-auth');
             switchToLogin();
@@ -306,9 +331,11 @@ function setupAuthListener(){
           }
           setLoaderMsg('Almost there...');
           await updateDoc(doc(S.db,'users',user.uid),{ online:true, lastSeen: serverTimestamp() });
+          _appInitialized = true;
           hideLoader();
           initApp();
         } else {
+          // No profile found even after retries — send to auth
           hideLoader();
           showPage('pg-auth');
         }
@@ -319,6 +346,7 @@ function setupAuthListener(){
       }
     } else {
       S.user = null; S.profile = null;
+      _appInitialized = false;
       hideLoader();
       showPage('pg-land');
     }
@@ -552,6 +580,8 @@ document.getElementById('completeProfileBtn').onclick = async ()=>{
     return;
   }
   try{
+    showLoader();
+    setLoaderMsg('Creating your profile...');
     const cred = await createUserWithEmailAndPassword(S.auth, S.twoFA.pendingEmail, S.twoFA.pendingPass);
     await updateProfile(cred.user, { displayName: name });
     const profile = {
@@ -563,8 +593,16 @@ document.getElementById('completeProfileBtn').onclick = async ()=>{
     };
     await setDoc(doc(S.db,'users',cred.user.uid), profile);
     S.profile = profile;
+    S.user = cred.user;
+    // Mark initialized so onAuthStateChanged doesn't double-fire
+    _appInitialized = true;
+    setLoaderMsg('Welcome to VOXLO! ✨');
+    await new Promise(r => setTimeout(r, 800)); // let them see the message
+    hideLoader();
     toast('Welcome to VOXLO! 🎉');
+    initApp();
   } catch(e){
+    hideLoader();
     toast(e.message,'err');
     btn.disabled=false; btn.textContent='Create My Profile ✦';
   }
@@ -590,12 +628,16 @@ async function handleLogin(){
   }
 
   try{
+    // Show loader immediately for a smooth transition
+    showLoader();
+    setLoaderMsg('Signing you in...');
     // Direct sign in — no OTP for returning users
     await signInWithEmailAndPassword(S.auth, email, pass);
-    toast('Welcome back! 👋');
-    // setupAuthListener will handle the rest
+    // onAuthStateChanged will handle profile fetch + initApp
+    // (no toast here — it fires before profile loads)
   } catch(e){
     console.error('Login error:', e);
+    hideLoader();
     const msg = e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password'
       ? 'Incorrect email or password' : e.message;
     toast(msg, 'err');
@@ -852,6 +894,7 @@ async function logout(){
   if(S.fbReady) await setOnlineStatus(false);
   if(S.fbReady) await signOut(S.auth).catch(()=>{});
   S.user=null; S.profile=null; S.chatId=null;
+  _appInitialized = false; // reset so next login works
   if(S.unsubMsgs){S.unsubMsgs();S.unsubMsgs=null;}
   toast('Logged out. See you soon! 👋');
   setTimeout(()=>showPage('pg-land'),600);
