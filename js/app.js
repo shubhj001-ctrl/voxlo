@@ -5,7 +5,7 @@
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, fetchSignInMethodsForEmail } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, deleteDoc, query, orderBy, onSnapshot, serverTimestamp, updateDoc, where, limit } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, deleteDoc, query, orderBy, onSnapshot, serverTimestamp, updateDoc, arrayUnion, where, limit } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 import firebaseConfig from '../firebase-config.js';
 
@@ -578,7 +578,31 @@ function initApp(){
   if(S.fbReady){
     setOnlineStatus(true);
     loadFriendData();
+    loadChattedWith();
   }
+}
+
+// Load the set of UIDs this user has actually chatted with
+async function loadChattedWith(){
+  if(!S.fbReady||!S.user) return;
+  try{
+    const snap = await getDoc(doc(S.db,'users',S.user.uid));
+    if(snap.exists()){
+      const data = snap.data();
+      chattedWith = new Set(data.chattedWith || []);
+      renderChatList();
+    }
+  } catch(e){ console.error('loadChattedWith error:', e); }
+}
+
+// Mark that we've chatted with a user (saves to Firestore)
+async function markChattedWith(uid){
+  if(!S.fbReady||!S.user||chattedWith.has(uid)) return;
+  chattedWith.add(uid);
+  renderChatList();
+  try{
+    await updateDoc(doc(S.db,'users',S.user.uid),{ chattedWith: arrayUnion(uid) });
+  } catch(e){ console.error('markChattedWith error:', e); }
 }
 
 function updateSidebarProfile(){
@@ -667,6 +691,7 @@ async function logout(){
 //  LOAD USERS (Firestore)
 // ══════════════════════════════
 let allUsers = [];
+let chattedWith = new Set(); // uids of users we've actually messaged
 
 async function loadUsers(){
   if(!S.fbReady){
@@ -886,26 +911,43 @@ function renderReqList(tab){
 function renderChatList(){
   const list=document.getElementById('chatList');
   list.innerHTML='';
-  let users = S.fbReady
-    ? allUsers.filter(u=>{ const s=getFriendStatus(u.uid); return s==='friends'||!u.isPrivate; })
-    : allUsers.slice(0,8);
-  if(!users.length){
-    list.innerHTML='<div style="padding:20px;text-align:center;color:var(--t3);font-size:13px">No contacts yet.<br>Discover people to connect!</div>';
+
+  // Demo mode: show demo users
+  if(!S.fbReady){
+    const users = allUsers.slice(0,4);
+    if(!users.length){
+      list.innerHTML='<div style="padding:20px;text-align:center;color:var(--t3);font-size:13px">No chats yet.<br>Discover people to connect!</div>';
+      return;
+    }
+    users.forEach(u=>addChatItem(list, u));
     return;
   }
-  users.forEach(u=>{
-    const av=avColor(u.uid);
-    const item=document.createElement('div');
-    item.className='chat-item'; item.dataset.uid=u.uid;
-    const isFriend = getFriendStatus(u.uid)==='friends';
-    const friendTag = isFriend ? '<span style="font-size:10px;color:var(--g);margin-left:4px">✓</span>' : '';
-    item.innerHTML=`
-      <div class="av ${av}" style="position:relative">${initials(u.name)}${u.online?'<div class="ondot"></div>':''}</div>
-      <div class="ci"><div class="cn">${esc(u.name)}${friendTag}</div><div class="cp">${u.online?'🟢 Online':'Last seen recently'}</div></div>
-      <div class="cm"><div class="ct">${u.online?'now':''}</div></div>`;
-    item.onclick=()=>openChat(u.uid);
-    list.appendChild(item);
-  });
+
+  // Firebase mode: ONLY show users we've actually chatted with
+  const users = allUsers.filter(u=> chattedWith.has(u.uid));
+
+  if(!users.length){
+    list.innerHTML=`<div style="padding:24px 16px;text-align:center;color:var(--t3);font-size:13px;line-height:1.7">
+      No chats yet 💬<br>
+      <span style="font-size:12px">Go to <strong style="color:var(--t2)">Discover</strong> to find people</span>
+    </div>`;
+    return;
+  }
+  users.forEach(u=> addChatItem(list, u));
+}
+
+function addChatItem(list, u){
+  const av=avColor(u.uid);
+  const item=document.createElement('div');
+  item.className='chat-item'; item.dataset.uid=u.uid;
+  const isFriend = S.fbReady && getFriendStatus(u.uid)==='friends';
+  const friendTag = isFriend ? '<span style="font-size:10px;color:var(--g);margin-left:4px">✓</span>' : '';
+  item.innerHTML=`
+    <div class="av ${av}" style="position:relative">${initials(u.name)}${u.online?'<div class="ondot"></div>':''}</div>
+    <div class="ci"><div class="cn">${esc(u.name)}${friendTag}</div><div class="cp">${u.online?'🟢 Online':'Last seen recently'}</div></div>
+    <div class="cm"><div class="ct">${u.online?'now':''}</div></div>`;
+  item.onclick=()=>openChat(u.uid);
+  list.appendChild(item);
 }
 
 // ══════════════════════════════
@@ -928,6 +970,9 @@ async function openChat(uid){
   const user = allUsers.find(u=>u.uid===uid) || DEMO_USERS.find(u=>u.uid===uid);
   if(!user) return;
   S.chatUser = user;
+
+  // Track that we've chatted with this person
+  markChattedWith(uid);
 
   // UI
   document.getElementById('discPanel').classList.add('hidden');
