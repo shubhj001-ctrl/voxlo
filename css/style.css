@@ -1305,6 +1305,15 @@ input, button, textarea, select { touch-action: manipulation; }
   transition: opacity .2s !important;
 }
 .nav-signin-btn:hover { opacity: .85; }
+.nav-login-btn {
+  color: var(--t2);
+  padding: 8px 18px; border-radius: 20px;
+  border: 1px solid var(--br2);
+  font-weight: 600; font-size: 14px;
+  transition: all .2s;
+  text-decoration: none;
+}
+.nav-login-btn:hover { border-color: var(--p); color: var(--p2); background: rgba(124,58,237,.08); }
 
 /* ── Hero ── */
 .land-hero {
@@ -1388,86 +1397,4 @@ a.btn-s:hover { border-color: var(--p); }
   .land-footer-inner { flex-direction: column; gap: 32px; }
   .footer-bottom { flex-direction: column; text-align: center; }
   .land-ad-slot { padding: 8px 12px; }
-}
-/* ══════════════════════════════
-   AD CARD — card-style ad modal
-══════════════════════════════ */
-
-/* Card header — mimics swipe card style */
-.ad-card-header {
-  width: 100%;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--br);
-  margin-bottom: 14px;
-}
-.ad-sponsored-row {
-  display: flex; align-items: center; gap: 12px;
-}
-.ad-av {
-  width: 44px; height: 44px; border-radius: 50%;
-  background: linear-gradient(135deg, #7c3aed, #22d3ee);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px; flex-shrink: 0;
-}
-.ad-av-name {
-  font-family: var(--font-d); font-size: 15px; font-weight: 700; color: var(--t1);
-}
-.ad-av-handle {
-  font-size: 11px; color: var(--t3); margin-top: 2px;
-}
-.ad-badge {
-  margin-left: auto;
-  background: rgba(124,58,237,.15);
-  border: 1px solid rgba(124,58,237,.3);
-  color: var(--p2);
-  font-size: 10px; font-weight: 800;
-  padding: 3px 9px; border-radius: var(--rfull);
-  letter-spacing: .08em;
-}
-
-/* AdSense wrap */
-.ad-adsense-wrap {
-  width: 100%; border-radius: 12px; overflow: hidden;
-  background: var(--bg3); border: 1px solid var(--br);
-  min-height: 160px; margin-bottom: 14px;
-}
-
-/* Fallback card */
-.ad-fallback {
-  width: 100%;
-  background: linear-gradient(135deg, rgba(124,58,237,.08), rgba(34,211,238,.06));
-  border: 1px solid rgba(124,58,237,.2);
-  border-radius: 16px;
-  padding: 22px 18px;
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  text-align: center;
-  margin-bottom: 14px;
-  animation: fiu .3s ease forwards;
-}
-.ad-fallback.show { display: flex; }
-.ad-fallback-emoji { font-size: 36px; }
-.ad-fallback-title {
-  font-family: var(--font-d); font-size: 18px; font-weight: 800;
-  background: linear-gradient(90deg, #a78bfa, #22d3ee);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
-.ad-fallback-sub {
-  font-size: 13px; color: var(--t3); line-height: 1.65; max-width: 300px;
-}
-.ad-fallback-tags {
-  display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 4px;
-}
-.ad-ftag {
-  background: rgba(124,58,237,.12); border: 1px solid rgba(124,58,237,.2);
-  color: var(--p2); border-radius: var(--rfull);
-  font-size: 11px; font-weight: 600; padding: 4px 11px;
-}
-
-@media (max-width: 768px) {
-  .ad-fallback { padding: 18px 14px; }
-  .ad-fallback-title { font-size: 16px; }
-  .ad-fallback-sub { font-size: 12px; }
 }
