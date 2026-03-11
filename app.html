@@ -224,28 +224,52 @@
 <!-- AD MODAL -->
 <div class="ad-overlay" id="adOverlay">
   <div class="ad-card">
-    <div class="ad-heart-row"><div class="ad-heart">💜</div></div>
-    <div class="ad-title">Keeping VOXLO Free</div>
-    <div class="ad-sub">We don't sell your data. A short ad helps us keep the lights on for everyone — thank you for supporting us 🙏</div>
-    <div class="ad-banner" id="adBanner">
-      <div class="ad-banner-inner">
-        <div class="ad-brand">📢 Advertisement</div>
-        <ins class="adsbygoogle"
-          style="display:block;width:100%;min-height:100px;"
-          data-ad-client="ca-pub-8978138449354329"
-          data-ad-slot="auto"
-          data-ad-format="auto"
-          data-full-width-responsive="true"></ins>
-        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+    <!-- Card-style header like a swipe card -->
+    <div class="ad-card-header">
+      <div class="ad-sponsored-row">
+        <div class="ad-av">📢</div>
+        <div class="ad-av-info">
+          <div class="ad-av-name">Sponsored</div>
+          <div class="ad-av-handle">@advertisement · promoted</div>
+        </div>
+        <span class="ad-badge">AD</span>
       </div>
     </div>
+
+    <!-- Real AdSense ad -->
+    <div class="ad-adsense-wrap" id="adSenseWrap">
+      <ins class="adsbygoogle"
+        style="display:block;width:100%;min-height:160px;"
+        data-ad-client="ca-pub-8978138449354329"
+        data-ad-slot="auto"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+    </div>
+
+    <!-- Fallback shown when AdSense doesnt load -->
+    <div class="ad-fallback" id="adFallback">
+      <div class="ad-fallback-emoji">💜</div>
+      <div class="ad-fallback-title">Keeping VOXLO Free</div>
+      <div class="ad-fallback-sub">We don't sell your data. Short ads like this keep VOXLO running for everyone — thank you for your support 🙏</div>
+      <div class="ad-fallback-tags">
+        <span class="ad-ftag">🔒 Privacy First</span>
+        <span class="ad-ftag">✦ Bio-First</span>
+        <span class="ad-ftag">💬 Real Chats</span>
+        <span class="ad-ftag">🌍 Global</span>
+      </div>
+    </div>
+
+    <!-- Timer -->
     <div class="ad-timer-row">
       <div class="ad-timer-track"><div class="ad-timer-bar" id="adTimerBar"></div></div>
       <div class="ad-timer-label" id="adTimerLabel">10</div>
     </div>
+
     <button class="ad-skip-btn" id="adSkipBtn" disabled>
       <span id="adSkipTxt">Please wait… <strong id="adCountdown">10</strong>s</span>
     </button>
+
     <div class="ad-note">Ads keep VOXLO 100% free — no subscriptions, ever.</div>
   </div>
 </div>

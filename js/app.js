@@ -152,9 +152,34 @@ function showAd(){
     overlay.classList.add('active');
     void bar.offsetWidth;
     bar.style.transition=`transform ${AD_DURATION}s linear`; bar.style.transform='scaleX(0)';
+
+    // Push adsbygoogle ad unit
+    try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){}
+
+    // Check if AdSense loaded a real ad after 1.5s, show fallback if not
+    const fallback=document.getElementById('adFallback');
+    const adWrap=document.getElementById('adSenseWrap');
+    setTimeout(()=>{
+      const ins=adWrap?.querySelector('ins.adsbygoogle');
+      const adLoaded=ins&&ins.getAttribute('data-ad-status')==='filled';
+      if(!adLoaded){
+        if(adWrap) adWrap.style.display='none';
+        if(fallback) fallback.classList.add('show');
+      } else {
+        if(fallback) fallback.style.display='none';
+      }
+    },1500);
+
     let rem=AD_DURATION;
     adTimer=setInterval(()=>{ rem--; cdTxt.textContent=rem; label.textContent=rem; if(rem<=0){ clearInterval(adTimer); skipBtn.disabled=false; skipBtn.innerHTML='Continue Discovering ✦'; } },1000);
-    skipBtn.onclick=()=>{ if(!skipBtn.disabled){ clearInterval(adTimer); overlay.classList.remove('active'); if(adResolve){adResolve();adResolve=null;} } };
+    skipBtn.onclick=()=>{ if(!skipBtn.disabled){
+      clearInterval(adTimer);
+      overlay.classList.remove('active');
+      // Reset for next time
+      if(fallback) fallback.classList.remove('show');
+      if(adWrap) adWrap.style.display='';
+      if(adResolve){adResolve();adResolve=null;}
+    } };
   });
 }
 
