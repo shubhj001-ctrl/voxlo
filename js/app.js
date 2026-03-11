@@ -295,57 +295,63 @@ if(firebaseConfig && firebaseConfig.apiKey && firebaseConfig.apiKey !== 'YOUR_AP
 }
 
 // ── AUTH LISTENERS ──
-let _appInitialized = false; // guard against double-init
+let _appInitialized = false; // guard: prevents double-init in same session
 
 function setupAuthListener(){
   if(!S.fbReady) return;
   onAuthStateChanged(S.auth, async (user) => {
     if(user){
-      // If app already initialized (e.g. after completeProfile), skip
-      if(_appInitialized) return;
+      // Skip if this session already called initApp (e.g. completeProfile called it directly)
+      if(_appInitialized){ return; }
 
       S.user = user;
       showLoader();
-      setLoaderMsg('Loading your profile...');
+      setLoaderMsg('Signing you in...');
 
       try{
-        // Retry up to 5x to handle race condition after registration
-        let snap, retries = 5;
+        // Retry up to 6x (registration writes profile async)
+        let snap, retries = 6;
         while(retries-- > 0){
           snap = await getDoc(doc(S.db,'users',user.uid));
           if(snap.exists()) break;
-          await new Promise(r => setTimeout(r, 600));
+          await new Promise(r => setTimeout(r, 500));
         }
 
         if(snap && snap.exists()){
           S.profile = snap.data();
-          // ── Locked account check ──
+
+          // Locked account check
           if(S.profile.locked){
-            await signOut(S.auth);
             _appInitialized = false;
+            await signOut(S.auth);
             hideLoader();
             showPage('pg-auth');
             switchToLogin();
             setTimeout(()=> toast('🔒 Your account has been locked. Contact support.','err'), 400);
             return;
           }
+
           setLoaderMsg('Almost there...');
           await updateDoc(doc(S.db,'users',user.uid),{ online:true, lastSeen: serverTimestamp() });
+
           _appInitialized = true;
           hideLoader();
           initApp();
+
         } else {
-          // No profile found even after retries — send to auth
+          // Profile not found — new user without profile, or deleted
           hideLoader();
           showPage('pg-auth');
         }
       } catch(e){
-        console.error('Profile fetch error:', e);
+        console.error('Auth flow error:', e);
         hideLoader();
         showPage('pg-auth');
       }
     } else {
-      S.user = null; S.profile = null;
+      // Signed out — full reset so next login goes through auth listener properly
+      S.user = null;
+      S.profile = null;
       _appInitialized = false;
       hideLoader();
       showPage('pg-land');
@@ -594,10 +600,9 @@ document.getElementById('completeProfileBtn').onclick = async ()=>{
     await setDoc(doc(S.db,'users',cred.user.uid), profile);
     S.profile = profile;
     S.user = cred.user;
-    // Mark initialized so onAuthStateChanged doesn't double-fire
-    _appInitialized = true;
+    _appInitialized = true; // prevent onAuthStateChanged from double-firing
     setLoaderMsg('Welcome to VOXLO! ✨');
-    await new Promise(r => setTimeout(r, 800)); // let them see the message
+    await new Promise(r => setTimeout(r, 900));
     hideLoader();
     toast('Welcome to VOXLO! 🎉');
     initApp();
@@ -628,13 +633,11 @@ async function handleLogin(){
   }
 
   try{
-    // Show loader immediately for a smooth transition
     showLoader();
     setLoaderMsg('Signing you in...');
-    // Direct sign in — no OTP for returning users
+    _appInitialized = false; // ensure onAuthStateChanged can proceed
     await signInWithEmailAndPassword(S.auth, email, pass);
-    // onAuthStateChanged will handle profile fetch + initApp
-    // (no toast here — it fires before profile loads)
+    // onAuthStateChanged will take it from here — loader stays visible
   } catch(e){
     console.error('Login error:', e);
     hideLoader();
@@ -961,22 +964,15 @@ function buildSwipeStack(){
   stack.innerHTML = '';
 
   if(!swipeQueue.length){
-    // Empty state is always visible in the background (z-index:0)
-    // Just hide the stack and buttons — "That's all for now" shows through
-    if(swipeHadUsers && actions) actions.style.display = 'none';
-    else if(actions) actions.style.display = 'none';
+    // Empty state always visible behind — nothing else to do
     return;
   }
 
   swipeHadUsers = true;
 
-  // Render up to 3 cards; bottom → top order so last child = front card
-  // Front card: index 0 of queue (last child, highest z-index via CSS)
-  // Behind: index 1 and 2 (nth-last-child selectors handle scale)
-  const visible = swipeQueue.slice(0, 3);
-  visible.forEach((u, i) => {
-    const card = buildCard(u);
-    stack.insertBefore(card, stack.firstChild); // prepend → first in DOM = bottom
+  // Render up to 3 cards; prepend so last child = front card (highest z-index via CSS)
+  swipeQueue.slice(0, 3).forEach(u => {
+    stack.insertBefore(buildCard(u), stack.firstChild);
   });
   // Attach drag only to the front card (last child)
   attachDrag(stack.lastElementChild, swipeQueue[0]);
