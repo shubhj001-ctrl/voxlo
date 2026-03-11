@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>About — VOXLO</title>
+<meta name="description" content="The story behind VOXLO — a bio-first social platform built by Gen Z, for Gen Z."/>
+<meta name="theme-color" content="#08080e"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2308080e'/%3E%3Ctext x='50' y='68' font-family='Arial Black,sans-serif' font-size='52' font-weight='900' text-anchor='middle' fill='url(%23g)' %3EV%3C/text%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%237c3aed'/%3E%3Cstop offset='100%25' stop-color='%2322d3ee'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css"/>
+<style>
+/* ── PAGE-SPECIFIC ── */
+.about-page { overflow-x: hidden; }
+
+/* Hero */
+.ab-hero {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 120px 24px 80px;
+  position: relative; text-align: center;
+}
+.ab-hero-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(124,58,237,.12); border: 1px solid rgba(124,58,237,.28);
+  border-radius: 999px; padding: 7px 18px;
+  font-size: 12px; color: #b89ffc; font-weight: 600;
+  letter-spacing: .06em; text-transform: uppercase; margin-bottom: 28px;
+}
+.ab-hero-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(48px, 9vw, 96px);
+  font-weight: 800; line-height: 1; letter-spacing: -.02em;
+  margin-bottom: 24px;
+}
+.ab-hero-title .grad {
+  background: linear-gradient(135deg, #7c3aed, #22d3ee);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.ab-hero-sub {
+  font-size: 18px; color: #8b8baa; line-height: 1.75;
+  max-width: 560px; margin: 0 auto 48px; font-weight: 300;
+}
+.ab-hero-scroll {
+  position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  color: #4a4a65; font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+  animation: abBob 2s ease-in-out infinite;
+}
+.ab-hero-scroll::after {
+  content: ''; display: block; width: 1px; height: 40px;
+  background: linear-gradient(to bottom, #7c3aed, transparent);
+}
+@keyframes abBob { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
+
+/* Story section */
+.ab-section { padding: 100px 0; }
+.ab-section-c { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+.ab-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .14em;
+  text-transform: uppercase; color: #7c3aed; margin-bottom: 14px;
+}
+.ab-section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 800; line-height: 1.15; margin-bottom: 20px;
+}
+
+/* Story grid */
+.ab-story-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+  margin-top: 20px;
+}
+.ab-story-text p {
+  font-size: 15px; color: #8b8baa; line-height: 1.85; margin-bottom: 18px;
+}
+.ab-story-text p strong { color: #f1f0fb; font-weight: 600; }
+.ab-quote {
+  position: relative; padding: 24px 28px;
+  background: rgba(124,58,237,.07); border-left: 3px solid #7c3aed;
+  border-radius: 0 14px 14px 0; margin: 28px 0;
+  font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 600;
+  color: #d4c8ff; line-height: 1.6; font-style: italic;
+}
+
+/* Visual stat cards */
+.ab-stats-visual {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+}
+.ab-stat-card {
+  background: #0f0f18; border: 1px solid #252535;
+  border-radius: 18px; padding: 28px 20px; text-align: center;
+  position: relative; overflow: hidden;
+  transition: transform .3s, border-color .3s;
+}
+.ab-stat-card:hover { transform: translateY(-4px); border-color: rgba(124,58,237,.4); }
+.ab-stat-card::before {
+  content: ''; position: absolute; top: -30px; right: -30px;
+  width: 80px; height: 80px; border-radius: 50%;
+  filter: blur(24px); opacity: .3;
+}
+.ab-stat-card:nth-child(1)::before { background: #7c3aed; }
+.ab-stat-card:nth-child(2)::before { background: #22d3ee; }
+.ab-stat-card:nth-child(3)::before { background: #f472b6; }
+.ab-stat-card:nth-child(4)::before { background: #34d399; }
+.ab-stat-num {
+  font-family: 'Syne', sans-serif; font-size: 38px; font-weight: 800;
+  background: linear-gradient(135deg,#7c3aed,#22d3ee);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  line-height: 1; margin-bottom: 8px;
+}
+.ab-stat-lbl { font-size: 12px; color: #4a4a65; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+
+/* Values */
+.ab-values { padding: 100px 0; background: #0a0a12; }
+.ab-values-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 48px; }
+.ab-val-card {
+  background: #0f0f18; border: 1px solid #252535;
+  border-radius: 20px; padding: 32px 24px;
+  transition: all .3s; position: relative; overflow: hidden;
+}
+.ab-val-card:hover { border-color: rgba(124,58,237,.35); transform: translateY(-4px); }
+.ab-val-card::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, #7c3aed, #22d3ee);
+  transform: scaleX(0); transform-origin: left; transition: transform .4s ease;
+}
+.ab-val-card:hover::after { transform: scaleX(1); }
+.ab-val-ico { font-size: 36px; margin-bottom: 18px; display: block; }
+.ab-val-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+.ab-val-desc { font-size: 13px; color: #8b8baa; line-height: 1.75; }
+
+/* Timeline */
+.ab-timeline { padding: 100px 0; }
+.ab-timeline-wrap { margin-top: 48px; position: relative; }
+.ab-timeline-wrap::before {
+  content: ''; position: absolute; left: 20px; top: 0; bottom: 0;
+  width: 2px; background: linear-gradient(to bottom, #7c3aed, #22d3ee, transparent);
+}
+.ab-tl-item {
+  display: flex; gap: 32px; margin-bottom: 48px; position: relative;
+  opacity: 0; transform: translateX(-20px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+.ab-tl-item.visible { opacity: 1; transform: translateX(0); }
+.ab-tl-dot {
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #7c3aed, #22d3ee);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; z-index: 1; box-shadow: 0 0 20px rgba(124,58,237,.4);
+}
+.ab-tl-content { flex: 1; padding-top: 8px; }
+.ab-tl-date { font-size: 11px; font-weight: 700; color: #7c3aed; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; }
+.ab-tl-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+.ab-tl-desc { font-size: 14px; color: #8b8baa; line-height: 1.7; }
+
+/* Team */
+.ab-team { padding: 100px 0; background: #0a0a12; }
+.ab-team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px; }
+.ab-team-card {
+  background: #0f0f18; border: 1px solid #252535;
+  border-radius: 20px; padding: 32px 24px; text-align: center;
+  transition: all .3s;
+}
+.ab-team-card:hover { border-color: rgba(124,58,237,.35); transform: translateY(-4px); }
+.ab-team-av {
+  width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; font-weight: 800; font-family: 'Syne', sans-serif;
+}
+.av-p { background: linear-gradient(135deg,#7c3aed,#22d3ee); }
+.av-c { background: linear-gradient(135deg,#f472b6,#fbbf24); }
+.av-g { background: linear-gradient(135deg,#34d399,#22d3ee); }
+.ab-team-name { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+.ab-team-role { font-size: 12px; color: #7c3aed; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 12px; }
+.ab-team-bio { font-size: 13px; color: #8b8baa; line-height: 1.65; }
+
+/* CTA */
+.ab-cta { padding: 120px 24px; text-align: center; position: relative; overflow: hidden; }
+.ab-cta-orb {
+  position: absolute; width: 500px; height: 500px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(124,58,237,.15), transparent 70%);
+  top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none;
+}
+.ab-cta-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(30px,5vw,54px); font-weight: 800; margin-bottom: 16px;
+}
+.ab-cta-sub { font-size: 16px; color: #8b8baa; margin-bottom: 36px; line-height: 1.7; }
+.ab-cta-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ab-story-grid { grid-template-columns: 1fr; gap: 40px; }
+  .ab-values-grid { grid-template-columns: 1fr; }
+  .ab-team-grid { grid-template-columns: 1fr 1fr; }
+  .ab-timeline-wrap::before { left: 16px; }
+  .ab-tl-dot { width: 32px; height: 32px; font-size: 14px; }
+}
+@media (max-width: 480px) {
+  .ab-team-grid { grid-template-columns: 1fr; }
+  .ab-stats-visual { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body class="about-page">
+
+<div class="orbs">
+  <div class="orb o1" style="position:fixed"></div>
+  <div class="orb o2" style="position:fixed"></div>
+</div>
+
+<!-- NAV -->
+<nav class="land-nav">
+  <div class="land-nav-logo"><a href="index.html" style="text-decoration:none"><span class="vx-word">✦ VOXLO</span></a></div>
+  <div class="land-nav-links">
+    <a href="features.html">Features</a>
+    <a href="about.html" style="color:#b89ffc">About</a>
+    <a href="advertise.html">Advertise</a>
+    <a href="auth.html" class="nav-signin-btn">Sign In</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="ab-hero">
+  <div style="position:relative;z-index:1;animation:fiu .9s ease forwards">
+    <div class="ab-hero-label">✦ Our Story</div>
+    <h1 class="ab-hero-title">Built for the<br><span class="grad">real ones.</span></h1>
+    <p class="ab-hero-sub">VOXLO started with a simple frustration — every social app judged you before it knew you. We decided to flip the script.</p>
+  </div>
+  <div class="ab-hero-scroll">Scroll</div>
+</section>
+
+<!-- STORY -->
+<section class="ab-section">
+  <div class="ab-section-c">
+    <div class="ab-story-grid">
+      <div class="ab-story-text">
+        <div class="ab-label">The Origin</div>
+        <h2 class="ab-section-title">Why we built VOXLO</h2>
+        <p>We were tired of apps that showed your face before your thoughts. Apps that rewarded aesthetics over authenticity. Algorithms that decided who was worth connecting with before a single word was exchanged.</p>
+        <div class="ab-quote">"What if the first thing someone saw about you was your story — not your selfie?"</div>
+        <p>VOXLO flips the equation. Your <strong>bio, interests, and vibe</strong> come first. That's how we match you. That's how real conversations start. No filters, no follower counts, no performance.</p>
+        <p>We built this for Gen Z — a generation that's exhausted by curated perfection and starving for genuine connection.</p>
+      </div>
+      <div class="ab-stats-visual">
+        <div class="ab-stat-card">
+          <div class="ab-stat-num">12K+</div>
+          <div class="ab-stat-lbl">Active Users</div>
+        </div>
+        <div class="ab-stat-card">
+          <div class="ab-stat-num">94%</div>
+          <div class="ab-stat-lbl">Match Rate</div>
+        </div>
+        <div class="ab-stat-card">
+          <div class="ab-stat-num">50K+</div>
+          <div class="ab-stat-lbl">Conversations</div>
+        </div>
+        <div class="ab-stat-card">
+          <div class="ab-stat-num">25+</div>
+          <div class="ab-stat-lbl">Countries</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VALUES -->
+<section class="ab-values">
+  <div class="ab-section-c">
+    <div class="ab-label">What we stand for</div>
+    <h2 class="ab-section-title">Our values aren't just words.</h2>
+    <div class="ab-values-grid">
+      <div class="ab-val-card">
+        <span class="ab-val-ico">🧠</span>
+        <div class="ab-val-title">Personality First</div>
+        <div class="ab-val-desc">We believe who you are matters more than how you look. Every design decision in VOXLO is made to surface personality, not appearance.</div>
+      </div>
+      <div class="ab-val-card">
+        <span class="ab-val-ico">🔒</span>
+        <div class="ab-val-title">Radical Privacy</div>
+        <div class="ab-val-desc">We will never sell your data. No surveillance capitalism. No ad targeting based on your private conversations. Your data is yours, period.</div>
+      </div>
+      <div class="ab-val-card">
+        <span class="ab-val-ico">⚡</span>
+        <div class="ab-val-title">Real Connections</div>
+        <div class="ab-val-desc">No ghost profiles, no bots, no fake followers. We verify real people and build features that lead to genuine, lasting connections.</div>
+      </div>
+      <div class="ab-val-card">
+        <span class="ab-val-ico">🌍</span>
+        <div class="ab-val-title">Radical Inclusion</div>
+        <div class="ab-val-desc">VOXLO is for everyone, everywhere. We actively work to make the platform welcoming to users from all backgrounds and countries.</div>
+      </div>
+      <div class="ab-val-card">
+        <span class="ab-val-ico">💜</span>
+        <div class="ab-val-title">Always Free</div>
+        <div class="ab-val-desc">Core features are free, forever. We sustain VOXLO through ethical advertising — short, non-intrusive ads that never compromise your experience.</div>
+      </div>
+      <div class="ab-val-card">
+        <span class="ab-val-ico">🛡️</span>
+        <div class="ab-val-title">Safe Space</div>
+        <div class="ab-val-desc">Robust reporting tools, admin oversight, and private account options mean you're always in control of who can reach you.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section class="ab-timeline">
+  <div class="ab-section-c">
+    <div class="ab-label">How we got here</div>
+    <h2 class="ab-section-title">The VOXLO journey</h2>
+    <div class="ab-timeline-wrap">
+      <div class="ab-tl-item">
+        <div class="ab-tl-dot">💡</div>
+        <div class="ab-tl-content">
+          <div class="ab-tl-date">Early 2024</div>
+          <div class="ab-tl-title">The idea</div>
+          <div class="ab-tl-desc">Frustrated with existing social apps, our founder sketched the first concept for a bio-first platform where personality drives connection — not a profile photo.</div>
+        </div>
+      </div>
+      <div class="ab-tl-item">
+        <div class="ab-tl-dot">🔨</div>
+        <div class="ab-tl-content">
+          <div class="ab-tl-date">Mid 2024</div>
+          <div class="ab-tl-title">Building in the dark</div>
+          <div class="ab-tl-desc">First lines of code. The swipe stack, the registration journey, real-time chat — built piece by piece with Firebase and a relentless focus on mobile UX.</div>
+        </div>
+      </div>
+      <div class="ab-tl-item">
+        <div class="ab-tl-dot">🚀</div>
+        <div class="ab-tl-content">
+          <div class="ab-tl-date">Late 2024</div>
+          <div class="ab-tl-title">Beta launch</div>
+          <div class="ab-tl-desc">VOXLO launched in beta with a small community. Within weeks, thousands of users had signed up organically — no paid ads, just word of mouth.</div>
+        </div>
+      </div>
+      <div class="ab-tl-item">
+        <div class="ab-tl-dot">🌍</div>
+        <div class="ab-tl-content">
+          <div class="ab-tl-date">2025</div>
+          <div class="ab-tl-title">Going global</div>
+          <div class="ab-tl-desc">Users from 25+ countries. Friend requests, private accounts, photo sharing, and interest-based filtering added. The community keeps growing.</div>
+        </div>
+      </div>
+      <div class="ab-tl-item">
+        <div class="ab-tl-dot">✦</div>
+        <div class="ab-tl-content">
+          <div class="ab-tl-date">Now</div>
+          <div class="ab-tl-title">What's next</div>
+          <div class="ab-tl-desc">Group chats, voice notes, verified profiles, and more — all while staying true to our mission: connections built on personality, not appearance.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section class="ab-team">
+  <div class="ab-section-c">
+    <div class="ab-label">The people behind it</div>
+    <h2 class="ab-section-title">Small team. Big mission.</h2>
+    <div class="ab-team-grid">
+      <div class="ab-team-card">
+        <div class="ab-team-av av-p">S</div>
+        <div class="ab-team-name">Shubham</div>
+        <div class="ab-team-role">Founder & Builder</div>
+        <div class="ab-team-bio">Built VOXLO from scratch because he was tired of apps that judged people by their face. Obsessed with UX, Firebase, and making things that actually work.</div>
+      </div>
+      <div class="ab-team-card">
+        <div class="ab-team-av av-c">C</div>
+        <div class="ab-team-name">Community</div>
+        <div class="ab-team-role">Our real co-builders</div>
+        <div class="ab-team-bio">Every feature request, bug report, and piece of feedback from our users has shaped VOXLO. The community is literally co-building this product.</div>
+      </div>
+      <div class="ab-team-card">
+        <div class="ab-team-av av-g">Y</div>
+        <div class="ab-team-name">You</div>
+        <div class="ab-team-role">Next Team Member?</div>
+        <div class="ab-team-bio">VOXLO is growing and looking for passionate people who believe in authentic connection. Reach out if you want to help build the future of social.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="ab-cta">
+  <div class="ab-cta-orb"></div>
+  <div style="position:relative;z-index:1">
+    <h2 class="ab-cta-title">Ready to connect<br>for real?</h2>
+    <p class="ab-cta-sub">Join thousands of Gen Z users already building genuine connections on VOXLO.<br>Free forever. No catches.</p>
+    <div class="ab-cta-btns">
+      <a href="auth.html?mode=register" class="btn-p">Create Your Profile ✦</a>
+      <a href="features.html" class="btn-s">See All Features</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="land-footer">
+  <div class="land-section-c land-footer-inner">
+    <div class="footer-brand">
+      <span class="vx-word">✦ VOXLO</span>
+      <p class="footer-tagline">Connect beyond looks.</p>
+    </div>
+    <div class="footer-links">
+      <div class="footer-col">
+        <div class="footer-col-title">App</div>
+        <a href="auth.html?mode=register">Sign Up Free</a>
+        <a href="auth.html?mode=login">Sign In</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Company</div>
+        <a href="about.html">About</a>
+        <a href="features.html">Features</a>
+        <a href="advertise.html">Advertise</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Legal</div>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 VOXLO. Made with 💜 for Gen Z.</span>
+    <span>No data sold. Ever.</span>
+  </div>
+</footer>
+
+<script>
+// Scroll-triggered timeline animation
+const observer = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 120);
+    }
+  });
+}, { threshold: 0.2 });
+document.querySelectorAll('.ab-tl-item').forEach(el => observer.observe(el));
+
+// Animated stat counters
+function animateCounter(el, target, suffix='') {
+  let start = 0;
+  const isDecimal = target % 1 !== 0;
+  const duration = 1800;
+  const step = timestamp => {
+    if (!start) start = timestamp;
+    const progress = Math.min((timestamp - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const val = isDecimal ? (eased * target).toFixed(0) : Math.floor(eased * target);
+    el.textContent = val + suffix;
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+const statObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const el = e.target;
+      const raw = el.textContent;
+      if (raw.includes('K+')) animateCounter(el, parseInt(raw), 'K+');
+      else if (raw.includes('%')) animateCounter(el, parseInt(raw), '%');
+      else if (raw.includes('+')) animateCounter(el, parseInt(raw), '+');
+      statObserver.unobserve(el);
+    }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('.ab-stat-num').forEach(el => statObserver.observe(el));
+</script>
+</body>
+</html>

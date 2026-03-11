@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Features — VOXLO</title>
+<meta name="description" content="Explore all the features that make VOXLO the bio-first social platform Gen Z deserves."/>
+<meta name="theme-color" content="#08080e"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2308080e'/%3E%3Ctext x='50' y='68' font-family='Arial Black,sans-serif' font-size='52' font-weight='900' text-anchor='middle' fill='url(%23g)' %3EV%3C/text%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%237c3aed'/%3E%3Cstop offset='100%25' stop-color='%2322d3ee'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css"/>
+<style>
+.feat-page { overflow-x: hidden; }
+
+/* Hero */
+.ft-hero {
+  min-height: 80vh; display: flex; align-items: center; justify-content: center;
+  padding: 140px 24px 80px; text-align: center; position: relative;
+}
+.ft-hero-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(34,211,238,.1); border: 1px solid rgba(34,211,238,.25);
+  border-radius: 999px; padding: 7px 18px;
+  font-size: 12px; color: #67e8f9; font-weight: 600;
+  letter-spacing: .06em; text-transform: uppercase; margin-bottom: 28px;
+}
+.ft-hero-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(44px,8vw,88px);
+  font-weight: 800; line-height: 1; letter-spacing: -.02em; margin-bottom: 22px;
+}
+.ft-hero-title .grad1 {
+  background: linear-gradient(135deg,#7c3aed,#22d3ee);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.ft-hero-sub {
+  font-size: 17px; color: #8b8baa; line-height: 1.75;
+  max-width: 520px; margin: 0 auto 48px; font-weight: 300;
+}
+
+/* Feature tabs */
+.ft-tabs-section { padding: 80px 0; }
+.ft-tabs-c { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+.ft-tab-nav {
+  display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+  margin-bottom: 56px;
+}
+.ft-tab-btn {
+  padding: 10px 22px; border-radius: 999px;
+  border: 1px solid #252535; background: transparent;
+  color: #8b8baa; font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all .25s; white-space: nowrap;
+}
+.ft-tab-btn:hover { border-color: #7c3aed; color: #b89ffc; background: rgba(124,58,237,.08); }
+.ft-tab-btn.active { background: linear-gradient(135deg,#7c3aed,#22d3ee); border-color: transparent; color: #fff; }
+
+.ft-tab-panel { display: none; animation: fiu .4s ease forwards; }
+.ft-tab-panel.active { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+
+/* Feature showcase card */
+.ft-showcase {
+  background: #0f0f18; border: 1px solid #252535;
+  border-radius: 24px; padding: 36px; position: relative; overflow: hidden;
+  min-height: 340px; display: flex; flex-direction: column; justify-content: space-between;
+}
+.ft-showcase::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, #7c3aed, #22d3ee);
+}
+.ft-showcase-ico { font-size: 52px; margin-bottom: 20px; display: block; }
+.ft-showcase-title { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; margin-bottom: 12px; }
+.ft-showcase-desc { font-size: 14px; color: #8b8baa; line-height: 1.8; margin-bottom: 20px; }
+.ft-showcase-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.ft-stag {
+  padding: 5px 13px; border-radius: 999px; font-size: 11px; font-weight: 600;
+  background: rgba(124,58,237,.12); border: 1px solid rgba(124,58,237,.2); color: #b89ffc;
+}
+
+/* Feature bullet list */
+.ft-bullets { display: flex; flex-direction: column; gap: 20px; }
+.ft-bullet {
+  display: flex; gap: 16px; align-items: flex-start;
+  padding: 18px 20px; background: #0f0f18; border: 1px solid #252535;
+  border-radius: 16px; transition: all .25s; cursor: default;
+}
+.ft-bullet:hover { border-color: rgba(124,58,237,.35); transform: translateX(4px); }
+.ft-bullet-ico {
+  width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+  background: rgba(124,58,237,.12); display: flex; align-items: center;
+  justify-content: center; font-size: 20px;
+}
+.ft-bullet-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.ft-bullet-desc { font-size: 13px; color: #8b8baa; line-height: 1.6; }
+
+/* Big features grid */
+.ft-grid-section { padding: 80px 0; background: #0a0a12; }
+.ft-big-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 48px; }
+.ft-big-card {
+  background: #0f0f18; border: 1px solid #252535; border-radius: 20px;
+  padding: 28px 24px; transition: all .3s; position: relative; overflow: hidden;
+  cursor: default;
+}
+.ft-big-card:hover { border-color: rgba(124,58,237,.4); transform: translateY(-5px); box-shadow: 0 20px 60px rgba(124,58,237,.1); }
+.ft-big-card.featured {
+  grid-column: span 2;
+  background: linear-gradient(135deg, rgba(124,58,237,.12), rgba(34,211,238,.06));
+  border-color: rgba(124,58,237,.25);
+}
+.ft-big-ico { font-size: 36px; margin-bottom: 16px; }
+.ft-big-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+.ft-big-desc { font-size: 13px; color: #8b8baa; line-height: 1.75; }
+.ft-big-pill {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 14px;
+  background: rgba(52,211,153,.1); border: 1px solid rgba(52,211,153,.2);
+  color: #34d399; border-radius: 999px; padding: 4px 12px; font-size: 11px; font-weight: 700;
+}
+
+/* Compare section */
+.ft-compare { padding: 80px 0; }
+.ft-compare-table {
+  margin-top: 48px; background: #0f0f18; border: 1px solid #252535;
+  border-radius: 20px; overflow: hidden;
+}
+.ft-compare-head {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+  background: #0a0a12; padding: 16px 24px; border-bottom: 1px solid #252535;
+}
+.ft-compare-head div { font-size: 12px; font-weight: 700; color: #4a4a65; letter-spacing: .08em; text-transform: uppercase; text-align: center; }
+.ft-compare-head div:first-child { text-align: left; }
+.ft-compare-head .ours { color: #b89ffc; }
+.ft-compare-row {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+  padding: 16px 24px; border-bottom: 1px solid #252535; transition: background .2s;
+}
+.ft-compare-row:last-child { border-bottom: none; }
+.ft-compare-row:hover { background: rgba(124,58,237,.04); }
+.ft-compare-row div { text-align: center; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+.ft-compare-row div:first-child { text-align: left; justify-content: flex-start; color: #f1f0fb; font-weight: 500; font-size: 13px; }
+.ft-check { color: #34d399; font-size: 18px; }
+.ft-cross { color: #4a4a65; font-size: 18px; }
+.ft-partial { color: #fbbf24; font-size: 13px; font-weight: 600; }
+
+/* Coming soon */
+.ft-coming { padding: 80px 0; background: #0a0a12; }
+.ft-coming-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-top: 48px; }
+.ft-coming-card {
+  background: #0f0f18; border: 1px solid #252535; border-radius: 18px;
+  padding: 24px 18px; text-align: center; position: relative; overflow: hidden;
+  opacity: .75; transition: opacity .3s;
+}
+.ft-coming-card:hover { opacity: 1; }
+.ft-coming-badge {
+  position: absolute; top: 12px; right: 12px;
+  background: rgba(251,191,36,.12); border: 1px solid rgba(251,191,36,.25);
+  color: #fbbf24; font-size: 9px; font-weight: 800; padding: 3px 8px;
+  border-radius: 999px; letter-spacing: .08em; text-transform: uppercase;
+}
+.ft-coming-ico { font-size: 32px; margin-bottom: 12px; }
+.ft-coming-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.ft-coming-desc { font-size: 12px; color: #4a4a65; line-height: 1.6; }
+
+/* Section labels reuse */
+.ft-label { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #22d3ee; margin-bottom: 14px; }
+.ft-title { font-family: 'Syne', sans-serif; font-size: clamp(26px,4vw,42px); font-weight: 800; line-height: 1.15; margin-bottom: 16px; }
+
+/* CTA */
+.ft-cta { padding: 120px 24px; text-align: center; position: relative; overflow: hidden; }
+.ft-cta-orb {
+  position: absolute; width: 600px; height: 600px; border-radius: 50%;
+  background: radial-gradient(circle,rgba(34,211,238,.12),transparent 70%);
+  top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .ft-tab-panel.active { grid-template-columns: 1fr; }
+  .ft-big-grid { grid-template-columns: 1fr; }
+  .ft-big-card.featured { grid-column: span 1; }
+  .ft-coming-grid { grid-template-columns: 1fr 1fr; }
+  .ft-compare-head, .ft-compare-row { grid-template-columns: 2fr 1fr 1fr; }
+  .ft-compare-head div:last-child, .ft-compare-row div:last-child { display: none; }
+}
+@media (max-width: 480px) {
+  .ft-coming-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body class="feat-page">
+
+<div class="orbs">
+  <div class="orb o1" style="position:fixed"></div>
+  <div class="orb o2" style="position:fixed"></div>
+</div>
+
+<nav class="land-nav">
+  <div class="land-nav-logo"><a href="index.html" style="text-decoration:none"><span class="vx-word">✦ VOXLO</span></a></div>
+  <div class="land-nav-links">
+    <a href="features.html" style="color:#67e8f9">Features</a>
+    <a href="about.html">About</a>
+    <a href="advertise.html">Advertise</a>
+    <a href="auth.html" class="nav-signin-btn">Sign In</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="ft-hero">
+  <div style="position:relative;z-index:1;animation:fiu .9s ease forwards">
+    <div class="ft-hero-label">⚡ Everything you need</div>
+    <h1 class="ft-hero-title">Features built<br>for <span class="grad1">real talk.</span></h1>
+    <p class="ft-hero-sub">No bloat. No dark patterns. Just powerful tools to help you find your people and have conversations that matter.</p>
+    <a href="auth.html?mode=register" class="btn-p">Start for Free ✦</a>
+  </div>
+</section>
+
+<!-- TABBED FEATURES -->
+<section class="ft-tabs-section">
+  <div class="ft-tabs-c">
+    <div class="ft-tab-nav">
+      <button class="ft-tab-btn active" onclick="setTab('discover')">🧭 Discover</button>
+      <button class="ft-tab-btn" onclick="setTab('chat')">💬 Chat</button>
+      <button class="ft-tab-btn" onclick="setTab('privacy')">🔒 Privacy</button>
+      <button class="ft-tab-btn" onclick="setTab('matching')">⚡ Matching</button>
+      <button class="ft-tab-btn" onclick="setTab('requests')">🤝 Requests</button>
+    </div>
+
+    <!-- Discover -->
+    <div class="ft-tab-panel active" id="tab-discover">
+      <div class="ft-showcase">
+        <div>
+          <span class="ft-showcase-ico">🧭</span>
+          <div class="ft-showcase-title">Swipe to Discover</div>
+          <div class="ft-showcase-desc">Browse real profiles in a swipe-style stack. See their name, bio, location, and interests before anything else. Flip the card to connect or skip — it's all in your control.</div>
+          <div class="ft-showcase-tags">
+            <span class="ft-stag">Bio-First</span>
+            <span class="ft-stag">Interest Filters</span>
+            <span class="ft-stag">Live Online Status</span>
+          </div>
+        </div>
+      </div>
+      <div class="ft-bullets">
+        <div class="ft-bullet"><div class="ft-bullet-ico">🎛️</div><div><div class="ft-bullet-title">Interest Filters</div><div class="ft-bullet-desc">Filter the discover stack by Tech, Music, Gaming, Art, Fitness, Anime, Travel, Food and more. Find people who share your exact vibe.</div></div></div>
+        <div class="ft-bullet"><div class="ft-bullet-ico">🟢</div><div><div class="ft-bullet-title">Live Online Status</div><div class="ft-bullet-desc">See who's online right now. A real-time counter shows how many people are active, so you know your messages will be seen.</div></div></div>
+        <div class="ft-bullet"><div class="ft-bullet-ico">⚡</div><div><div class="ft-bullet-title">Match Score</div><div class="ft-bullet-desc">Every profile shows a compatibility percentage based on shared interests, so you always know who you'll vibe with best.</div></div></div>
+        <div class="ft-bullet"><div class="ft-bullet-ico">↺</div><div><div class="ft-bullet-title">Start Over</div><div class="ft-bullet-desc">Seen everyone? Reset the stack anytime and rediscover people you may have skipped — second chances are real here.</div></div></div>
+      </div>
+    </div>
+
+    <!-- Chat -->
+    <div class="ft-tab-panel" id="tab-chat">
+      <div class="ft-showcase">
+        <span class="ft-showcase-ico">💬</span>
+        <div class="ft-showcase-title">Real-Time Chat</div>
+        <div class="ft-showcase-desc">Lightning-fast messaging powered by Firebase. Text, photos, typing indicators — everything you'd expect, with none of the algorithm deciding who you can talk to.</div>
+        <div class="ft-showcase-tags">
+          <span class="ft-stag">Instant Delivery</span>
+          <span class="ft-stag">Photo Sharing</span>
+          <span class="ft-stag">Typing Indicators</span>
+        </div>
+      </div>
+      <div class="ft-bullets">
+        <div class="ft-bullet"><div class="ft-bullet-ico">📷</div><div><div class="ft-bullet-title">Photo Sharing</div><div class="ft-bullet-desc">Share images directly in chat with auto-compression and a built-in lightbox viewer. No third-party apps needed.</div></div></div>
+        <div class="ft-bullet"><div class="ft-bullet-ico">⌨️</div><div><div class="ft-bullet-title">Typing Indicators</div><div class="ft-bullet-desc">See animated dots when the other person is typing. Chat feels alive, not like texting into a void.</div></div></div>
+        <div class="ft-bullet"><div class="ft-bullet-ico">📅</div><div><div class="ft-bullet-title">Message History</div><div class="ft-bullet-desc">All your conversations are saved and organised by date. Pick up where you left off, every time.</div></div></div>
+        <div class="ft-bullet"><div class="ft-bullet-ico">🚀</div><div><div class="ft-bullet-title">No DM Limits</div><div class="ft-bullet-desc">Send as many messages as you want, to anyone you're connected with. No paywalls, no message caps.</div></div></div>
+      </div>
+    </div>
+
+    <!-- Privacy -->
+    <div class="ft-tab-panel" id="tab-privacy">
+      <div class="ft-showcase">
+        <span class="ft-showcase-ico">🔒</span>
+        <div class="ft-showcase-title">Privacy Controls</div>
+        <div class="ft-showcase-desc">Your data is yours. Go private anytime, control who can message you, and rest easy knowing we never sell your information to anyone.</div>
+        <div class="ft-showcase-tags">
+          <span class="ft-stag">Private Mode</span>
+          <span class="ft-stag">Zero Data Sales</span>
+          <span class="ft-stag">Request Gating</span>
+        </div>
+      </div>
+      <div class="ft-bullets">
+        <div class="ft-bullet"><div class="ft-bullet-ico">🔒</div><div><div class="ft-bullet-title">Private Account</div><div class="ft-bullet-desc">Toggle private mode in settings. Only people you accept can send you messages — full stop. Perfect if you want to control your circle.</div></div></div>
+        <div class="ft-bullet"><div class="ft-bullet-ico">🛡️</div><div><div class="ft-bullet-title">Zero Data Selling</div><div class="ft-bullet-desc">We have never and will never sell user data to advertisers or third parties. This is a core promise, baked into how we make money.</div></div></div>
+        <div class="ft-bullet"><div class="ft-bullet-ico">🚫</div><div><div class="ft-bullet-title">Admin Oversight</div><div class="ft-bullet-desc">A full admin panel means bad actors get removed fast. Lock, unlock, and remove accounts to keep the community safe.</div></div></div>
+        <div class="ft-bullet"><div class="ft-bullet-ico">👁️</div><div><div class="ft-bullet-title">No Surveillance</div><div class="ft-bullet-desc">We don't track your conversations for ad targeting. What you say in chat stays in chat.</div></div></div>
+      </div>
+    </div>
+
+    <!-- Matching -->
+    <div class="ft-tab-panel" id="tab-matching">
+      <div class="ft-showcase">
+        <span class="ft-showcase-ico">⚡</span>
+        <div class="ft-showcase-title">Interest Matching</div>
+        <div class="ft-showcase-desc">Choose from 16 interests during signup. Our algorithm calculates a compatibility score with every person you discover, so the stack always shows you the best fits first.</div>
+        <div class="ft-showcase-tags">
+          <span class="ft-stag">16 Interests</span>
+          <span class="ft-stag">Match %</span>
+          <span class="ft-stag">Smart Filters</span>
+        </div>
+      </div>
+      <div class="ft-bullets">
+        <div class="ft-bullet"><div class="ft-bullet-ico">🎯</div><div><div class="ft-bullet-title">Smart Scoring</div><div class="ft-bullet-desc">Match scores are calculated from shared interests, updated in real time as you update your profile. More interests = better matches.</div></div></div>
+        <div class="ft-bullet"><div class="ft-bullet-ico">🌐</div><div><div class="ft-bullet-title">Global Discovery</div><div class="ft-bullet-desc">See people from 25+ countries. Filter by interest, not location — find your people wherever they are in the world.</div></div></div>
+        <div class="ft-bullet"><div class="ft-bullet-ico">✏️</div><div><div class="ft-bullet-title">Update Anytime</div><div class="ft-bullet-desc">Edit your bio and interests from settings. Your discover card updates instantly, keeping your profile fresh.</div></div></div>
+        <div class="ft-bullet"><div class="ft-bullet-ico">📍</div><div><div class="ft-bullet-title">Location Context</div><div class="ft-bullet-desc">Show where you're from on your profile. It's a conversation starter, not a filter — you can connect with anyone globally.</div></div></div>
+      </div>
+    </div>
+
+    <!-- Requests -->
+    <div class="ft-tab-panel" id="tab-requests">
+      <div class="ft-showcase">
+        <span class="ft-showcase-ico">🤝</span>
+        <div class="ft-showcase-title">Friend Requests</div>
+        <div class="ft-showcase-desc">Build your circle intentionally. Send friend requests, accept connections, and manage incoming requests from a dedicated panel. No random strangers unless you want them.</div>
+        <div class="ft-showcase-tags">
+          <span class="ft-stag">Incoming Requests</span>
+          <span class="ft-stag">Sent Tracking</span>
+          <span class="ft-stag">Accept & Chat</span>
+        </div>
+      </div>
+      <div class="ft-bullets">
+        <div class="ft-bullet"><div class="ft-bullet-ico">📨</div><div><div class="ft-bullet-title">Request Panel</div><div class="ft-bullet-desc">A dedicated section for all incoming and sent requests. See who wants to connect, review their profile, then accept or decline.</div></div></div>
+        <div class="ft-bullet"><div class="ft-bullet-ico">✅</div><div><div class="ft-bullet-title">Instant Chat on Accept</div><div class="ft-bullet-desc">Accept a request and the chat opens automatically. No friction between connection and conversation.</div></div></div>
+        <div class="ft-bullet"><div class="ft-bullet-ico">🔔</div><div><div class="ft-bullet-title">Request Badge</div><div class="ft-bullet-desc">A live badge in the sidebar shows pending incoming requests so you never miss someone who wants to connect.</div></div></div>
+        <div class="ft-bullet"><div class="ft-bullet-ico">↩️</div><div><div class="ft-bullet-title">Cancel Anytime</div><div class="ft-bullet-desc">Change your mind? Cancel sent requests at any time before they're accepted. Full control, always.</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BIG GRID -->
+<section class="ft-grid-section">
+  <div class="ft-tabs-c">
+    <div class="ft-label">Everything included</div>
+    <h2 class="ft-title">No feature is locked behind a paywall.</h2>
+    <div class="ft-big-grid">
+      <div class="ft-big-card featured">
+        <div class="ft-big-ico">🧭</div>
+        <div class="ft-big-title">Bio-First Swipe Stack</div>
+        <div class="ft-big-desc">The core VOXLO experience. A swipe-able stack of real user profiles where personality always comes before appearance. Flip cards to connect, swipe to skip.</div>
+        <div class="ft-big-pill">✦ Signature Feature</div>
+      </div>
+      <div class="ft-big-card">
+        <div class="ft-big-ico">💬</div>
+        <div class="ft-big-title">Real-Time Chat</div>
+        <div class="ft-big-desc">Instant messaging with photo sharing, typing indicators, and no message limits.</div>
+      </div>
+      <div class="ft-big-card">
+        <div class="ft-big-ico">🔒</div>
+        <div class="ft-big-title">Private Mode</div>
+        <div class="ft-big-desc">Go private anytime. Control exactly who can message you.</div>
+      </div>
+      <div class="ft-big-card">
+        <div class="ft-big-ico">⚡</div>
+        <div class="ft-big-title">Match Scores</div>
+        <div class="ft-big-desc">Compatibility percentage on every profile based on shared interests.</div>
+      </div>
+      <div class="ft-big-card">
+        <div class="ft-big-ico">🤝</div>
+        <div class="ft-big-title">Friend Requests</div>
+        <div class="ft-big-desc">Build your network intentionally with a full request management system.</div>
+      </div>
+      <div class="ft-big-card">
+        <div class="ft-big-ico">📷</div>
+        <div class="ft-big-title">Photo Sharing</div>
+        <div class="ft-big-desc">Share photos in chat with auto-compression and a slick lightbox viewer.</div>
+      </div>
+      <div class="ft-big-card">
+        <div class="ft-big-ico">🌍</div>
+        <div class="ft-big-title">Global Community</div>
+        <div class="ft-big-desc">Connect with users from 25+ countries. No geo-restrictions.</div>
+      </div>
+      <div class="ft-big-card">
+        <div class="ft-big-ico">🎛️</div>
+        <div class="ft-big-title">Interest Filters</div>
+        <div class="ft-big-desc">Filter by 8+ categories including Tech, Gaming, Anime, Art, Fitness and more.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARE -->
+<section class="ft-compare">
+  <div class="ft-tabs-c">
+    <div class="ft-label">How we stack up</div>
+    <h2 class="ft-title">VOXLO vs. the rest.</h2>
+    <div class="ft-compare-table">
+      <div class="ft-compare-head">
+        <div>Feature</div>
+        <div class="ours">VOXLO</div>
+        <div>Others</div>
+        <div>Dating Apps</div>
+      </div>
+      <div class="ft-compare-row"><div>Bio-First Profiles</div><div><span class="ft-check">✓</span></div><div><span class="ft-cross">✕</span></div><div><span class="ft-cross">✕</span></div></div>
+      <div class="ft-compare-row"><div>No Data Selling</div><div><span class="ft-check">✓</span></div><div><span class="ft-cross">✕</span></div><div><span class="ft-cross">✕</span></div></div>
+      <div class="ft-compare-row"><div>Free Forever</div><div><span class="ft-check">✓</span></div><div><span class="ft-partial">Freemium</span></div><div><span class="ft-cross">✕</span></div></div>
+      <div class="ft-compare-row"><div>Real-Time Chat</div><div><span class="ft-check">✓</span></div><div><span class="ft-check">✓</span></div><div><span class="ft-partial">Gated</span></div></div>
+      <div class="ft-compare-row"><div>Private Account Mode</div><div><span class="ft-check">✓</span></div><div><span class="ft-partial">Partial</span></div><div><span class="ft-cross">✕</span></div></div>
+      <div class="ft-compare-row"><div>Interest-Based Matching</div><div><span class="ft-check">✓</span></div><div><span class="ft-partial">Partial</span></div><div><span class="ft-check">✓</span></div></div>
+      <div class="ft-compare-row"><div>No Algorithm Gatekeeping</div><div><span class="ft-check">✓</span></div><div><span class="ft-cross">✕</span></div><div><span class="ft-cross">✕</span></div></div>
+      <div class="ft-compare-row"><div>Photo Sharing in Chat</div><div><span class="ft-check">✓</span></div><div><span class="ft-check">✓</span></div><div><span class="ft-partial">Gated</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- COMING SOON -->
+<section class="ft-coming">
+  <div class="ft-tabs-c">
+    <div class="ft-label">What's coming</div>
+    <h2 class="ft-title">The roadmap is packed.</h2>
+    <div class="ft-coming-grid">
+      <div class="ft-coming-card">
+        <div class="ft-coming-badge">Soon</div>
+        <div class="ft-coming-ico">🎙️</div>
+        <div class="ft-coming-title">Voice Notes</div>
+        <div class="ft-coming-desc">Send voice messages in chat. More personality, less typing.</div>
+      </div>
+      <div class="ft-coming-card">
+        <div class="ft-coming-badge">Soon</div>
+        <div class="ft-coming-ico">👥</div>
+        <div class="ft-coming-title">Group Chats</div>
+        <div class="ft-coming-desc">Create groups around shared interests. Your people, together.</div>
+      </div>
+      <div class="ft-coming-card">
+        <div class="ft-coming-badge">2025</div>
+        <div class="ft-coming-ico">✅</div>
+        <div class="ft-coming-title">Verified Profiles</div>
+        <div class="ft-coming-desc">Real people, confirmed. A blue tick that actually means something.</div>
+      </div>
+      <div class="ft-coming-card">
+        <div class="ft-coming-badge">2025</div>
+        <div class="ft-coming-ico">🌙</div>
+        <div class="ft-coming-title">Vibes / Status</div>
+        <div class="ft-coming-desc">Set your current mood or vibe. Let people know what you're into right now.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="ft-cta">
+  <div class="ft-cta-orb"></div>
+  <div style="position:relative;z-index:1">
+    <h2 class="ft-title" style="font-size:clamp(30px,5vw,54px);margin-bottom:16px">All features.<br>Zero cost.</h2>
+    <p style="font-size:16px;color:#8b8baa;margin-bottom:36px;line-height:1.7">Create your profile in 60 seconds and start discovering real people.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+      <a href="auth.html?mode=register" class="btn-p">Get Started Free ✦</a>
+      <a href="about.html" class="btn-s">Our Story</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="land-footer">
+  <div class="land-section-c land-footer-inner">
+    <div class="footer-brand"><span class="vx-word">✦ VOXLO</span><p class="footer-tagline">Connect beyond looks.</p></div>
+    <div class="footer-links">
+      <div class="footer-col"><div class="footer-col-title">App</div><a href="auth.html?mode=register">Sign Up Free</a><a href="auth.html?mode=login">Sign In</a></div>
+      <div class="footer-col"><div class="footer-col-title">Company</div><a href="about.html">About</a><a href="features.html">Features</a><a href="advertise.html">Advertise</a></div>
+      <div class="footer-col"><div class="footer-col-title">Legal</div><a href="#">Privacy Policy</a><a href="#">Terms of Service</a></div>
+    </div>
+  </div>
+  <div class="footer-bottom"><span>© 2025 VOXLO. Made with 💜 for Gen Z.</span><span>No data sold. Ever.</span></div>
+</footer>
+
+<script>
+function setTab(id) {
+  document.querySelectorAll('.ft-tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ft-tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
