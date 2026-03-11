@@ -571,9 +571,9 @@ function initApp(){
   renderDiscover();
   initChatInput();
   initNav();
-  // Set Discover as the active nav pill on load
-  document.querySelectorAll('.nav-pill').forEach(x=>x.classList.remove('active'));
-  document.querySelector('.nav-pill[data-view="discover"]').classList.add('active');
+  // Set Discover as active on load
+  document.querySelectorAll('.sb-menu-item').forEach(x=>x.classList.remove('active'));
+  document.querySelector('.sb-nav-item[data-view="discover"]')?.classList.add('active');
   showDiscover();
   if(S.fbReady){
     setOnlineStatus(true);
@@ -644,16 +644,16 @@ function initNav(){
   document.getElementById('hamBtn')?.addEventListener('click', toggleSidebar);
   document.getElementById('sbOverlay')?.addEventListener('click', closeSidebar);
 
-  document.querySelectorAll('.nav-pill').forEach(p=>{
-    p.onclick=()=>{
-      document.querySelectorAll('.nav-pill').forEach(x=>x.classList.remove('active'));
-      p.classList.add('active');
-      const view = p.dataset.view;
-      if(view === 'discover'){ showDiscover(); }
-      else if(view === 'requests'){ showRequestsPanel(); }
-      else { showChatListView(); }
-      closeSidebar(); // always close after picking
-    };
+  // Nav menu items (Discover + Requests)
+  document.querySelectorAll('.sb-nav-item').forEach(item=>{
+    item.addEventListener('click',()=>{
+      document.querySelectorAll('.sb-menu-item').forEach(x=>x.classList.remove('active'));
+      item.classList.add('active');
+      const view = item.dataset.view;
+      if(view === 'discover') showDiscover();
+      else if(view === 'requests') showRequestsPanel();
+      closeSidebar();
+    });
   });
 
   // Swipe action buttons
@@ -686,6 +686,7 @@ function initNav(){
       document.querySelectorAll('.fchip').forEach(x=>x.classList.remove('active'));
       c.classList.add('active');
       swipeSkipped.clear();
+      swipeHadUsers = false;
       renderDiscover(c.dataset.filter);
     };
   });
@@ -709,7 +710,8 @@ function showDiscover(){
   document.getElementById('discPanel').classList.remove('hidden');
   document.getElementById('chatPanel').classList.remove('active');
   document.getElementById('requestsPanel').classList.add('hidden');
-  document.querySelectorAll('.chat-item').forEach(i=>i.classList.remove('active'));
+  document.querySelectorAll('.sb-menu-item').forEach(i=>i.classList.remove('active'));
+  document.querySelector('.sb-nav-item[data-view="discover"]')?.classList.add('active');
   S.chatId=null;
   if(S.unsubMsgs){ S.unsubMsgs(); S.unsubMsgs=null; }
   renderDiscover();
@@ -781,6 +783,8 @@ function renderDiscover(filter){
   buildSwipeStack();
 }
 
+let swipeHadUsers = false; // track if we ever had users to show
+
 function buildSwipeStack(){
   const stack = document.getElementById('swipeStack');
   const empty = document.getElementById('swipeEmpty');
@@ -789,11 +793,21 @@ function buildSwipeStack(){
   stack.innerHTML = '';
 
   if(!swipeQueue.length){
-    stack.classList.add('hidden');
-    if(empty) empty.classList.remove('hidden');
-    if(actions) actions.style.display = 'none';
+    // Only show "that's all" if we actually had users before
+    if(swipeHadUsers){
+      stack.classList.add('hidden');
+      if(empty) empty.classList.remove('hidden');
+      if(actions) actions.style.display = 'none';
+    } else {
+      // No users at all yet — show nothing, wait for data
+      stack.classList.add('hidden');
+      if(empty) empty.classList.add('hidden');
+      if(actions) actions.style.display = 'none';
+    }
     return;
   }
+
+  swipeHadUsers = true;
   stack.classList.remove('hidden');
   if(empty) empty.classList.add('hidden');
   if(actions) actions.style.display = 'flex';
@@ -1043,6 +1057,8 @@ function showRequestsPanel(){
   document.getElementById('discPanel').classList.add('hidden');
   document.getElementById('chatPanel').classList.remove('active');
   document.getElementById('requestsPanel').classList.remove('hidden');
+  document.querySelectorAll('.sb-menu-item').forEach(i=>i.classList.remove('active'));
+  document.querySelector('.sb-nav-item[data-view="requests"]')?.classList.add('active');
   renderReqList('incoming');
 }
 
@@ -1117,14 +1133,17 @@ function renderChatList(){
 function addChatItem(list, u){
   const av=avColor(u.uid);
   const item=document.createElement('div');
-  item.className='chat-item'; item.dataset.uid=u.uid;
+  item.className='sb-menu-item'; item.dataset.uid=u.uid;
   const isFriend = S.fbReady && getFriendStatus(u.uid)==='friends';
-  const friendTag = isFriend ? '<span style="font-size:10px;color:var(--g);margin-left:4px">✓</span>' : '';
+  const friendTag = isFriend ? ' ✓' : '';
+  const onlineDot = u.online ? `<span style="width:8px;height:8px;background:var(--g);border-radius:50%;flex-shrink:0"></span>` : '';
   item.innerHTML=`
-    <div class="av ${av}" style="position:relative">${initials(u.name)}${u.online?'<div class="ondot"></div>':''}</div>
-    <div class="ci"><div class="cn">${esc(u.name)}${friendTag}</div><div class="cp">${u.online?'🟢 Online':'Last seen recently'}</div></div>
-    <div class="cm"><div class="ct">${u.online?'now':''}</div></div>`;
-  item.onclick=()=>openChat(u.uid);
+    <div class="av av-sm ${av}" style="flex-shrink:0;position:relative">${initials(u.name)}${u.online?'<div class="ondot"></div>':''}</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:13px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(u.name)}${friendTag}</div>
+      <div style="font-size:11px;color:var(--t3);margin-top:1px">${u.online?'🟢 Online':'Last seen recently'}</div>
+    </div>`;
+  item.onclick=()=>{ openChat(u.uid); closeSidebar(); };
   list.appendChild(item);
 }
 

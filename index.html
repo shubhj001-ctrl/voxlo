@@ -253,18 +253,22 @@
         <button class="ico-btn" id="btnSettings" title="Settings">⚙️</button>
       </div>
     </div>
-    <div class="sb-search">
-      <div class="srch-wrap">
-        <span class="srch-ico">🔍</span>
-        <input type="text" id="chatSearch" placeholder="Search chats..."/>
+    <div class="sb-menu-scroll">
+      <!-- Top nav items -->
+      <div class="sb-menu-item sb-nav-item" data-view="discover">
+        <span class="sb-menu-ico">✦</span>
+        <span class="sb-menu-label">Discover</span>
       </div>
+      <div class="sb-menu-item sb-nav-item" data-view="requests" id="navRequests">
+        <span class="sb-menu-ico">🤝</span>
+        <span class="sb-menu-label">Requests</span>
+        <span class="req-badge hidden" id="reqBadge">0</span>
+      </div>
+      <!-- Divider + Chats label -->
+      <div class="sb-section-label">Chats</div>
+      <!-- Chat list injected here -->
+      <div id="chatList"></div>
     </div>
-    <div class="sb-nav">
-      <button class="nav-pill" data-view="chats"><span class="np-ico">💬</span>Chats</button>
-      <button class="nav-pill active" data-view="discover"><span class="np-ico">✦</span>Discover</button>
-      <button class="nav-pill" data-view="requests" id="navRequests"><span class="np-ico">🤝</span>Requests <span class="req-badge hidden" id="reqBadge">0</span></button>
-    </div>
-    <div class="chat-list" id="chatList"></div>
     <div class="sb-prof">
       <div class="av av-sm av1" id="sbAvatar">SJ</div>
       <div class="pi">
