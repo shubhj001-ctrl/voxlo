@@ -246,6 +246,76 @@ function initJourneyListeners(){
 };
 document.getElementById('jback2').onclick = ()=> goToSlide(1, true);
 
+// ── Real-time email check on blur ──
+let emailCheckState = 'idle'; // idle | checking | ok | taken
+document.getElementById('reg-email').addEventListener('blur', async ()=>{
+  const email = document.getElementById('reg-email').value.trim();
+  if(!email || !email.includes('@')) return;
+  if(!S.fbReady){ emailCheckState='ok'; return; }
+  runEmailCheck(email);
+});
+// Also re-check if they edit the field
+document.getElementById('reg-email').addEventListener('input', ()=>{
+  emailCheckState = 'idle';
+  clearEmailStatus();
+});
+
+async function runEmailCheck(email){
+  emailCheckState = 'checking';
+  setEmailStatus('checking');
+  try{
+    const methods = await fetchSignInMethodsForEmail(S.auth, email);
+    if(methods && methods.length > 0){
+      emailCheckState = 'taken';
+      setEmailStatus('taken', email);
+    } else {
+      emailCheckState = 'ok';
+      setEmailStatus('ok');
+    }
+  } catch(e){
+    emailCheckState = 'idle';
+    clearEmailStatus();
+  }
+}
+
+function clearEmailStatus(){
+  const el = document.getElementById('emailStatusMsg');
+  if(el) el.remove();
+  const inp = document.getElementById('reg-email');
+  inp.style.borderColor = '';
+}
+
+function setEmailStatus(state, email=''){
+  clearEmailStatus();
+  const inp = document.getElementById('reg-email');
+  const msg = document.createElement('div');
+  msg.id = 'emailStatusMsg';
+
+  if(state === 'checking'){
+    inp.style.borderColor = 'var(--p)';
+    msg.className = 'email-status checking';
+    msg.innerHTML = `<span class="es-spinner"></span><span>Checking availability...</span>`;
+  } else if(state === 'ok'){
+    inp.style.borderColor = 'var(--g)';
+    msg.className = 'email-status ok';
+    msg.innerHTML = `<span>✓</span><span>Looks good! Set your password below.</span>`;
+  } else if(state === 'taken'){
+    inp.style.borderColor = 'var(--pk)';
+    msg.className = 'email-status taken';
+    msg.innerHTML = `<span>⚠️</span><span><strong>${email}</strong> already has an account. <button class="es-login-btn" id="esLoginBtn">Sign in instead →</button></span>`;
+  }
+
+  inp.after(msg);
+
+  if(state === 'taken'){
+    document.getElementById('esLoginBtn').onclick = ()=>{
+      clearEmailStatus();
+      switchToLogin();
+      setTimeout(()=>{ document.getElementById('login-email').value = email; }, 100);
+    };
+  }
+}
+
 // Slide 2: Send OTP
 document.getElementById('regBtn').onclick = async ()=>{
   const email = document.getElementById('reg-email').value.trim();
@@ -255,8 +325,11 @@ document.getElementById('regBtn').onclick = async ()=>{
   if(pass.length<6){ toast('Password must be at least 6 characters','err'); return; }
   if(pass !== pass2){ toast('Passwords do not match','err'); return; }
 
+  // Block if email is taken
+  if(emailCheckState === 'taken'){ toast('This email is already registered. Sign in instead.','err'); return; }
+
   const btn = document.getElementById('regBtn');
-  btn.disabled=true; btn.textContent='Checking... ⏳';
+  btn.disabled=true; btn.textContent='Sending code... 📧';
 
   if(!S.fbReady){
     S.twoFA = { pendingEmail:email, pendingPass:pass, isLogin:false, otp:'DEMO01', otpExpiry:Date.now()+600000 };
@@ -266,13 +339,17 @@ document.getElementById('regBtn').onclick = async ()=>{
   }
 
   try{
-    // ── Check if email already exists BEFORE sending OTP ──
-    const methods = await fetchSignInMethodsForEmail(S.auth, email);
-    if(methods && methods.length > 0){
-      // Email already registered — show error with login link
-      btn.disabled=false; btn.textContent='Send Verification Code 📧';
-      showEmailExistsError(email);
-      return;
+    // If check hasn't run yet (user skipped blur), run it now
+    if(emailCheckState === 'idle' || emailCheckState === 'checking'){
+      btn.textContent='Checking email... ⏳';
+      const methods = await fetchSignInMethodsForEmail(S.auth, email);
+      if(methods && methods.length > 0){
+        emailCheckState = 'taken';
+        setEmailStatus('taken', email);
+        btn.disabled=false; btn.textContent='Send Verification Code 📧';
+        return;
+      }
+      emailCheckState = 'ok';
     }
 
     // Email is free — send OTP
@@ -283,40 +360,11 @@ document.getElementById('regBtn').onclick = async ()=>{
     toast('Code sent! Check your email 📧');
     showOTPScreen(email);
   } catch(e){
-    console.error('Registration check error:', e);
+    console.error('Registration error:', e);
     toast('Something went wrong: '+e.message,'err');
   }
   btn.disabled=false; btn.textContent='Send Verification Code 📧';
 };
-
-function showEmailExistsError(email){
-  // Show inline error on slide 2 with a login button
-  const existing = document.getElementById('emailExistsError');
-  if(existing) existing.remove();
-
-  const err = document.createElement('div');
-  err.id = 'emailExistsError';
-  err.className = 'email-exists-err';
-  err.innerHTML = `
-    <div class="eee-icon">⚠️</div>
-    <div class="eee-text">
-      <strong>${email}</strong> is already registered.
-    </div>
-    <button class="eee-btn" id="eeeLoginBtn">Sign In instead →</button>
-  `;
-  // Insert after the email input
-  const emailInput = document.getElementById('reg-email');
-  emailInput.after(err);
-  emailInput.style.borderColor = 'var(--pk)';
-
-  document.getElementById('eeeLoginBtn').onclick = ()=>{
-    err.remove();
-    emailInput.style.borderColor = '';
-    switchToLogin();
-    // Pre-fill email in login form
-    setTimeout(()=>{ document.getElementById('login-email').value = email; }, 100);
-  };
-}
 
 // After OTP verified → go to slide 3 (location)
 window.initProfileStep = ()=>{

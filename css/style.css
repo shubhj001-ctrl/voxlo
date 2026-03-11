@@ -586,19 +586,36 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:1
   padding:10px 18px;font-size:14px;
 }
 
-/* ── EMAIL EXISTS ERROR ── */
-.email-exists-err{
-  background:rgba(244,63,94,.08);border:1.5px solid rgba(244,63,94,.35);
-  border-radius:12px;padding:14px 16px;
-  display:flex;flex-direction:column;align-items:center;gap:8px;
-  animation:fiu .3s ease;text-align:center;
+/* ── EMAIL STATUS INDICATOR ── */
+.email-status{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 14px;border-radius:10px;
+  font-size:13px;line-height:1.5;
+  animation:fiu .25s ease;
 }
-.eee-icon{font-size:24px}
-.eee-text{font-size:13px;color:var(--t2);line-height:1.5}
-.eee-text strong{color:var(--t1)}
-.eee-btn{
-  background:var(--grd1);color:#fff;border:none;border-radius:var(--rfull);
-  padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;
-  font-family:var(--font-b);transition:all .2s;margin-top:2px;
+.email-status.checking{
+  background:rgba(124,58,237,.08);color:var(--t2);
 }
-.eee-btn:hover{opacity:.85;transform:translateY(-1px)}
+.email-status.ok{
+  background:rgba(52,211,153,.08);color:var(--g);
+  border:1px solid rgba(52,211,153,.2);
+}
+.email-status.taken{
+  background:rgba(244,63,94,.08);color:var(--t2);
+  border:1px solid rgba(244,63,94,.25);
+}
+.email-status.taken strong{color:var(--t1)}
+.es-login-btn{
+  background:none;border:none;color:#b89ffc;font-size:13px;
+  font-weight:700;cursor:pointer;font-family:var(--font-b);
+  text-decoration:underline;padding:0;
+}
+.es-login-btn:hover{color:#fff}
+/* Spinner */
+.es-spinner{
+  display:inline-block;width:13px;height:13px;
+  border:2px solid rgba(124,58,237,.3);
+  border-top-color:var(--p);border-radius:50%;
+  animation:spin .7s linear infinite;flex-shrink:0;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
