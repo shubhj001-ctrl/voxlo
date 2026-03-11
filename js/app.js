@@ -657,21 +657,7 @@ function initNav(){
   });
 
   // Swipe action buttons
-  document.getElementById('btnSkip')?.addEventListener('click',()=>{
-    const stack = document.getElementById('swipeStack');
-    const top = stack?.lastElementChild;
-    if(!top||!swipeQueue.length) return;
-    swipeSkipped.add(swipeQueue[0].uid);
-    top.style.transition='transform .35s ease';
-    top.style.transform='translateX(-120vw) rotate(-25deg)';
-    setTimeout(()=>{ swipeQueue.shift(); buildSwipeStack(); },350);
-  });
-  document.getElementById('btnConnect')?.addEventListener('click',()=>{
-    const stack = document.getElementById('swipeStack');
-    const top = stack?.lastElementChild;
-    if(!top) return;
-    top.classList.add('flipped');
-  });
+
   // swipeResetBtn handled in fchip section above
   document.getElementById('btnDiscover')?.addEventListener('click', showDiscover);
   document.querySelectorAll('.fchip').forEach(c=>{
@@ -795,7 +781,6 @@ function renderDiscover(filter){
 
 function buildSwipeStack(){
   const stack = document.getElementById('swipeStack');
-  const actions = document.getElementById('swipeActions');
   if(!stack) return;
   stack.innerHTML = '';
 
@@ -808,7 +793,6 @@ function buildSwipeStack(){
   }
 
   swipeHadUsers = true;
-  if(actions) actions.style.display = 'flex';
 
   // Render up to 3 cards; bottom → top order so last child = front card
   // Front card: index 0 of queue (last child, highest z-index via CSS)

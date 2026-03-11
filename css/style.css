@@ -157,10 +157,10 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:1
 /* ─── MAIN AREA now takes full screen ─── */
 
 /* ─── MAIN ─── */
-.main-area{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;width:100%}
+.main-area{display:flex;flex-direction:column;height:100vh;overflow:hidden;width:100%;position:relative}
 
 /* ─── DISCOVER ─── */
-.disc-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.disc-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;height:100%}
 .disc-panel.hidden{display:none}
 /* disc-head defined below in swipe section */
 .disc-title{font-family:var(--font-d);font-size:20px;font-weight:700}
@@ -709,6 +709,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:1
   justify-content:center;
   position:relative;
   overflow:hidden;
+  /* no padding — card fills the arena */
 }
 
 /* Empty state — always in background, centered */
@@ -744,8 +745,9 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:1
 /* Each card */
 .swipe-card{
   position:absolute;
-  width:min(380px, calc(100vw - 40px));
-  height:min(480px, calc(100% - 20px));
+  width:min(400px, calc(100vw - 40px));
+  height:calc(100% - 32px);
+  max-height:560px;
   border-radius:24px;
   cursor:grab;
   user-select:none;
@@ -852,22 +854,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:1
 .swipe-label-like{left:24px;color:#f472b6;border-color:#f472b6;transform:rotate(-14deg)}
 .swipe-label-nope{right:24px;color:#f472b6;border-color:#f472b6;transform:rotate(14deg)}
 
-/* Action buttons */
-.swipe-actions{
-  display:flex;align-items:center;justify-content:center;gap:24px;
-  padding:16px 0 24px;flex-shrink:0;
-  position:relative;z-index:5;
-}
-.swipe-btn{
-  width:56px;height:56px;border-radius:50%;border:none;
-  display:flex;align-items:center;justify-content:center;
-  font-size:20px;cursor:pointer;transition:all .25s;
-  box-shadow:0 8px 24px rgba(0,0,0,.35);
-}
-.swipe-btn-skip{background:var(--bg3);border:2px solid var(--br2);color:var(--pk)}
-.swipe-btn-skip:hover{background:rgba(244,114,182,.1);border-color:var(--pk);transform:scale(1.1)}
-.swipe-btn-chat{background:var(--grd1);color:#fff}
-.swipe-btn-chat:hover{transform:scale(1.1);box-shadow:0 12px 32px rgba(124,58,237,.4)}
+/* action buttons removed — use card flip */
 
 /* Sidebar mode-aware */
 .chat-list-wrap{transition:opacity .2s}
@@ -925,10 +912,11 @@ input, button, textarea, select { touch-action: manipulation; }
   /* ── SWIPE ARENA ── */
   .swipe-arena { overflow: hidden; }
   .swipe-card {
-    width: calc(100vw - 32px);
+    width: calc(100vw - 24px);
     height: calc(100% - 16px);
-    min-height: 340px;
-    max-height: 500px;
+    min-height: 0;
+    max-height: none;
+    border-radius: 20px;
   }
 
   /* Card front on mobile */
@@ -953,9 +941,7 @@ input, button, textarea, select { touch-action: manipulation; }
   .swipe-label-like { left: 16px; }
   .swipe-label-nope { right: 16px; }
 
-  /* Action buttons */
-  .swipe-actions { padding: 12px 0 18px; gap: 20px; }
-  .swipe-btn { width: 52px; height: 52px; font-size: 20px; }
+
 
   /* Empty state */
   .swipe-empty-ico { font-size: 50px; }
@@ -1060,7 +1046,6 @@ input, button, textarea, select { touch-action: manipulation; }
 /* ── Landscape mobile ── */
 @media (max-width: 768px) and (orientation: landscape) {
   .swipe-card { height: calc(100% - 12px); min-height: 220px; width: calc(100vw - 120px); }
-  .swipe-actions { padding: 6px 0 10px; }
   .disc-head { padding-top: 8px; }
   .journey-slide { gap: 8px; }
   .slide-emoji { font-size: 32px; margin-bottom: 6px; }
