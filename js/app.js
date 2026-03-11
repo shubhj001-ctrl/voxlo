@@ -672,10 +672,7 @@ function initNav(){
     if(!top) return;
     top.classList.add('flipped');
   });
-  document.getElementById('swipeResetBtn')?.addEventListener('click',()=>{
-    swipeSkipped.clear();
-    renderDiscover();
-  });
+  // swipeResetBtn handled in fchip section above
   document.getElementById('btnDiscover')?.addEventListener('click', showDiscover);
   document.querySelectorAll('.fchip').forEach(c=>{
     c.onclick=()=>{
@@ -685,6 +682,15 @@ function initNav(){
       swipeHadUsers = false;
       renderDiscover(c.dataset.filter);
     };
+  });
+
+  // Reset button
+  document.getElementById('swipeResetBtn')?.addEventListener('click',()=>{
+    swipeSkipped.clear();
+    swipeHadUsers = false;
+    document.querySelectorAll('.fchip').forEach(x=>x.classList.remove('active'));
+    document.querySelector('.fchip[data-filter="all"]')?.classList.add('active');
+    renderDiscover('all');
   });
   // Mobile back button in chat
   document.getElementById('btnChatBack')?.addEventListener('click', ()=>{
@@ -774,46 +780,45 @@ async function loadUsers(){
 let swipeQueue = [];
 let swipeSkipped = new Set();
 let swipeFilter = 'all';
+let swipeHadUsers = false;
 
 function renderDiscover(filter){
   if(filter !== undefined) swipeFilter = filter;
   let users = allUsers.filter(u=> u.uid !== S.user?.uid);
-  if(swipeFilter !== 'all') users = users.filter(u=>u.interests?.some(i=>i.toLowerCase().includes(swipeFilter)));
+  if(swipeFilter !== 'all') users = users.filter(u=>
+    u.interests?.some(i=>i.toLowerCase().includes(swipeFilter))
+  );
   users = users.filter(u=> !swipeSkipped.has(u.uid) && !chattedWith.has(u.uid));
   swipeQueue = users;
   buildSwipeStack();
 }
 
-let swipeHadUsers = false; // track if we ever had users to show
-
 function buildSwipeStack(){
   const stack = document.getElementById('swipeStack');
-  const empty = document.getElementById('swipeEmpty');
   const actions = document.getElementById('swipeActions');
   if(!stack) return;
   stack.innerHTML = '';
 
   if(!swipeQueue.length){
-    // Only show "that's all" if we actually had users before
-    if(swipeHadUsers){
-      stack.classList.add('hidden');
-      if(empty) empty.classList.remove('hidden');
-      if(actions) actions.style.display = 'none';
-    } else {
-      // No users at all yet — show nothing, wait for data
-      stack.classList.add('hidden');
-      if(empty) empty.classList.add('hidden');
-      if(actions) actions.style.display = 'none';
-    }
+    // Empty state is always visible in the background (z-index:0)
+    // Just hide the stack and buttons — "That's all for now" shows through
+    if(swipeHadUsers && actions) actions.style.display = 'none';
+    else if(actions) actions.style.display = 'none';
     return;
   }
 
   swipeHadUsers = true;
-  stack.classList.remove('hidden');
-  if(empty) empty.classList.add('hidden');
   if(actions) actions.style.display = 'flex';
 
-  [...swipeQueue.slice(0,3)].reverse().forEach(u=> stack.appendChild(buildCard(u)));
+  // Render up to 3 cards; bottom → top order so last child = front card
+  // Front card: index 0 of queue (last child, highest z-index via CSS)
+  // Behind: index 1 and 2 (nth-last-child selectors handle scale)
+  const visible = swipeQueue.slice(0, 3);
+  visible.forEach((u, i) => {
+    const card = buildCard(u);
+    stack.insertBefore(card, stack.firstChild); // prepend → first in DOM = bottom
+  });
+  // Attach drag only to the front card (last child)
   attachDrag(stack.lastElementChild, swipeQueue[0]);
 }
 
@@ -899,16 +904,18 @@ async function handleCardAction(action, uid){
 }
 
 function skipTopCard(animate=false){
-  const stack = document.getElementById('swipeStack');
-  const top = stack?.lastElementChild;
-  if(top && animate){
-    top.style.transition = 'transform .35s ease';
-    top.style.transform = 'translateX(-120vw) rotate(-25deg)';
-    setTimeout(()=>{ swipeQueue.shift(); buildSwipeStack(); }, 350);
-  } else {
-    swipeQueue.shift();
-    buildSwipeStack();
+  if(animate){
+    const stack = document.getElementById('swipeStack');
+    const top = stack?.lastElementChild;
+    if(top){
+      top.style.transition = 'transform .35s ease';
+      top.style.transform = 'translateX(-120vw) rotate(-25deg)';
+      setTimeout(()=>{ swipeQueue.shift(); buildSwipeStack(); }, 350);
+      return;
+    }
   }
+  swipeQueue.shift();
+  buildSwipeStack();
 }
 
 function attachDrag(card, user){

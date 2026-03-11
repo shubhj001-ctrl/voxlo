@@ -290,27 +290,38 @@
     <!-- DISCOVER — Card Swipe -->
     <div class="disc-panel" id="discPanel" style="padding-top:0">
       <div class="disc-head">
-        <div>
-          <div class="disc-title">Discover People ✦</div>
-          <div class="online-ctr"><div class="onpulse"></div><span id="onlineCount">0 people online</span></div>
+        <div class="disc-head-top">
+          <div>
+            <div class="disc-title">Discover People ✦</div>
+            <div class="online-ctr"><div class="onpulse"></div><span id="onlineCount">0 people online</span></div>
+          </div>
         </div>
-        <div class="filter-bar">
-          <button class="fchip active" data-filter="all">All</button>
-          <button class="fchip" data-filter="tech">Tech</button>
-          <button class="fchip" data-filter="music">Music</button>
-          <button class="fchip" data-filter="art">Art</button>
-          <button class="fchip" data-filter="gaming">Gaming</button>
+        <div class="filter-row">
+          <div class="filter-group-label">Interests</div>
+          <div class="filter-bar" id="filterBar">
+            <button class="fchip active" data-filter="all" data-type="interest">All</button>
+            <button class="fchip" data-filter="tech" data-type="interest">💻 Tech</button>
+            <button class="fchip" data-filter="music" data-type="interest">🎵 Music</button>
+            <button class="fchip" data-filter="gaming" data-type="interest">🎮 Gaming</button>
+            <button class="fchip" data-filter="art" data-type="interest">🎨 Art</button>
+            <button class="fchip" data-filter="fitness" data-type="interest">💪 Fitness</button>
+            <button class="fchip" data-filter="anime" data-type="interest">⛩️ Anime</button>
+            <button class="fchip" data-filter="travel" data-type="interest">✈️ Travel</button>
+            <button class="fchip" data-filter="food" data-type="interest">🍜 Food</button>
+          </div>
         </div>
       </div>
-      <!-- Swipe Card Stack -->
+      <!-- Swipe Arena — single card shown at a time -->
       <div class="swipe-arena" id="swipeArena">
-        <div class="swipe-stack" id="swipeStack"></div>
-        <div class="swipe-empty hidden" id="swipeEmpty">
+        <!-- "That's all for now" is always visible behind cards -->
+        <div class="swipe-empty" id="swipeEmpty">
           <div class="swipe-empty-ico">🌌</div>
           <div class="swipe-empty-title">That's all for now!</div>
-          <div class="swipe-empty-sub">You've seen everyone. Check back later or change filters.</div>
+          <div class="swipe-empty-sub">You've seen everyone. Check back later or try a different filter.</div>
           <button class="swipe-reset-btn" id="swipeResetBtn">Start Over ↺</button>
         </div>
+        <!-- Cards rendered here, layered on top of empty state -->
+        <div class="swipe-stack" id="swipeStack"></div>
         <!-- Swipe hint labels -->
         <div class="swipe-label swipe-label-like" id="swipeLabelLike">SKIP ✕</div>
         <div class="swipe-label swipe-label-nope" id="swipeLabelNope">SKIP ✕</div>
