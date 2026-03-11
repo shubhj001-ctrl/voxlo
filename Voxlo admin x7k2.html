@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VOXLO · Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#080810;--bg2:#0e0e1a;--bg3:#13131f;--bg4:#1a1a2e;
+    --br:#ffffff0f;--br2:#ffffff18;
+    --t1:#f0f0ff;--t2:#9898b8;--t3:#55556a;
+    --p:#7c3aed;--p2:#a78bfa;--g:#10b981;--g2:#34d399;
+    --r:#f43f5e;--r2:#fb7185;
+    --am:#f59e0b;--am2:#fbbf24;
+    --mono:'JetBrains Mono',monospace;
+    --sans:'Space Grotesk',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--t1);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+
+  /* ── LOGIN GATE ── */
+  #adminLogin{
+    position:fixed;inset:0;background:var(--bg);
+    display:flex;align-items:center;justify-content:center;z-index:9999;
+  }
+  .login-box{
+    width:380px;padding:40px;
+    background:var(--bg2);border:1px solid var(--br2);border-radius:16px;
+    box-shadow:0 40px 80px rgba(0,0,0,.6);
+  }
+  .login-logo{
+    font-family:var(--mono);font-size:13px;font-weight:700;
+    color:var(--t3);letter-spacing:.15em;text-transform:uppercase;margin-bottom:28px;
+  }
+  .login-logo span{color:var(--r2)}
+  .login-title{font-size:26px;font-weight:800;margin-bottom:6px}
+  .login-sub{font-size:13px;color:var(--t3);margin-bottom:28px}
+  .login-field{margin-bottom:14px}
+  .login-field label{display:block;font-size:11px;font-weight:700;color:var(--t3);
+    letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+  .login-field input{
+    width:100%;background:var(--bg3);border:1px solid var(--br2);border-radius:10px;
+    padding:13px 15px;color:var(--t1);font-family:var(--sans);font-size:14px;outline:none;
+    transition:border-color .2s;
+  }
+  .login-field input:focus{border-color:var(--p)}
+  .login-btn{
+    width:100%;background:var(--r);color:#fff;border:none;border-radius:10px;
+    padding:14px;font-family:var(--sans);font-size:14px;font-weight:700;
+    cursor:pointer;transition:all .2s;margin-top:6px;letter-spacing:.03em;
+  }
+  .login-btn:hover{background:var(--r2);transform:translateY(-1px)}
+  .login-err{font-size:12px;color:var(--r2);margin-top:10px;text-align:center;min-height:18px}
+
+  /* ── MAIN LAYOUT ── */
+  #adminApp{display:none}
+  .app-layout{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+
+  /* ── SIDEBAR ── */
+  .adm-sidebar{
+    background:var(--bg2);border-right:1px solid var(--br);
+    padding:24px 0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;
+  }
+  .adm-brand{
+    padding:0 20px 24px;border-bottom:1px solid var(--br);margin-bottom:20px;
+  }
+  .adm-brand-name{
+    font-family:var(--mono);font-size:13px;font-weight:700;
+    color:var(--t3);letter-spacing:.15em;text-transform:uppercase;
+  }
+  .adm-brand-name span{color:var(--r2)}
+  .adm-brand-tag{font-size:11px;color:var(--t3);margin-top:3px}
+  .adm-nav{flex:1;padding:0 12px;display:flex;flex-direction:column;gap:4px}
+  .adm-nav-item{
+    display:flex;align-items:center;gap:10px;padding:10px 12px;
+    border-radius:10px;color:var(--t3);font-size:13px;font-weight:600;
+    cursor:pointer;transition:all .2s;border:none;background:none;width:100%;text-align:left;
+  }
+  .adm-nav-item:hover{background:var(--br);color:var(--t2)}
+  .adm-nav-item.active{background:rgba(244,63,94,.1);color:var(--r2)}
+  .adm-nav-item .nav-ico{font-size:16px;width:20px;text-align:center}
+  .adm-footer{padding:16px 20px;border-top:1px solid var(--br);margin-top:auto}
+  .adm-footer-info{font-size:11px;color:var(--t3);font-family:var(--mono)}
+  .adm-logout{
+    margin-top:8px;background:none;border:1px solid var(--br2);border-radius:8px;
+    padding:8px 12px;color:var(--t3);font-size:12px;cursor:pointer;
+    font-family:var(--sans);width:100%;transition:all .2s;
+  }
+  .adm-logout:hover{border-color:var(--r);color:var(--r2)}
+
+  /* ── MAIN CONTENT ── */
+  .adm-main{padding:32px;overflow-y:auto}
+  .adm-topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:32px;
+  }
+  .adm-page-title{font-size:24px;font-weight:800}
+  .adm-page-sub{font-size:13px;color:var(--t3);margin-top:3px}
+  .adm-refresh-btn{
+    display:flex;align-items:center;gap:6px;
+    background:var(--bg3);border:1px solid var(--br2);border-radius:10px;
+    padding:9px 16px;color:var(--t2);font-size:13px;font-weight:600;
+    cursor:pointer;font-family:var(--sans);transition:all .2s;
+  }
+  .adm-refresh-btn:hover{border-color:var(--p);color:var(--p2)}
+
+  /* ── STATS CARDS ── */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+  .stat-card{
+    background:var(--bg2);border:1px solid var(--br);border-radius:14px;
+    padding:20px;position:relative;overflow:hidden;
+  }
+  .stat-card::before{
+    content:'';position:absolute;top:0;right:0;
+    width:80px;height:80px;border-radius:50%;
+    filter:blur(30px);opacity:.2;
+  }
+  .stat-card.blue::before{background:#7c3aed}
+  .stat-card.green::before{background:#10b981}
+  .stat-card.red::before{background:#f43f5e}
+  .stat-card.amber::before{background:#f59e0b}
+  .stat-icon{font-size:22px;margin-bottom:10px}
+  .stat-num{font-family:var(--mono);font-size:32px;font-weight:700;line-height:1}
+  .stat-label{font-size:12px;color:var(--t3);margin-top:6px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+  .stat-card.blue .stat-num{color:var(--p2)}
+  .stat-card.green .stat-num{color:var(--g2)}
+  .stat-card.red .stat-num{color:var(--r2)}
+  .stat-card.amber .stat-num{color:var(--am2)}
+
+  /* ── SEARCH + FILTERS ── */
+  .table-controls{
+    display:flex;align-items:center;gap:12px;margin-bottom:16px;
+  }
+  .adm-search{
+    flex:1;background:var(--bg2);border:1px solid var(--br2);border-radius:10px;
+    padding:10px 14px 10px 38px;color:var(--t1);font-family:var(--sans);font-size:14px;
+    outline:none;transition:border-color .2s;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2355556a' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:12px center;
+  }
+  .adm-search:focus{border-color:var(--p)}
+  .filter-btn{
+    background:var(--bg2);border:1px solid var(--br2);border-radius:10px;
+    padding:10px 14px;color:var(--t2);font-size:13px;font-weight:600;
+    cursor:pointer;font-family:var(--sans);transition:all .2s;white-space:nowrap;
+  }
+  .filter-btn.active{background:rgba(244,63,94,.1);border-color:var(--r);color:var(--r2)}
+  .filter-btn:hover:not(.active){border-color:var(--br2);color:var(--t1)}
+
+  /* ── USER TABLE ── */
+  .user-table-wrap{
+    background:var(--bg2);border:1px solid var(--br);border-radius:16px;overflow:hidden;
+  }
+  .user-table{width:100%;border-collapse:collapse}
+  .user-table thead th{
+    padding:12px 16px;text-align:left;font-size:11px;font-weight:700;
+    color:var(--t3);letter-spacing:.1em;text-transform:uppercase;
+    background:var(--bg3);border-bottom:1px solid var(--br);
+  }
+  .user-table tbody tr{
+    border-bottom:1px solid var(--br);
+    transition:background .15s;
+  }
+  .user-table tbody tr:last-child{border-bottom:none}
+  .user-table tbody tr:hover{background:var(--bg3)}
+  .user-table td{padding:14px 16px;vertical-align:middle;font-size:13px}
+
+  .user-av{
+    width:36px;height:36px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:700;flex-shrink:0;
+  }
+  .user-info{display:flex;align-items:center;gap:10px}
+  .user-name{font-weight:600;font-size:14px;color:var(--t1)}
+  .user-handle{font-size:12px;color:var(--t3);font-family:var(--mono)}
+  .user-email-cell{color:var(--t2);font-family:var(--mono);font-size:12px}
+  .user-bio-cell{color:var(--t2);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .user-date{color:var(--t3);font-family:var(--mono);font-size:11px}
+
+  /* Status badges */
+  .badge{
+    display:inline-flex;align-items:center;gap:5px;
+    padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;
+    letter-spacing:.04em;text-transform:uppercase;
+  }
+  .badge-online{background:rgba(16,185,129,.15);color:var(--g2);border:1px solid rgba(16,185,129,.2)}
+  .badge-offline{background:rgba(255,255,255,.05);color:var(--t3);border:1px solid var(--br)}
+  .badge-locked{background:rgba(245,158,11,.15);color:var(--am2);border:1px solid rgba(245,158,11,.2)}
+  .badge-private{background:rgba(124,58,237,.15);color:var(--p2);border:1px solid rgba(124,58,237,.2)}
+  .badge-public{background:rgba(16,185,129,.08);color:var(--g);border:1px solid rgba(16,185,129,.15)}
+
+  /* Actions */
+  .act-btns{display:flex;align-items:center;gap:6px}
+  .act-btn{
+    border:1px solid var(--br2);border-radius:8px;
+    padding:6px 10px;font-size:12px;font-weight:600;
+    cursor:pointer;font-family:var(--sans);transition:all .18s;background:none;
+    white-space:nowrap;
+  }
+  .act-btn-view{color:var(--p2);border-color:rgba(124,58,237,.3)}
+  .act-btn-view:hover{background:rgba(124,58,237,.1);border-color:var(--p)}
+  .act-btn-lock{color:var(--am2);border-color:rgba(245,158,11,.3)}
+  .act-btn-lock:hover{background:rgba(245,158,11,.1);border-color:var(--am)}
+  .act-btn-unlock{color:var(--g2);border-color:rgba(16,185,129,.3)}
+  .act-btn-unlock:hover{background:rgba(16,185,129,.1);border-color:var(--g)}
+  .act-btn-del{color:var(--r2);border-color:rgba(244,63,94,.3)}
+  .act-btn-del:hover{background:rgba(244,63,94,.1);border-color:var(--r)}
+
+  /* Tags */
+  .itag-mini{
+    display:inline-block;padding:2px 8px;border-radius:20px;
+    font-size:10px;font-weight:600;background:rgba(124,58,237,.15);
+    color:var(--p2);border:1px solid rgba(124,58,237,.2);margin:2px;
+  }
+
+  /* ── USER DETAIL MODAL ── */
+  .modal-ov{
+    position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);
+    display:flex;align-items:center;justify-content:center;z-index:1000;
+    opacity:0;pointer-events:none;transition:opacity .2s;
+  }
+  .modal-ov.active{opacity:1;pointer-events:all}
+  .adm-modal{
+    background:var(--bg2);border:1px solid var(--br2);border-radius:20px;
+    width:560px;max-height:85vh;overflow-y:auto;
+    transform:scale(.95);transition:transform .25s;
+  }
+  .modal-ov.active .adm-modal{transform:scale(1)}
+  .modal-head{
+    padding:24px 28px 20px;border-bottom:1px solid var(--br);
+    display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;background:var(--bg2);z-index:1;
+  }
+  .modal-title{font-size:18px;font-weight:700}
+  .modal-close{
+    background:var(--bg3);border:1px solid var(--br);border-radius:8px;
+    width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;color:var(--t2);font-size:16px;transition:all .2s;
+  }
+  .modal-close:hover{background:rgba(244,63,94,.15);border-color:var(--r);color:var(--r2)}
+  .modal-body{padding:24px 28px}
+  .modal-av-row{display:flex;align-items:center;gap:16px;margin-bottom:24px}
+  .modal-av{
+    width:64px;height:64px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:22px;font-weight:800;flex-shrink:0;
+  }
+  .modal-user-name{font-size:20px;font-weight:700}
+  .modal-user-handle{font-family:var(--mono);font-size:13px;color:var(--t3);margin-top:2px}
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+  .detail-item label{
+    display:block;font-size:10px;font-weight:700;color:var(--t3);
+    letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;
+  }
+  .detail-item .val{
+    font-size:13px;color:var(--t1);background:var(--bg3);
+    padding:10px 12px;border-radius:8px;border:1px solid var(--br);
+    font-family:var(--mono);word-break:break-all;
+  }
+  .detail-item.full{grid-column:1/-1}
+  .modal-actions{
+    display:flex;gap:10px;padding-top:20px;border-top:1px solid var(--br);
+  }
+  .modal-act-btn{
+    flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:700;
+    cursor:pointer;font-family:var(--sans);transition:all .2s;border:none;
+  }
+  .modal-act-lock{background:rgba(245,158,11,.15);color:var(--am2);border:1px solid rgba(245,158,11,.3)}
+  .modal-act-lock:hover{background:rgba(245,158,11,.25)}
+  .modal-act-del{background:rgba(244,63,94,.15);color:var(--r2);border:1px solid rgba(244,63,94,.3)}
+  .modal-act-del:hover{background:rgba(244,63,94,.25)}
+
+  /* ── CONFIRM DIALOG ── */
+  .confirm-ov{
+    position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);
+    display:flex;align-items:center;justify-content:center;z-index:2000;
+    opacity:0;pointer-events:none;transition:opacity .2s;
+  }
+  .confirm-ov.active{opacity:1;pointer-events:all}
+  .confirm-box{
+    background:var(--bg2);border:1px solid var(--br2);border-radius:16px;
+    padding:28px;width:360px;text-align:center;
+    transform:scale(.92);transition:transform .2s;
+  }
+  .confirm-ov.active .confirm-box{transform:scale(1)}
+  .confirm-ico{font-size:44px;margin-bottom:14px}
+  .confirm-title{font-size:18px;font-weight:700;margin-bottom:8px}
+  .confirm-msg{font-size:14px;color:var(--t2);line-height:1.6;margin-bottom:24px}
+  .confirm-btns{display:flex;gap:10px}
+  .confirm-cancel{
+    flex:1;background:var(--bg3);border:1px solid var(--br2);border-radius:10px;
+    padding:12px;font-size:14px;font-weight:600;cursor:pointer;
+    font-family:var(--sans);color:var(--t2);transition:all .2s;
+  }
+  .confirm-cancel:hover{color:var(--t1);border-color:var(--br2)}
+  .confirm-ok{
+    flex:1;border:none;border-radius:10px;padding:12px;
+    font-size:14px;font-weight:700;cursor:pointer;font-family:var(--sans);
+    transition:all .2s;
+  }
+  .confirm-ok.danger{background:var(--r);color:#fff}
+  .confirm-ok.danger:hover{background:var(--r2)}
+  .confirm-ok.warn{background:var(--am);color:#000}
+  .confirm-ok.warn:hover{background:var(--am2)}
+
+  /* ── EMPTY / LOADING ── */
+  .table-empty{text-align:center;padding:60px 20px;color:var(--t3)}
+  .table-empty-ico{font-size:40px;margin-bottom:12px}
+  .loading-row td{text-align:center;padding:60px;color:var(--t3);font-family:var(--mono);font-size:13px}
+  .spinner{
+    display:inline-block;width:18px;height:18px;
+    border:2px solid rgba(124,58,237,.3);border-top-color:var(--p);
+    border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ── TOAST ── */
+  .adm-toast{
+    position:fixed;bottom:28px;right:28px;
+    background:var(--bg3);border:1px solid var(--br2);border-radius:12px;
+    padding:14px 20px;font-size:14px;font-weight:600;color:var(--t1);
+    box-shadow:0 20px 60px rgba(0,0,0,.5);z-index:9999;
+    transform:translateY(10px);opacity:0;transition:all .3s;pointer-events:none;
+    display:flex;align-items:center;gap:10px;
+  }
+  .adm-toast.show{transform:translateY(0);opacity:1}
+  .adm-toast.ok{border-color:rgba(16,185,129,.4);color:var(--g2)}
+  .adm-toast.err{border-color:rgba(244,63,94,.4);color:var(--r2)}
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar{width:6px;height:6px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--br2);border-radius:3px}
+
+  /* ── AV COLORS ── */
+  .avc0{background:rgba(124,58,237,.25);color:#c4b5fd}
+  .avc1{background:rgba(34,211,238,.2);color:#67e8f9}
+  .avc2{background:rgba(244,63,94,.2);color:#fda4af}
+  .avc3{background:rgba(251,191,36,.2);color:#fde68a}
+  .avc4{background:rgba(52,211,153,.2);color:#6ee7b7}
+  .avc5{background:rgba(249,115,22,.2);color:#fed7aa}
+
+  /* ── ACTIVITY LOG SECTION ── */
+  .section-title{
+    font-size:16px;font-weight:700;margin-bottom:16px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .section-title span{
+    font-size:11px;color:var(--t3);font-family:var(--mono);font-weight:400;
+  }
+  .log-item{
+    display:flex;align-items:flex-start;gap:12px;padding:12px 0;
+    border-bottom:1px solid var(--br);
+  }
+  .log-item:last-child{border-bottom:none}
+  .log-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+  .log-dot.green{background:var(--g)}
+  .log-dot.red{background:var(--r)}
+  .log-dot.amber{background:var(--am)}
+  .log-text{font-size:13px;color:var(--t2);line-height:1.5}
+  .log-time{font-size:11px;color:var(--t3);font-family:var(--mono);margin-top:2px}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN GATE ══ -->
+<div id="adminLogin">
+  <div class="login-box">
+    <div class="login-logo">✦ VOXLO <span>/ ADMIN</span></div>
+    <div class="login-title">Admin Access</div>
+    <div class="login-sub">Restricted area. Authorised personnel only.</div>
+    <div class="login-field">
+      <label>Admin Password</label>
+      <input type="password" id="adminPassInput" placeholder="Enter admin password" autocomplete="off"/>
+    </div>
+    <button class="login-btn" id="adminLoginBtn">Authenticate →</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ══ ADMIN APP ══ -->
+<div id="adminApp">
+  <div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <div class="adm-sidebar">
+      <div class="adm-brand">
+        <div class="adm-brand-name">✦ VOXLO <span>/ ADMIN</span></div>
+        <div class="adm-brand-tag">Control Panel</div>
+      </div>
+      <div class="adm-nav">
+        <button class="adm-nav-item active" onclick="showSection('users')">
+          <span class="nav-ico">👥</span> Users
+        </button>
+        <button class="adm-nav-item" onclick="showSection('locked')">
+          <span class="nav-ico">🔒</span> Locked Accounts
+        </button>
+        <button class="adm-nav-item" onclick="showSection('activity')">
+          <span class="nav-ico">📋</span> Activity Log
+        </button>
+      </div>
+      <div class="adm-footer">
+        <div class="adm-footer-info" id="footerInfo">Connected</div>
+        <button class="adm-logout" onclick="adminLogout()">Sign out</button>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="adm-main">
+
+      <!-- USERS SECTION -->
+      <div id="sec-users">
+        <div class="adm-topbar">
+          <div>
+            <div class="adm-page-title">User Management</div>
+            <div class="adm-page-sub">View, lock, and remove users from VOXLO</div>
+          </div>
+          <button class="adm-refresh-btn" onclick="loadUsers()">↻ Refresh</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-card blue">
+            <div class="stat-icon">👥</div>
+            <div class="stat-num" id="statTotal">—</div>
+            <div class="stat-label">Total Users</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-icon">🟢</div>
+            <div class="stat-num" id="statOnline">—</div>
+            <div class="stat-label">Online Now</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="stat-icon">🔒</div>
+            <div class="stat-num" id="statLocked">—</div>
+            <div class="stat-label">Locked</div>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-icon">🔒</div>
+            <div class="stat-num" id="statPrivate">—</div>
+            <div class="stat-label">Private Accounts</div>
+          </div>
+        </div>
+
+        <!-- Table Controls -->
+        <div class="table-controls">
+          <input class="adm-search" type="text" id="userSearch" placeholder="Search by name, email, handle..." oninput="filterUsers()"/>
+          <button class="filter-btn" id="filterAll" onclick="setFilter('all')">All</button>
+          <button class="filter-btn" id="filterOnline" onclick="setFilter('online')">🟢 Online</button>
+          <button class="filter-btn" id="filterLocked" onclick="setFilter('locked')">🔒 Locked</button>
+        </div>
+
+        <!-- Table -->
+        <div class="user-table-wrap">
+          <table class="user-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Email</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Account</th>
+                <th>Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="userTableBody">
+              <tr class="loading-row"><td colspan="7"><span class="spinner"></span>Loading users...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- LOCKED SECTION -->
+      <div id="sec-locked" style="display:none">
+        <div class="adm-topbar">
+          <div>
+            <div class="adm-page-title">Locked Accounts</div>
+            <div class="adm-page-sub">Users currently locked out of VOXLO</div>
+          </div>
+          <button class="adm-refresh-btn" onclick="loadUsers()">↻ Refresh</button>
+        </div>
+        <div class="user-table-wrap">
+          <table class="user-table">
+            <thead>
+              <tr><th>User</th><th>Email</th><th>Locked Since</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="lockedTableBody">
+              <tr class="loading-row"><td colspan="4"><span class="spinner"></span>Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ACTIVITY LOG SECTION -->
+      <div id="sec-activity" style="display:none">
+        <div class="adm-topbar">
+          <div>
+            <div class="adm-page-title">Activity Log</div>
+            <div class="adm-page-sub">Recent admin actions</div>
+          </div>
+          <button class="adm-refresh-btn" onclick="clearLog()">🗑 Clear Log</button>
+        </div>
+        <div class="user-table-wrap" style="padding:0 24px">
+          <div id="activityLog">
+            <div class="table-empty"><div class="table-empty-ico">📋</div><p>No activity yet</p></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══ USER DETAIL MODAL ══ -->
+<div class="modal-ov" id="userModal">
+  <div class="adm-modal">
+    <div class="modal-head">
+      <div class="modal-title">User Details</div>
+      <div class="modal-close" onclick="closeModal()">✕</div>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- ══ CONFIRM DIALOG ══ -->
+<div class="confirm-ov" id="confirmOv">
+  <div class="confirm-box">
+    <div class="confirm-ico" id="confirmIco">⚠️</div>
+    <div class="confirm-title" id="confirmTitle">Are you sure?</div>
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="confirm-ok" id="confirmOkBtn" onclick="confirmAction()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="adm-toast" id="admToast"></div>
+
+<script type="module">
+// ── Firebase (same config as main app) ──
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey:"AIzaSyAjhv4beripAresAhpMhzxO8N1DRxB2qcA",
+  authDomain:"voxlo-9c3da.firebaseapp.com",
+  projectId:"voxlo-9c3da",
+  storageBucket:"voxlo-9c3da.firebasestorage.app",
+  messagingSenderId:"444229055118",
+  appId:"1:444229055118:web:cf80ede03d83ac18810fdf"
+};
+
+// ── Admin password (change this!) ──
+const ADMIN_PASSWORD = 'voxlo@admin2025';
+
+let db, allUsers = [], activityLog = [];
+let pendingAction = null;
+let activeFilter = 'all';
+
+// ── Init Firebase ──
+try{
+  const app = initializeApp(firebaseConfig, 'admin');
+  db = getFirestore(app);
+  document.getElementById('footerInfo').textContent = 'Firebase: Connected';
+} catch(e){
+  document.getElementById('footerInfo').textContent = 'Firebase: Error';
+}
+
+// ── LOGIN GATE ──
+document.getElementById('adminPassInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+document.getElementById('adminLoginBtn').onclick = doLogin;
+
+function doLogin(){
+  const pass = document.getElementById('adminPassInput').value;
+  if(pass === ADMIN_PASSWORD){
+    document.getElementById('adminLogin').style.display = 'none';
+    document.getElementById('adminApp').style.display = 'block';
+    loadUsers();
+  } else {
+    document.getElementById('loginErr').textContent = 'Incorrect password. Access denied.';
+    document.getElementById('adminPassInput').value = '';
+    document.getElementById('adminPassInput').focus();
+  }
+}
+
+window.adminLogout = ()=>{
+  document.getElementById('adminLogin').style.display = 'flex';
+  document.getElementById('adminApp').style.display = 'none';
+  document.getElementById('adminPassInput').value = '';
+};
+
+// ── LOAD USERS ──
+window.loadUsers = async ()=>{
+  setTableLoading();
+  try{
+    const snap = await getDocs(collection(db,'users'));
+    allUsers = [];
+    snap.forEach(d=> allUsers.push({ id:d.id, ...d.data() }));
+    updateStats();
+    renderTable(allUsers);
+    renderLockedTable();
+  } catch(e){
+    showToast('Failed to load users: '+e.message, 'err');
+    document.getElementById('userTableBody').innerHTML =
+      `<tr class="loading-row"><td colspan="7" style="color:var(--r2)">⚠️ Firebase error: ${e.message}</td></tr>`;
+  }
+};
+
+function setTableLoading(){
+  document.getElementById('userTableBody').innerHTML =
+    `<tr class="loading-row"><td colspan="7"><span class="spinner"></span>Loading users...</td></tr>`;
+}
+
+function updateStats(){
+  const total = allUsers.length;
+  const online = allUsers.filter(u=>u.online).length;
+  const locked = allUsers.filter(u=>u.locked).length;
+  const priv = allUsers.filter(u=>u.isPrivate).length;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statOnline').textContent = online;
+  document.getElementById('statLocked').textContent = locked;
+  document.getElementById('statPrivate').textContent = priv;
+}
+
+// ── FILTER + SEARCH ──
+window.setFilter = (f)=>{
+  activeFilter = f;
+  ['filterAll','filterOnline','filterLocked'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById('filter'+f.charAt(0).toUpperCase()+f.slice(1)).classList.add('active');
+  filterUsers();
+};
+
+window.filterUsers = ()=>{
+  const q = document.getElementById('userSearch').value.toLowerCase();
+  let filtered = [...allUsers];
+  if(activeFilter==='online') filtered = filtered.filter(u=>u.online);
+  if(activeFilter==='locked') filtered = filtered.filter(u=>u.locked);
+  if(q) filtered = filtered.filter(u=>
+    (u.name||'').toLowerCase().includes(q)||
+    (u.email||'').toLowerCase().includes(q)||
+    (u.handle||'').toLowerCase().includes(q)
+  );
+  renderTable(filtered);
+};
+
+// ── RENDER TABLE ──
+function renderTable(users){
+  const tbody = document.getElementById('userTableBody');
+  if(!users.length){
+    tbody.innerHTML = `<tr><td colspan="7"><div class="table-empty"><div class="table-empty-ico">🔍</div><p>No users found</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = users.map(u => {
+    const av = avColor(u.uid||u.id);
+    const initials = (u.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const joined = u.createdAt?.seconds ? new Date(u.createdAt.seconds*1000).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+    const statusBadge = u.locked
+      ? `<span class="badge badge-locked">🔒 Locked</span>`
+      : u.online
+        ? `<span class="badge badge-online">● Online</span>`
+        : `<span class="badge badge-offline">Offline</span>`;
+    const privBadge = u.isPrivate
+      ? `<span class="badge badge-private">🔒 Private</span>`
+      : `<span class="badge badge-public">🌐 Public</span>`;
+    const lockBtn = u.locked
+      ? `<button class="act-btn act-btn-unlock" onclick="window.unlockUser('${u.id}','${esc(u.name)}')">Unlock</button>`
+      : `<button class="act-btn act-btn-lock" onclick="window.lockUser('${u.id}','${esc(u.name)}')">Lock</button>`;
+    return `<tr>
+      <td>
+        <div class="user-info">
+          <div class="user-av ${av}">${initials}</div>
+          <div>
+            <div class="user-name">${esc(u.name||'—')}</div>
+            <div class="user-handle">${esc(u.handle||'')}</div>
+          </div>
+        </div>
+      </td>
+      <td class="user-email-cell">${esc(u.email||'—')}</td>
+      <td style="color:var(--t2);font-size:12px">📍 ${esc(u.location||'—')}</td>
+      <td>${statusBadge}</td>
+      <td>${privBadge}</td>
+      <td class="user-date">${joined}</td>
+      <td>
+        <div class="act-btns">
+          <button class="act-btn act-btn-view" onclick="window.viewUser('${u.id}')">View</button>
+          ${lockBtn}
+          <button class="act-btn act-btn-del" onclick="window.deleteUser('${u.id}','${esc(u.name)}')">Remove</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderLockedTable(){
+  const locked = allUsers.filter(u=>u.locked);
+  const tbody = document.getElementById('lockedTableBody');
+  if(!locked.length){
+    tbody.innerHTML = `<tr><td colspan="4"><div class="table-empty"><div class="table-empty-ico">✅</div><p>No locked accounts</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = locked.map(u=>{
+    const av = avColor(u.uid||u.id);
+    const initials = (u.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const since = u.lockedAt?.seconds ? new Date(u.lockedAt.seconds*1000).toLocaleString() : 'Unknown';
+    return `<tr>
+      <td><div class="user-info">
+        <div class="user-av ${av}">${initials}</div>
+        <div><div class="user-name">${esc(u.name||'—')}</div><div class="user-handle">${esc(u.handle||'')}</div></div>
+      </div></td>
+      <td class="user-email-cell">${esc(u.email||'—')}</td>
+      <td class="user-date">${since}</td>
+      <td><button class="act-btn act-btn-unlock" onclick="window.unlockUser('${u.id}','${esc(u.name)}')">Unlock</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── VIEW USER ──
+window.viewUser = (uid)=>{
+  const u = allUsers.find(x=>x.id===uid);
+  if(!u) return;
+  const av = avColor(uid);
+  const initials = (u.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const joined = u.createdAt?.seconds ? new Date(u.createdAt.seconds*1000).toLocaleString() : '—';
+  const lastSeen = u.lastSeen?.seconds ? new Date(u.lastSeen.seconds*1000).toLocaleString() : '—';
+  const statusBadge = u.locked ? `<span class="badge badge-locked">🔒 Locked</span>`
+    : u.online ? `<span class="badge badge-online">● Online</span>`
+    : `<span class="badge badge-offline">Offline</span>`;
+  const interests = (u.interests||[]).map(i=>`<span class="itag-mini">${esc(i)}</span>`).join('');
+  const lockBtn = u.locked
+    ? `<button class="modal-act-btn modal-act-lock" onclick="window.unlockUser('${uid}','${esc(u.name)}');closeModal()">🔓 Unlock Account</button>`
+    : `<button class="modal-act-btn modal-act-lock" onclick="window.lockUser('${uid}','${esc(u.name)}');closeModal()">🔒 Lock Account</button>`;
+
+  document.getElementById('modalBody').innerHTML = `
+    <div class="modal-av-row">
+      <div class="modal-av ${av}">${initials}</div>
+      <div>
+        <div class="modal-user-name">${esc(u.name||'—')} ${statusBadge}</div>
+        <div class="modal-user-handle">${esc(u.handle||'')} · ${u.isPrivate?'🔒 Private':'🌐 Public'}</div>
+      </div>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-item"><label>UID</label><div class="val" style="font-size:11px">${esc(u.uid||u.id)}</div></div>
+      <div class="detail-item"><label>Email</label><div class="val">${esc(u.email||'—')}</div></div>
+      <div class="detail-item"><label>Location</label><div class="val">${esc(u.location||'—')}</div></div>
+      <div class="detail-item"><label>Joined</label><div class="val">${joined}</div></div>
+      <div class="detail-item"><label>Last Seen</label><div class="val">${lastSeen}</div></div>
+      <div class="detail-item"><label>Account Type</label><div class="val">${u.isPrivate?'Private':'Public'}</div></div>
+      <div class="detail-item full"><label>Bio</label><div class="val" style="font-family:var(--sans);font-size:13px;white-space:normal">${esc(u.bio||'—')}</div></div>
+      <div class="detail-item full"><label>Interests</label><div class="val" style="font-family:var(--sans)">${interests||'—'}</div></div>
+    </div>
+    <div class="modal-actions">
+      ${lockBtn}
+      <button class="modal-act-btn modal-act-del" onclick="window.deleteUser('${uid}','${esc(u.name)}');closeModal()">🗑 Remove User</button>
+    </div>`;
+  document.getElementById('userModal').classList.add('active');
+};
+
+window.closeModal = ()=> document.getElementById('userModal').classList.remove('active');
+
+// ── LOCK / UNLOCK ──
+window.lockUser = (uid, name)=>{
+  pendingAction = async ()=>{
+    await updateDoc(doc(db,'users',uid),{ locked:true, lockedAt:serverTimestamp() });
+    logActivity('lock', `Locked account: ${name} (${uid})`);
+    allUsers = allUsers.map(u=> u.id===uid ? {...u, locked:true} : u);
+    updateStats(); renderTable(applyFilters()); renderLockedTable();
+    showToast(`🔒 ${name} locked`, 'ok');
+  };
+  showConfirm('🔒','Lock Account',`Lock <strong>${name}</strong>? They won't be able to use VOXLO until unlocked.`,'warn','Lock Account');
+};
+
+window.unlockUser = (uid, name)=>{
+  pendingAction = async ()=>{
+    await updateDoc(doc(db,'users',uid),{ locked:false, lockedAt:null });
+    logActivity('unlock', `Unlocked account: ${name} (${uid})`);
+    allUsers = allUsers.map(u=> u.id===uid ? {...u, locked:false} : u);
+    updateStats(); renderTable(applyFilters()); renderLockedTable();
+    showToast(`🔓 ${name} unlocked`, 'ok');
+  };
+  showConfirm('🔓','Unlock Account',`Unlock <strong>${name}</strong>? They'll regain full access to VOXLO.`,'warn','Unlock');
+};
+
+// ── DELETE ──
+window.deleteUser = (uid, name)=>{
+  pendingAction = async ()=>{
+    await deleteDoc(doc(db,'users',uid));
+    logActivity('delete', `Removed user: ${name} (${uid})`);
+    allUsers = allUsers.filter(u=> u.id !== uid);
+    updateStats(); renderTable(applyFilters()); renderLockedTable();
+    showToast(`🗑 ${name} removed`, 'ok');
+  };
+  showConfirm('🗑','Remove User',`Permanently remove <strong>${name}</strong> from VOXLO? This cannot be undone.`,'danger','Remove');
+};
+
+function applyFilters(){
+  const q = document.getElementById('userSearch').value.toLowerCase();
+  let filtered = [...allUsers];
+  if(activeFilter==='online') filtered = filtered.filter(u=>u.online);
+  if(activeFilter==='locked') filtered = filtered.filter(u=>u.locked);
+  if(q) filtered = filtered.filter(u=>
+    (u.name||'').toLowerCase().includes(q)||
+    (u.email||'').toLowerCase().includes(q)||
+    (u.handle||'').toLowerCase().includes(q)
+  );
+  return filtered;
+}
+
+// ── CONFIRM DIALOG ──
+function showConfirm(ico, title, msg, type, okLabel){
+  document.getElementById('confirmIco').textContent = ico;
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').innerHTML = msg;
+  const btn = document.getElementById('confirmOkBtn');
+  btn.textContent = okLabel;
+  btn.className = 'confirm-ok '+type;
+  document.getElementById('confirmOv').classList.add('active');
+}
+window.closeConfirm = ()=> document.getElementById('confirmOv').classList.remove('active');
+window.confirmAction = async ()=>{
+  document.getElementById('confirmOv').classList.remove('active');
+  if(pendingAction){ try{ await pendingAction(); } catch(e){ showToast('Error: '+e.message,'err'); } pendingAction=null; }
+};
+
+// ── SECTION NAV ──
+window.showSection = (sec)=>{
+  ['users','locked','activity'].forEach(s=>{
+    document.getElementById('sec-'+s).style.display = s===sec?'block':'none';
+  });
+  document.querySelectorAll('.adm-nav-item').forEach((btn,i)=>{
+    btn.classList.toggle('active', ['users','locked','activity'][i]===sec);
+  });
+};
+
+// ── ACTIVITY LOG ──
+function logActivity(type, msg){
+  const now = new Date().toLocaleString();
+  activityLog.unshift({ type, msg, time:now });
+  renderActivityLog();
+}
+
+function renderActivityLog(){
+  const el = document.getElementById('activityLog');
+  if(!activityLog.length){
+    el.innerHTML = `<div class="table-empty"><div class="table-empty-ico">📋</div><p>No activity yet</p></div>`;
+    return;
+  }
+  el.innerHTML = activityLog.map(a=>{
+    const dot = a.type==='delete'?'red':a.type==='lock'?'amber':'green';
+    return `<div class="log-item">
+      <div class="log-dot ${dot}"></div>
+      <div><div class="log-text">${a.msg}</div><div class="log-time">${a.time}</div></div>
+    </div>`;
+  }).join('');
+}
+
+window.clearLog = ()=>{ activityLog=[]; renderActivityLog(); };
+
+// ── TOAST ──
+let toastTimer;
+function showToast(msg, type=''){
+  const t = document.getElementById('admToast');
+  t.textContent = msg; t.className = 'adm-toast '+(type==='ok'?'ok':type==='err'?'err':'');
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ── HELPERS ──
+function avColor(uid){
+  const colors = ['avc0','avc1','avc2','avc3','avc4','avc5'];
+  let h = 0; for(let c of (uid||'')) h = ((h<<5)-h)+c.charCodeAt(0);
+  return colors[Math.abs(h)%colors.length];
+}
+function esc(s){ const d=document.createElement('div'); d.textContent=String(s); return d.innerHTML; }
+
+// Close modal on outside click
+document.getElementById('userModal').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeModal(); });
+
+// Initial filter state
+setFilter('all');
+</script>
+</body>
+</html>
