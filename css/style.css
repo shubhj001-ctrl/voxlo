@@ -28,6 +28,20 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:1
 .o1{width:560px;height:560px;background:radial-gradient(circle,#7c3aed,transparent);top:-140px;left:-140px;animation:of 9s ease-in-out infinite}
 .o2{width:440px;height:440px;background:radial-gradient(circle,#22d3ee,transparent);bottom:-80px;right:-80px;animation:of 9s ease-in-out infinite;animation-delay:-4s}
 .o3{width:320px;height:320px;background:radial-gradient(circle,#f472b6,transparent);top:50%;left:50%;transform:translate(-50%,-50%);animation:of 9s ease-in-out infinite;animation-delay:-7s}
+
+/* ── VOXLO WORDMARK (used everywhere) ── */
+.vx-word {
+  font-family: var(--font-d);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  background: linear-gradient(90deg, #7c3aed 0%, #a78bfa 45%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+  line-height: 1;
+}
+
 @keyframes of{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(28px,-28px) scale(1.06)}66%{transform:translate(-20px,20px) scale(.94)}}
 .land-c{position:relative;z-index:1;text-align:center;padding:40px 24px;max-width:720px;animation:fiu .9s ease forwards}
 @keyframes fiu{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
@@ -110,6 +124,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:1
 .sidebar.open .sb-drawer{transform:translateX(0)}
 
 .sb-head{padding:22px 18px 18px;border-bottom:1px solid var(--br);display:flex;align-items:center;justify-content:space-between;padding-top:70px}
+.sb-logo .vx-word{font-size:20px}
 .sb-logo{font-family:var(--font-d);font-size:22px;font-weight:800;background:var(--grd1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .sb-acts{display:flex;gap:7px}
 .ico-btn{width:34px;height:34px;border-radius:9px;border:1px solid var(--br);background:transparent;color:var(--t2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;transition:all .2s}
@@ -320,8 +335,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:1
   font-family:var(--font-d);
   font-size:clamp(52px,10vw,80px);
   font-weight:900;
-  letter-spacing:-2px;
-  color:var(--br2);
+  letter-spacing:2px;
+  color:rgba(124,58,237,0.25);
   display:inline-block;
   transition:color .18s ease, text-shadow .18s ease, transform .18s ease;
   line-height:1;
@@ -494,6 +509,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:1
   margin-bottom:6px;
 }
 /* Sidebar logo */
+.sb-logo .vx-word{font-size:20px}
 .sb-logo{
   display:flex;
   align-items:center;
