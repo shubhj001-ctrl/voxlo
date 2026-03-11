@@ -774,7 +774,7 @@ function renderDiscover(filter){
   if(filter !== undefined) swipeFilter = filter;
   let users = allUsers.filter(u=> u.uid !== S.user?.uid);
   if(swipeFilter !== 'all') users = users.filter(u=>u.interests?.some(i=>i.toLowerCase().includes(swipeFilter)));
-  users = users.filter(u=> !swipeSkipped.has(u.uid));
+  users = users.filter(u=> !swipeSkipped.has(u.uid) && !chattedWith.has(u.uid));
   swipeQueue = users;
   buildSwipeStack();
 }
