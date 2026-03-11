@@ -625,15 +625,34 @@ window.addEventListener('beforeunload',()=>setOnlineStatus(false));
 // ══════════════════════════════
 //  NAV
 // ══════════════════════════════
+function closeSidebar(){
+  document.getElementById('sidebar')?.classList.remove('open');
+  document.getElementById('hamBtn')?.classList.remove('open');
+}
+function openSidebar(){
+  document.getElementById('sidebar')?.classList.add('open');
+  document.getElementById('hamBtn')?.classList.add('open');
+}
+function toggleSidebar(){
+  const sb = document.getElementById('sidebar');
+  if(sb?.classList.contains('open')) closeSidebar();
+  else openSidebar();
+}
+
 function initNav(){
+  // Hamburger
+  document.getElementById('hamBtn')?.addEventListener('click', toggleSidebar);
+  document.getElementById('sbOverlay')?.addEventListener('click', closeSidebar);
+
   document.querySelectorAll('.nav-pill').forEach(p=>{
     p.onclick=()=>{
       document.querySelectorAll('.nav-pill').forEach(x=>x.classList.remove('active'));
       p.classList.add('active');
       const view = p.dataset.view;
-      if(view === 'discover'){ setDiscoverMode(true); showDiscover(); }
-      else if(view === 'requests'){ setDiscoverMode(true); showRequestsPanel(); }
-      else { setDiscoverMode(false); showChatListView(); }
+      if(view === 'discover'){ showDiscover(); }
+      else if(view === 'requests'){ showRequestsPanel(); }
+      else { showChatListView(); }
+      closeSidebar(); // always close after picking
     };
   });
 
@@ -684,18 +703,6 @@ function initNav(){
       i.style.display=i.querySelector('.cn').textContent.toLowerCase().includes(q)?'':'none';
     });
   });
-}
-
-function setDiscoverMode(isDiscover){
-  const chatList = document.getElementById('chatList');
-  const searchWrap = document.querySelector('.sb-search');
-  if(isDiscover){
-    if(chatList) chatList.style.cssText='opacity:.3;pointer-events:none';
-    if(searchWrap) searchWrap.style.cssText='opacity:.3;pointer-events:none';
-  } else {
-    if(chatList) chatList.style.cssText='';
-    if(searchWrap) searchWrap.style.cssText='';
-  }
 }
 
 function showDiscover(){
@@ -908,9 +915,10 @@ function attachDrag(card, user){
     const like=document.getElementById('swipeLabelLike');
     const nope=document.getElementById('swipeLabelNope');
     if(like&&nope){
-      if(currX>40){like.style.opacity=Math.min((currX-40)/60,1);nope.style.opacity=0;}
-      else if(currX<-40){nope.style.opacity=Math.min((-currX-40)/60,1);like.style.opacity=0;}
-      else{like.style.opacity=0;nope.style.opacity=0;}
+      if(Math.abs(currX)>40){
+        const o=Math.min((Math.abs(currX)-40)/60,1);
+        nope.style.opacity=o; like.style.opacity=0;
+      } else{like.style.opacity=0;nope.style.opacity=0;}
     }
   };
   const onEnd=()=>{
@@ -922,13 +930,10 @@ function attachDrag(card, user){
     if(nope) nope.style.opacity=0;
     card.style.transition='';
 
-    if(currX > 100){
-      // Right swipe — flip to show options
-      card.style.transform='';
-      card.classList.add('flipped');
-    } else if(currX < -100){
-      // Left swipe — skip
-      card.style.transform='translateX(-120vw) rotate(-25deg)';
+    if(Math.abs(currX) > 100){
+      // Either direction = skip (slide away)
+      const dir = currX > 0 ? 1 : -1;
+      card.style.transform=`translateX(${dir*120}vw) rotate(${dir*25}deg)`;
       swipeSkipped.add(user.uid);
       setTimeout(()=>{ swipeQueue.shift(); buildSwipeStack(); },350);
     } else {

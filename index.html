@@ -210,9 +210,17 @@
 <div id="pg-app" class="page">
 
   <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="sb-head">
-      <div class="sb-logo"><svg class="voxlo-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 44" aria-label="VOXLO">
+  <!-- HAMBURGER TOGGLE (always visible) -->
+  <button class="ham-btn" id="hamBtn" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+
+  <!-- SIDEBAR DRAWER -->
+  <div class="sidebar" id="sidebar">
+    <div class="sb-overlay" id="sbOverlay"></div>
+    <div class="sb-drawer" id="sbDrawer">
+      <div class="sb-head">
+        <div class="sb-logo"><svg class="voxlo-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 44" aria-label="VOXLO">
   <defs>
     <linearGradient id="vl1" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#22d3ee"/>
@@ -252,9 +260,9 @@
       </div>
     </div>
     <div class="sb-nav">
-      <button class="nav-pill active" data-view="chats">Chats</button>
-      <button class="nav-pill" data-view="discover">Discover</button>
-      <button class="nav-pill" data-view="requests" id="navRequests">Requests <span class="req-badge hidden" id="reqBadge">0</span></button>
+      <button class="nav-pill" data-view="chats"><span class="np-ico">💬</span>Chats</button>
+      <button class="nav-pill active" data-view="discover"><span class="np-ico">✦</span>Discover</button>
+      <button class="nav-pill" data-view="requests" id="navRequests"><span class="np-ico">🤝</span>Requests <span class="req-badge hidden" id="reqBadge">0</span></button>
     </div>
     <div class="chat-list" id="chatList"></div>
     <div class="sb-prof">
@@ -265,13 +273,14 @@
       </div>
       <button class="ico-btn" id="btnLogout" title="Logout">🚪</button>
     </div>
-  </div>
+    </div><!-- /sb-drawer -->
+  </div><!-- /sidebar -->
 
   <!-- MAIN -->
   <div class="main-area">
 
     <!-- DISCOVER — Card Swipe -->
-    <div class="disc-panel" id="discPanel">
+    <div class="disc-panel" id="discPanel" style="padding-top:0">
       <div class="disc-head">
         <div>
           <div class="disc-title">Discover People ✦</div>
@@ -295,7 +304,7 @@
           <button class="swipe-reset-btn" id="swipeResetBtn">Start Over ↺</button>
         </div>
         <!-- Swipe hint labels -->
-        <div class="swipe-label swipe-label-like" id="swipeLabelLike">CONNECT 💬</div>
+        <div class="swipe-label swipe-label-like" id="swipeLabelLike">SKIP ✕</div>
         <div class="swipe-label swipe-label-nope" id="swipeLabelNope">SKIP ✕</div>
       </div>
       <!-- Action buttons -->
