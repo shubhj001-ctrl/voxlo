@@ -571,6 +571,9 @@ function initApp(){
   renderDiscover();
   initChatInput();
   initNav();
+  // Set Discover as the active nav pill on load
+  document.querySelectorAll('.nav-pill').forEach(x=>x.classList.remove('active'));
+  document.querySelector('.nav-pill[data-view="discover"]').classList.add('active');
   showDiscover();
   if(S.fbReady){
     setOnlineStatus(true);
