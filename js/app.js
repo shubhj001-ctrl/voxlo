@@ -400,20 +400,17 @@ async function handleLogin(){
   }
 
   try{
-    const cred = await signInWithEmailAndPassword(S.auth, email, pass);
-    await signOut(S.auth);
-    const otp = generateOTP();
-    const name = cred.user.displayName || email.split('@')[0];
-    S.twoFA = { pendingEmail:email, pendingPass:pass, pendingName:name,
-      otp, otpExpiry: Date.now()+10*60*1000, isLogin:true };
-    await sendOTPEmail(email, name, otp);
-    toast('Verification code sent to '+email+' 📧');
-    showOTPScreen(email);
+    // Direct sign in — no OTP for returning users
+    await signInWithEmailAndPassword(S.auth, email, pass);
+    toast('Welcome back! 👋');
+    // setupAuthListener will handle the rest
   } catch(e){
     console.error('Login error:', e);
-    toast(e.message,'err');
+    const msg = e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password'
+      ? 'Incorrect email or password' : e.message;
+    toast(msg, 'err');
+    btn.disabled=false; btn.textContent='Sign In to VOXLO ✦';
   }
-  btn.disabled=false; btn.textContent='Sign In to VOXLO ✦';
 }
 
 // ══════════════════════════════
