@@ -162,6 +162,15 @@ function setupAuthListener(){
         const snap = await getDoc(doc(S.db,'users',user.uid));
         if(snap.exists()){
           S.profile = snap.data();
+          // ── Locked account check ──
+          if(S.profile.locked){
+            await signOut(S.auth);
+            hideLoader();
+            showPage('pg-auth');
+            switchToLogin();
+            setTimeout(()=> toast('🔒 Your account has been locked. Contact support.','err'), 400);
+            return;
+          }
           setLoaderMsg('Almost there...');
           await updateDoc(doc(S.db,'users',user.uid),{ online:true, lastSeen: serverTimestamp() });
           hideLoader();
