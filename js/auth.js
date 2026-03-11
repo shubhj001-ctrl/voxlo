@@ -17,9 +17,7 @@ if(S.fbReady){
   onAuthStateChanged(S.auth, user => { if(user) window.location.href='app.html'; });
 }
 
-// Read URL mode param
-const urlMode = new URLSearchParams(window.location.search).get('mode');
-if(urlMode==='login') switchToLogin(); else switchToReg();
+
 
 // ── OTP state ──
 const twoFA = { pendingEmail:null,pendingPass:null,pendingName:null,otp:null,otpExpiry:null,timerInterval:null };
@@ -234,3 +232,6 @@ async function handleLogin(){
 window.showFbHelp=()=>document.getElementById('fbSetupModal').classList.add('active');
 document.getElementById('closeFbSetup').onclick=()=>document.getElementById('fbSetupModal').classList.remove('active');
 document.getElementById('saveFbConfig').onclick=saveFbConfig;
+// ── Init based on URL mode ──
+const urlMode = new URLSearchParams(window.location.search).get('mode');
+if(urlMode==='login') switchToLogin(); else switchToReg();
