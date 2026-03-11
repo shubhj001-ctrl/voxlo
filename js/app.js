@@ -676,11 +676,7 @@ function initNav(){
     swipeSkipped.clear();
     renderDiscover();
   });
-  document.getElementById('btnDiscover').onclick=()=>{
-    document.querySelectorAll('.nav-pill').forEach(x=>x.classList.remove('active'));
-    document.querySelector('[data-view="discover"]').classList.add('active');
-    showDiscover();
-  };
+  document.getElementById('btnDiscover')?.addEventListener('click', showDiscover);
   document.querySelectorAll('.fchip').forEach(c=>{
     c.onclick=()=>{
       document.querySelectorAll('.fchip').forEach(x=>x.classList.remove('active'));
@@ -698,7 +694,7 @@ function initNav(){
   document.getElementById('saveSettings').onclick=saveSettings;
   document.getElementById('closeFbSetup').onclick=()=>document.getElementById('fbSetupModal').classList.remove('active');
   document.getElementById('saveFbConfig').onclick=saveFbConfig;
-  document.getElementById('chatSearch').addEventListener('input',e=>{
+  document.getElementById('chatSearch')?.addEventListener('input',e=>{
     const q=e.target.value.toLowerCase();
     document.querySelectorAll('.chat-item').forEach(i=>{
       i.style.display=i.querySelector('.cn').textContent.toLowerCase().includes(q)?'':'none';
