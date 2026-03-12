@@ -100,6 +100,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:1
 .ham-btn.open span:nth-child(1){transform:translateY(7px) rotate(45deg);background:var(--p2)}
 .ham-btn.open span:nth-child(2){opacity:0;transform:scaleX(0)}
 .ham-btn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);background:var(--p2)}
+body.chat-open .ham-btn { display: none !important; }
 
 /* ─── SIDEBAR DRAWER ─── */
 .sidebar{position:fixed;inset:0;z-index:900;pointer-events:none}
@@ -204,7 +205,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:1
 /* ─── CHAT ─── */
 .chat-panel{flex:1;display:none;flex-direction:column;height:100vh}
 .chat-panel.active{display:flex}
-.chat-head{padding:14px 22px;border-bottom:1px solid var(--br);display:flex;align-items:center;gap:13px;background:var(--bg2)}
+.chat-head{padding:14px 22px 14px 72px;border-bottom:1px solid var(--br);display:flex;align-items:center;gap:13px;background:var(--bg2)}
 .ch-info{flex:1}
 .ch-name{font-family:var(--font-d);font-size:15px;font-weight:700}
 .ch-status{font-size:11px;color:var(--g);margin-top:1px}
@@ -1038,7 +1039,7 @@ input, button, textarea, select { touch-action: manipulation; }
   .swipe-empty-sub { font-size: 13px; }
 
   /* ── CHAT PANEL ── */
-  .chat-head { padding: 10px 14px 10px 14px; gap: 10px; }
+  .chat-head { padding: 10px 14px; gap: 10px; }
   .ch-name { font-size: 14px; }
   .ch-status { font-size: 10px; }
   .msgs { padding: 14px 12px; gap: 2px; }
@@ -1155,10 +1156,9 @@ input, button, textarea, select { touch-action: manipulation; }
 
 @media (max-width: 768px) {
   .mob-back-btn { display: flex; }
-  /* Chat head: show back btn, hide hamburger when chat is open */
+  /* Chat head: show back btn, hide hamburger overlap area */
   .chat-panel.active ~ * .ham-btn,
   .chat-panel .ham-btn { display: none; }
-  body.chat-open .ham-btn { display: none; }
 }
 
 /* ══════════════════════════════
