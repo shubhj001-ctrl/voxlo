@@ -36,17 +36,24 @@ if(S.fbReady){
 // ══════════════════════════════
 //  APP INIT
 // ══════════════════════════════
-function initApp(){
-  updateSidebarProfile(); loadUsers(); initChatInput(); initNav();
+async function initApp(){
+  updateSidebarProfile(); initChatInput(); initNav();
   document.querySelectorAll('.sb-menu-item').forEach(x=>x.classList.remove('active'));
   document.querySelector('.sb-nav-item[data-view="discover"]')?.classList.add('active');
   showDiscover();
-  if(S.fbReady){ setOnlineStatus(true); loadFriendData(); loadChattedWith(); }
+  if(S.fbReady){
+    setOnlineStatus(true);
+    // Load chattedWith FIRST so discover never shows people we already chatted with
+    await loadChattedWith();
+    loadFriendData();
+  }
+  loadUsers();
 }
 
 async function loadChattedWith(){
   if(!S.fbReady||!S.user) return;
-  try{ const snap=await getDoc(doc(S.db,'users',S.user.uid)); if(snap.exists()){ chattedWith=new Set(snap.data().chattedWith||[]); renderChatList(); } }catch(e){}
+  try{ const snap=await getDoc(doc(S.db,'users',S.user.uid)); if(snap.exists()){ chattedWith=new Set(snap.data().chattedWith||[]); } }catch(e){}
+  finally{ chattedWithLoaded=true; renderChatList(); renderDiscover(); }
 }
 async function markChattedWith(uid){
   if(!S.fbReady||!S.user||chattedWith.has(uid)) return;
@@ -121,7 +128,7 @@ async function logout(){
 // ══════════════════════════════
 //  USERS
 // ══════════════════════════════
-let allUsers=[], chattedWith=new Set();
+let allUsers=[], chattedWith=new Set(), chattedWithLoaded=false;
 async function loadUsers(){
   if(!S.fbReady){ allUsers=DEMO_USERS; renderChatList(); document.getElementById('onlineCount').textContent='3 people online'; renderDiscover(); return; }
   try{
@@ -130,7 +137,9 @@ async function loadUsers(){
       allUsers=[]; let online=0;
       snap.forEach(d=>{ const u=d.data(); if(u.uid!==S.user?.uid){ allUsers.push(u); if(u.online) online++; } });
       document.getElementById('onlineCount').textContent=`${online} people online`;
-      renderDiscover(); renderChatList();
+      // Only render discover if chattedWith has been loaded (prevents chatted users flashing in stack)
+      if(chattedWithLoaded) renderDiscover();
+      renderChatList();
     });
   }catch(e){ allUsers=DEMO_USERS; renderChatList(); }
 }
