@@ -103,6 +103,7 @@ function initNav(){
   document.getElementById('closeSettings').onclick=()=>document.getElementById('settingsModal').classList.remove('active');
   document.getElementById('saveSettings').onclick=saveSettings;
   document.getElementById('btnBlockUser').onclick=()=>promptBlock(S.chatId);
+  document.getElementById('chatHamBtn')?.addEventListener('click', toggleSidebar);
 }
 
 function showDiscover(){

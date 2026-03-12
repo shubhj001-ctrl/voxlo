@@ -102,6 +102,17 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:1
 .ham-btn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);background:var(--p2)}
 body.chat-open .ham-btn { display: none !important; }
 
+/* ── INLINE CHAT HAMBURGER (inside chat header, not fixed) ── */
+.chat-ham-btn {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 5px; padding: 10px;
+  width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+  background: var(--bg3); border: 1px solid var(--br2);
+  cursor: pointer; transition: all .2s;
+}
+.chat-ham-btn:hover { border-color: var(--p); background: var(--bg4); }
+.chat-ham-btn span { display: block; width: 16px; height: 2px; background: var(--t2); border-radius: 2px; transition: all .3s; }
+
 /* ─── SIDEBAR DRAWER ─── */
 .sidebar{position:fixed;inset:0;z-index:900;pointer-events:none}
 .sidebar.open{pointer-events:all}
@@ -205,7 +216,7 @@ body.chat-open .ham-btn { display: none !important; }
 /* ─── CHAT ─── */
 .chat-panel{flex:1;display:none;flex-direction:column;height:100vh}
 .chat-panel.active{display:flex}
-.chat-head{padding:14px 22px 14px 72px;border-bottom:1px solid var(--br);display:flex;align-items:center;gap:13px;background:var(--bg2)}
+.chat-head{padding:14px 16px;border-bottom:1px solid var(--br);display:flex;align-items:center;gap:12px;background:var(--bg2)}
 .ch-info{flex:1}
 .ch-name{font-family:var(--font-d);font-size:15px;font-weight:700}
 .ch-status{font-size:11px;color:var(--g);margin-top:1px}
@@ -1156,7 +1167,8 @@ input, button, textarea, select { touch-action: manipulation; }
 
 @media (max-width: 768px) {
   .mob-back-btn { display: flex; }
-  /* Chat head: show back btn, hide hamburger overlap area */
+  /* On mobile: show back btn, hide inline ham (back btn serves same purpose) */
+  .chat-ham-btn { display: none; }
   .chat-panel.active ~ * .ham-btn,
   .chat-panel .ham-btn { display: none; }
 }
