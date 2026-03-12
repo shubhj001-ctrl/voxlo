@@ -1038,7 +1038,7 @@ input, button, textarea, select { touch-action: manipulation; }
   .swipe-empty-sub { font-size: 13px; }
 
   /* ── CHAT PANEL ── */
-  .chat-head { padding: 10px 14px 10px 60px; gap: 10px; }
+  .chat-head { padding: 10px 14px 10px 14px; gap: 10px; }
   .ch-name { font-size: 14px; }
   .ch-status { font-size: 10px; }
   .msgs { padding: 14px 12px; gap: 2px; }
@@ -1155,9 +1155,10 @@ input, button, textarea, select { touch-action: manipulation; }
 
 @media (max-width: 768px) {
   .mob-back-btn { display: flex; }
-  /* Chat head: show back btn, hide hamburger overlap area */
+  /* Chat head: show back btn, hide hamburger when chat is open */
   .chat-panel.active ~ * .ham-btn,
   .chat-panel .ham-btn { display: none; }
+  body.chat-open .ham-btn { display: none; }
 }
 
 /* ══════════════════════════════
@@ -1305,15 +1306,6 @@ input, button, textarea, select { touch-action: manipulation; }
   transition: opacity .2s !important;
 }
 .nav-signin-btn:hover { opacity: .85; }
-.nav-login-btn {
-  color: var(--t2);
-  padding: 8px 18px; border-radius: 20px;
-  border: 1px solid var(--br2);
-  font-weight: 600; font-size: 14px;
-  transition: all .2s;
-  text-decoration: none;
-}
-.nav-login-btn:hover { border-color: var(--p); color: var(--p2); background: rgba(124,58,237,.08); }
 
 /* ── Hero ── */
 .land-hero {

@@ -88,7 +88,7 @@ function initNav(){
   document.getElementById('btnDiscover')?.addEventListener('click',showDiscover);
   document.querySelectorAll('.fchip').forEach(c=>{ c.onclick=()=>{ document.querySelectorAll('.fchip').forEach(x=>x.classList.remove('active')); c.classList.add('active'); swipeSkipped.clear(); swipeHadUsers=false; renderDiscover(c.dataset.filter); }; });
   document.getElementById('swipeResetBtn')?.addEventListener('click',()=>{ swipeSkipped.clear(); swipeHadUsers=false; document.querySelectorAll('.fchip').forEach(x=>x.classList.remove('active')); document.querySelector('.fchip[data-filter="all"]')?.classList.add('active'); renderDiscover('all'); });
-  document.getElementById('btnChatBack')?.addEventListener('click',()=>{ document.getElementById('chatPanel').classList.remove('active'); showDiscover(); });
+  document.getElementById('btnChatBack')?.addEventListener('click',()=>{ document.getElementById('chatPanel').classList.remove('active'); document.body.classList.remove('chat-open'); showDiscover(); });
   document.getElementById('btnSettings').onclick=openSettings;
   document.getElementById('btnLogout').onclick=logout;
   document.getElementById('btnViewProf').onclick=toggleProfPanel;
@@ -101,6 +101,7 @@ function initNav(){
 function showDiscover(){
   document.getElementById('discPanel').classList.remove('hidden');
   document.getElementById('chatPanel').classList.remove('active');
+  document.body.classList.remove('chat-open');
   document.getElementById('requestsPanel').classList.add('hidden');
   document.querySelectorAll('.sb-menu-item').forEach(i=>i.classList.remove('active'));
   document.querySelector('.sb-nav-item[data-view="discover"]')?.classList.add('active');
@@ -360,6 +361,7 @@ async function openChat(uid){
   S.chatUser=user; markChattedWith(uid);
   document.getElementById('discPanel').classList.add('hidden');
   document.getElementById('chatPanel').classList.add('active');
+  document.body.classList.add('chat-open');
   const av=avColor(uid),chAv=document.getElementById('chAv'); chAv.className=`av ${av}`; chAv.textContent=initials(user.name);
   document.getElementById('chName').textContent=user.name;
   document.getElementById('chStatus').textContent=user.online?'🟢 Online now':'⚪ Last seen recently';
