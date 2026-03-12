@@ -95,6 +95,7 @@ function initNav(){
   document.getElementById('btnCloseProf').onclick=()=>document.getElementById('profPanel').classList.remove('active');
   document.getElementById('closeSettings').onclick=()=>document.getElementById('settingsModal').classList.remove('active');
   document.getElementById('saveSettings').onclick=saveSettings;
+  document.getElementById('btnBlockUser').onclick=()=>promptBlock(S.chatId);
 }
 
 function showDiscover(){
@@ -152,50 +153,40 @@ function showAd(){
     overlay.classList.add('active');
     void bar.offsetWidth;
     bar.style.transition=`transform ${AD_DURATION}s linear`; bar.style.transform='scaleX(0)';
-
-    // Push adsbygoogle ad unit
-    try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){}
-
-    // Check if AdSense loaded a real ad after 1.5s, show fallback if not
-    const fallback=document.getElementById('adFallback');
-    const adWrap=document.getElementById('adSenseWrap');
-    setTimeout(()=>{
-      const ins=adWrap?.querySelector('ins.adsbygoogle');
-      const adLoaded=ins&&ins.getAttribute('data-ad-status')==='filled';
-      if(!adLoaded){
-        if(adWrap) adWrap.style.display='none';
-        if(fallback) fallback.classList.add('show');
-      } else {
-        if(fallback) fallback.style.display='none';
-      }
-    },1500);
-
     let rem=AD_DURATION;
     adTimer=setInterval(()=>{ rem--; cdTxt.textContent=rem; label.textContent=rem; if(rem<=0){ clearInterval(adTimer); skipBtn.disabled=false; skipBtn.innerHTML='Continue Discovering ✦'; } },1000);
-    skipBtn.onclick=()=>{ if(!skipBtn.disabled){
-      clearInterval(adTimer);
-      overlay.classList.remove('active');
-      // Reset for next time
-      if(fallback) fallback.classList.remove('show');
-      if(adWrap) adWrap.style.display='';
-      if(adResolve){adResolve();adResolve=null;}
-    } };
+    skipBtn.onclick=()=>{ if(!skipBtn.disabled){ clearInterval(adTimer); overlay.classList.remove('active'); if(adResolve){adResolve();adResolve=null;} } };
   });
 }
 
 function renderDiscover(filter){
   if(filter!==undefined) swipeFilter=filter;
+  // If Firebase hasn't returned any users yet, show nothing — not the empty state
+  if(S.fbReady && allUsers.length===0){
+    const empty=document.getElementById('swipeEmpty');
+    if(empty) empty.style.display='none';
+    return;
+  }
   let users=allUsers.filter(u=>u.uid!==S.user?.uid);
   if(swipeFilter!=='all') users=users.filter(u=>u.interests?.some(i=>i.toLowerCase().includes(swipeFilter)));
-  users=users.filter(u=>!swipeSkipped.has(u.uid)&&!chattedWith.has(u.uid));
+  // Filter out blocked users and users who blocked me
+  users=users.filter(u=>!swipeSkipped.has(u.uid)&&!chattedWith.has(u.uid)&&!blockedUsers.has(u.uid)&&!blockedByUsers.has(u.uid));
   swipeQueue=users; buildSwipeStack();
 }
 
 function buildSwipeStack(){
-  const stack=document.getElementById('swipeStack'); if(!stack) return;
+  const stack=document.getElementById('swipeStack');
+  const empty=document.getElementById('swipeEmpty');
+  if(!stack) return;
   stack.innerHTML='';
-  if(!swipeQueue.length) return;
+  if(!swipeQueue.length){
+    // Only show empty state if users have already loaded (allUsers is populated)
+    // This prevents showing it on first render before Firebase data arrives
+    if(empty) empty.style.display = (allUsers.length > 0 || swipeHadUsers) ? '' : 'none';
+    return;
+  }
   swipeHadUsers=true;
+  if(empty) empty.style.display='none';
   swipeQueue.slice(0,3).forEach(u=>stack.insertBefore(buildCard(u),stack.firstChild));
   attachDrag(stack.lastElementChild,swipeQueue[0]);
 }
@@ -276,10 +267,23 @@ function calcMatch(user){
 //  FRIEND REQUESTS
 // ══════════════════════════════
 let myFriends=new Set(),sentRequests=new Set(),incomingRequests=[],sentRequestsList=[];
+let blockedUsers=new Set(), blockedByUsers=new Set(); // uids I blocked / uids who blocked me
 
 async function loadFriendData(){
   if(!S.fbReady||!S.user) return;
   const uid=S.user.uid, ref=collection(S.db,'friendRequests');
+  // Load blocks: documents I created blocking others
+  onSnapshot(query(collection(S.db,'blocks'),where('blockerUid','==',uid)),snap=>{
+    blockedUsers=new Set();
+    snap.forEach(d=>blockedUsers.add(d.data().blockedUid));
+    renderDiscover(); renderChatList(); renderBlockedList();
+  });
+  // Load blocks where I am the blocked person
+  onSnapshot(query(collection(S.db,'blocks'),where('blockedUid','==',uid)),snap=>{
+    blockedByUsers=new Set();
+    snap.forEach(d=>blockedByUsers.add(d.data().blockerUid));
+    renderDiscover(); renderChatList();
+  });
   onSnapshot(query(ref,where('toUid','==',uid)),snap=>{
     incomingRequests=[]; myFriends=new Set();
     snap.forEach(d=>{ const r={id:d.id,...d.data()}; incomingRequests.push(r); if(r.status==='accepted') myFriends.add(r.fromUid); });
@@ -333,7 +337,7 @@ function renderReqList(tab){
 function renderChatList(){
   const list=document.getElementById('chatList'); list.innerHTML='';
   if(!S.fbReady){ const users=allUsers.slice(0,4); if(!users.length){ list.innerHTML='<div style="padding:20px;text-align:center;color:var(--t3);font-size:13px">No chats yet.<br>Discover people to connect!</div>'; return; } users.forEach(u=>addChatItem(list,u)); return; }
-  const users=allUsers.filter(u=>chattedWith.has(u.uid));
+  const users=allUsers.filter(u=>chattedWith.has(u.uid)&&!blockedUsers.has(u.uid)&&!blockedByUsers.has(u.uid));
   if(!users.length){ list.innerHTML=`<div style="padding:24px 16px;text-align:center;color:var(--t3);font-size:13px;line-height:1.7">No chats yet 💬<br><span style="font-size:12px">Go to <strong style="color:var(--t2)">Discover</strong> to find people</span></div>`; return; }
   users.forEach(u=>addChatItem(list,u));
 }
@@ -360,6 +364,24 @@ async function openChat(uid){
   document.getElementById('chName').textContent=user.name;
   document.getElementById('chStatus').textContent=user.online?'🟢 Online now':'⚪ Last seen recently';
   updateProfPanel(user);
+  // Show/hide block button and chat input based on block state
+  const isBlocked=blockedUsers.has(uid)||blockedByUsers.has(uid);
+  const inpArea=document.querySelector('.chat-inp-area');
+  const blockBtn=document.getElementById('btnBlockUser');
+  // Remove old blocked banner if any
+  document.getElementById('chatBlockedBanner')?.remove();
+  if(isBlocked){
+    if(inpArea) inpArea.style.display='none';
+    const banner=document.createElement('div');
+    banner.id='chatBlockedBanner'; banner.className='chat-blocked-banner';
+    banner.innerHTML=blockedUsers.has(uid)
+      ? '<div class="blocked-ico">🚫</div><div>You have blocked this user.<br><small style="opacity:.7">Unblock them in Settings to chat again.</small></div>'
+      : '<div class="blocked-ico">🚫</div><div>You can\'t send messages to this user.</div>';
+    document.getElementById('msgsContainer').after(banner);
+  } else {
+    if(inpArea) inpArea.style.display='';
+    if(blockBtn) blockBtn.style.display=blockedByUsers.has(uid)?'none':'';
+  }
   if(S.unsubMsgs){S.unsubMsgs();S.unsubMsgs=null;}
   if(!S.fbReady){ renderDemoMessages(uid); return; }
   const roomId=[S.user.uid,uid].sort().join('_');
@@ -431,8 +453,110 @@ function updateProfPanel(u){ const av=avColor(u.uid); document.getElementById('p
 // ══════════════════════════════
 //  SETTINGS
 // ══════════════════════════════
-function openSettings(){ if(S.profile){ document.getElementById('set-name').value=S.profile.name||''; document.getElementById('set-bio').value=S.profile.bio||''; document.getElementById('set-private').checked=S.profile.isPrivate||false; } document.getElementById('settingsModal').classList.add('active'); }
+function openSettings(){ if(S.profile){ document.getElementById('set-name').value=S.profile.name||''; document.getElementById('set-bio').value=S.profile.bio||''; document.getElementById('set-private').checked=S.profile.isPrivate||false; } renderBlockedList(); document.getElementById('settingsModal').classList.add('active'); }
 async function saveSettings(){ const name=document.getElementById('set-name').value.trim(),bio=document.getElementById('set-bio').value.trim(),priv=document.getElementById('set-private').checked; if(!name){toast('Name cannot be empty','err');return;} S.profile.name=name;S.profile.bio=bio;S.profile.isPrivate=priv;S.profile.handle='@'+name.toLowerCase().replace(/\s+/g,'.'); if(S.fbReady&&S.user) await updateDoc(doc(S.db,'users',S.user.uid),{name,bio,isPrivate:priv,handle:S.profile.handle}).catch(()=>{}); updateSidebarProfile(); document.getElementById('settingsModal').classList.remove('active'); toast(priv?'Profile updated! 🔒 Private':'Profile updated! 🌐 Public'); }
+
+// ══════════════════════════════
+//  BLOCK / UNBLOCK
+// ══════════════════════════════
+function promptBlock(uid){
+  if(!uid||!S.fbReady){ toast('Connect Firebase to use this feature','err'); return; }
+  const user=allUsers.find(u=>u.uid===uid)||{name:'this user',handle:''};
+  document.getElementById('blockModalText').innerHTML=
+    `Are you sure you want to block <strong style="color:var(--t1)">${esc(user.name)}</strong>?`;
+  document.getElementById('blockModal').classList.add('active');
+  document.getElementById('confirmBlockBtn').onclick=()=>blockUser(uid);
+}
+
+async function blockUser(uid){
+  if(!S.fbReady||!S.user) return;
+  try{
+    document.getElementById('blockModal').classList.remove('active');
+    toast('Blocking user...');
+    const myUid=S.user.uid;
+    // 1. Write block document
+    await addDoc(collection(S.db,'blocks'),{blockerUid:myUid,blockedUid:uid,createdAt:serverTimestamp()});
+    // 2. Delete chat messages from both sides
+    const roomId=[myUid,uid].sort().join('_');
+    try{
+      const msgs=await getDocs(collection(S.db,'chats',roomId,'messages'));
+      const dels=msgs.docs.map(d=>deleteDoc(d.ref));
+      await Promise.all(dels);
+    }catch(e){}
+    // 3. Remove from chattedWith for both users
+    try{
+      await updateDoc(doc(S.db,'users',myUid),{chattedWith: (await getDoc(doc(S.db,'users',myUid))).data()?.chattedWith?.filter(id=>id!==uid)||[]});
+      await updateDoc(doc(S.db,'users',uid),{chattedWith: (await getDoc(doc(S.db,'users',uid))).data()?.chattedWith?.filter(id=>id!==myUid)||[]});
+    }catch(e){}
+    // 4. Remove from friend requests
+    try{
+      const reqs=await getDocs(query(collection(S.db,'friendRequests'),where('fromUid','in',[myUid,uid]),where('toUid','in',[myUid,uid])));
+      await Promise.all(reqs.docs.map(d=>deleteDoc(d.ref)));
+    }catch(e){}
+    // 5. Update local state
+    blockedUsers.add(uid);
+    chattedWith.delete(uid);
+    // 6. Close chat panel
+    if(S.chatId===uid){
+      S.chatId=null;
+      if(S.unsubMsgs){S.unsubMsgs();S.unsubMsgs=null;}
+      document.getElementById('chatPanel').classList.remove('active');
+      showDiscover();
+    }
+    toast('User blocked. They won\'t appear in your Discover. 🚫');
+    renderChatList(); renderBlockedList();
+  }catch(e){ toast('Failed to block: '+e.message,'err'); }
+}
+
+async function unblockUser(uid){
+  if(!S.fbReady||!S.user) return;
+  try{
+    const myUid=S.user.uid;
+    // Remove block doc
+    const snap=await getDocs(query(collection(S.db,'blocks'),where('blockerUid','==',myUid),where('blockedUid','==',uid)));
+    await Promise.all(snap.docs.map(d=>deleteDoc(d.ref)));
+    blockedUsers.delete(uid);
+    toast('User unblocked! 💜');
+    renderBlockedList(); renderDiscover();
+  }catch(e){ toast('Failed to unblock','err'); }
+}
+
+async function unblockAndChat(uid){
+  await unblockUser(uid);
+  // Add directly to chattedWith (skip discover)
+  await markChattedWith(uid);
+  setTimeout(()=>openChat(uid),400);
+  document.getElementById('settingsModal').classList.remove('active');
+}
+
+function renderBlockedList(){
+  const list=document.getElementById('blockedList'); if(!list) return;
+  const count=document.getElementById('blockedCount');
+  if(!blockedUsers.size){
+    list.innerHTML='<div style="text-align:center;padding:20px;color:var(--t3);font-size:13px">No blocked users ✦</div>';
+    if(count) count.textContent='0 blocked';
+    return;
+  }
+  if(count) count.textContent=blockedUsers.size+' blocked';
+  list.innerHTML='';
+  blockedUsers.forEach(uid=>{
+    const user=allUsers.find(u=>u.uid===uid)||{name:'Unknown User',handle:'',uid};
+    const card=document.createElement('div'); card.className='blocked-card';
+    card.innerHTML=`
+      <div class="av av-sm ${avColor(uid)}">${initials(user.name)}</div>
+      <div class="blocked-card-info">
+        <div class="blocked-card-name">${esc(user.name)}</div>
+        <div class="blocked-card-handle">${esc(user.handle||'')}</div>
+      </div>
+      <div class="blocked-card-acts">
+        <button class="btn-blocked-chat" data-uid="${uid}">💬 Add</button>
+        <button class="btn-unblock" data-uid="${uid}">Unblock</button>
+      </div>`;
+    card.querySelector('.btn-unblock').onclick=()=>unblockUser(uid);
+    card.querySelector('.btn-blocked-chat').onclick=()=>unblockAndChat(uid);
+    list.appendChild(card);
+  });
+}
 
 // ══════════════════════════════
 //  LIGHTBOX

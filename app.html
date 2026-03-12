@@ -106,7 +106,7 @@
         </div>
       </div>
       <div class="swipe-arena" id="swipeArena">
-        <div class="swipe-empty" id="swipeEmpty">
+        <div class="swipe-empty" id="swipeEmpty" style="display:none">
           <div class="swipe-empty-ico">🌌</div>
           <div class="swipe-empty-title">That's all for now!</div>
           <div class="swipe-empty-sub">You've seen everyone. Check back later or try a different filter.</div>
@@ -142,6 +142,7 @@
         </div>
         <div class="ch-acts">
           <button class="ico-btn" id="btnViewProf" title="View Profile">👤</button>
+          <button class="ico-btn ico-btn-block" id="btnBlockUser" title="Block User">🚫</button>
         </div>
       </div>
       <div class="msgs" id="msgsContainer"></div>
@@ -212,6 +213,40 @@
       </div>
       <button class="btn-full" id="saveSettings">Save Changes ✦</button>
     </div>
+
+    <!-- Blocked Users Section -->
+    <div style="margin-top:24px;border-top:1px solid var(--br);padding-top:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;color:var(--t1)">🚫 Blocked Users</div>
+        <div style="font-size:11px;color:var(--t3)" id="blockedCount">0 blocked</div>
+      </div>
+      <div id="blockedList" style="display:flex;flex-direction:column;gap:10px;max-height:240px;overflow-y:auto">
+        <div style="text-align:center;padding:20px;color:var(--t3);font-size:13px">No blocked users</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BLOCK CONFIRM MODAL -->
+<div class="modal-ov" id="blockModal">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-hd">
+      <div class="modal-title">🚫 Block User</div>
+      <button class="modal-close" onclick="document.getElementById('blockModal').classList.remove('active')">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <p style="font-size:14px;color:var(--t2);line-height:1.7" id="blockModalText">Are you sure you want to block this user?</p>
+      <div style="background:var(--bg2);border:1px solid var(--br);border-radius:12px;padding:14px;font-size:13px;color:var(--t3);line-height:1.7">
+        ✦ They won't appear in your Discover<br>
+        ✦ Your chat will be deleted for both of you<br>
+        ✦ They can't message you anymore<br>
+        ✦ You can unblock anytime in Settings
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-full" style="background:var(--bg3);color:var(--t2);border:1px solid var(--br)" onclick="document.getElementById('blockModal').classList.remove('active')">Cancel</button>
+        <button class="btn-full" style="background:linear-gradient(135deg,#e11d48,#be123c)" id="confirmBlockBtn">Block User 🚫</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -224,52 +259,28 @@
 <!-- AD MODAL -->
 <div class="ad-overlay" id="adOverlay">
   <div class="ad-card">
-
-    <!-- Card-style header like a swipe card -->
-    <div class="ad-card-header">
-      <div class="ad-sponsored-row">
-        <div class="ad-av">📢</div>
-        <div class="ad-av-info">
-          <div class="ad-av-name">Sponsored</div>
-          <div class="ad-av-handle">@advertisement · promoted</div>
-        </div>
-        <span class="ad-badge">AD</span>
+    <div class="ad-heart-row"><div class="ad-heart">💜</div></div>
+    <div class="ad-title">Keeping VOXLO Free</div>
+    <div class="ad-sub">We don't sell your data. A short ad helps us keep the lights on for everyone — thank you for supporting us 🙏</div>
+    <div class="ad-banner" id="adBanner">
+      <div class="ad-banner-inner">
+        <div class="ad-brand">📢 Advertisement</div>
+        <ins class="adsbygoogle"
+          style="display:block;width:100%;min-height:100px;"
+          data-ad-client="ca-pub-8978138449354329"
+          data-ad-slot="auto"
+          data-ad-format="auto"
+          data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
       </div>
     </div>
-
-    <!-- Real AdSense ad -->
-    <div class="ad-adsense-wrap" id="adSenseWrap">
-      <ins class="adsbygoogle"
-        style="display:block;width:100%;min-height:160px;"
-        data-ad-client="ca-pub-8978138449354329"
-        data-ad-slot="auto"
-        data-ad-format="auto"
-        data-full-width-responsive="true"></ins>
-    </div>
-
-    <!-- Fallback shown when AdSense doesnt load -->
-    <div class="ad-fallback" id="adFallback">
-      <div class="ad-fallback-emoji">💜</div>
-      <div class="ad-fallback-title">Keeping VOXLO Free</div>
-      <div class="ad-fallback-sub">We don't sell your data. Short ads like this keep VOXLO running for everyone — thank you for your support 🙏</div>
-      <div class="ad-fallback-tags">
-        <span class="ad-ftag">🔒 Privacy First</span>
-        <span class="ad-ftag">✦ Bio-First</span>
-        <span class="ad-ftag">💬 Real Chats</span>
-        <span class="ad-ftag">🌍 Global</span>
-      </div>
-    </div>
-
-    <!-- Timer -->
     <div class="ad-timer-row">
       <div class="ad-timer-track"><div class="ad-timer-bar" id="adTimerBar"></div></div>
       <div class="ad-timer-label" id="adTimerLabel">10</div>
     </div>
-
     <button class="ad-skip-btn" id="adSkipBtn" disabled>
       <span id="adSkipTxt">Please wait… <strong id="adCountdown">10</strong>s</span>
     </button>
-
     <div class="ad-note">Ads keep VOXLO 100% free — no subscriptions, ever.</div>
   </div>
 </div>
